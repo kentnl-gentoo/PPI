@@ -1,5 +1,8 @@
 Revision history for Perl extension PPI
 
+0.810 Mon Jun 14 2004
+	- Recognise the _ magic filehandle
+
 0.809 Sat Apr 17 2004
 	- No changes to PPI itself.
 	  Set the correct number of tests to match changes to Test::ClassAPI

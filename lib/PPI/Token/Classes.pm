@@ -22,7 +22,7 @@ use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.809';
+	$VERSION = '0.810';
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 
 	# Build the class map
@@ -395,6 +395,10 @@ sub _on_char {
 	# Or is it a label
 	} elsif ( $bareword =~ /^[A-Za-z_]\w*:$/ ) {
 		$t->_set_token_class( 'Label' );
+
+	# Or the magic filehandle
+	} elsif ( $bareword eq '_' ) {
+		$t->_set_token_class( 'Magic' );
 
 	}
 
