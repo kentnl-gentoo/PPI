@@ -8,35 +8,17 @@ package AppLib::CGI;
 use strict;
 use UNIVERSAL 'isa';
 use base 'AppLib::Error';
-use CGI qw{-debug};
-
+use CGI;
 use vars qw{$cache};
 BEGIN {
 	$cache = undef;
+	$CGI::DEBUG = $CGI::DEBUG = 2;
 }
 
+# Get the query if we don't have it already
 sub new {
 	my $class = shift;
-
-	# Get the query if we don't have it already
-	$cache = CGI->new( @_ ) unless $cache;
-	return $cache;
-}
-
-# Pseudo emulation of the ReadParse function
-# Returns a non-tied hash
-use vars qw{%in};
-sub ReadParse {
-	my $class = shift;
-	my $query = $class->new();
-
-	# Build the hash
-	my %hash = ();
-	foreach ( $query->param ) {
-		$hash{$_} = $query->param( $_ ) unless exists $hash{$_};
-	}
-
-	return \%hash;
+	$cache or $cache = CGI->new( @_ );
 }
 
 # The scan method will scan a CGI query to determine a set of names
@@ -47,7 +29,7 @@ sub scan {
 	my $class = shift;
 	my $query = shift;
 	my $namespace = shift;
-	$query = $class->new() unless $query;
+	$query = $class->new unless $query;
 	$namespace .= '_' if $namespace ne '';
 
 	# Get the params list
@@ -61,7 +43,7 @@ sub scan {
 		}
 	}
 
-	return sort keys %names;
+	sort keys %names;
 }
 
 # Move an uploaded file to somewhere else
@@ -72,41 +54,35 @@ sub saveUpload {
 
 	# Get a handle
 	my $query = $class->new();
-	my $filename = $query->param( $name );
-	return 0 unless $filename;
+	my $filename = $query->param( $name ) or return 0;
 
         # Copy a binary file to somewhere else
-        my $rv = open ( OUTFILE, ">>$outfile" );
-        return $class->andError( "Error opening output file '$outfile'" ) unless $rv;
+        my $rv = open ( OUTFILE, ">>$outfile" )
+        	or return $class->andError( "Error opening output file '$outfile'" );
         binmode OUTFILE;
         my ( $buffer, $bytesread );
         while ( $bytesread = read( $filename, $buffer, 1024 ) ) {
         	print OUTFILE $buffer;
         }
         close OUTFILE;
-	return 1;
+	1;
 }
 
 # Save a CGI request to a file
 sub save {
 	my $class = shift;
-	my $filename = shift;
 	my $query = $class->new;
 
-	open( OUTFILE, ">$filename" ) or return undef;
-	{
-		no strict;
-		$query->save( OUTFILE );
-	}
+	no strict;
+	open( OUTFILE, ">$_[0]" ) or return undef;
+	$query->save( OUTFILE );
 	close OUTFILE;
-	return 1;
+	1;
 }
 
 sub header {
-	# Pass through
-	my $class = shift;
-	return CGI::header( @_ );
+	# Pass through to the function form
+	shift; CGI::header( @_ );
 }
 
 1;
-

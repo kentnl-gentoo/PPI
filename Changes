@@ -1,5 +1,9 @@
 Revision history for Perl extension PPI
 
+0.809 Sat Apr 17 2004
+	- No changes to PPI itself.
+	  Set the correct number of tests to match changes to Test::ClassAPI
+
 0.808 Sat Apr 17 2004
 	- No changes to PPI itself.
 	  Upgraded 02_api.t to match changes to Test::ClassAPI

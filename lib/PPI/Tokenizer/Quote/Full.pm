@@ -1,7 +1,7 @@
 package PPI::Tokenizer::Quote::Full;
 
 # Full quote engine
-		
+
 use strict;
 use base 'PPI::Tokenizer::Quote';
 
@@ -23,7 +23,6 @@ BEGIN {
 		'y'   => { operator => 'y', braced => undef, seperator => undef, _sections => 2, modifiers => {} },
 
 		'/' => { operator => undef, braced => 0, seperator => '/', _sections => 1, modifiers => {} },
-
 		
 		# The final ( and kind depreciated ) "first match only" one is not
 		# used yet, since I'm not sure on the context differences between
@@ -31,18 +30,18 @@ BEGIN {
 		'?' => { operator => undef, braced => 0, seperator => '?', _sections => 1, modifieds => {} },
 		);
 }
-		
+
 sub new {
 	my $class = shift;
 	my $zone = shift;
-	my $init = shift;
-	return undef unless defined $init;
-	
+	my $init = defined $_[0] ? shift : return undef;
+
 	# Create the token
 	my $self = $class->SUPER::new($zone, $init) or return undef;
 	
 	# Do we have a prototype for the intializer? If so, add the extra fields
-	my $options = $quoteTypes{$init} or return $self->_error( "Unknown quote like operator '$init'" );
+	my $options = $quoteTypes{$init}
+		or return $self->_error( "Unknown quote like operator '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
 
 	$self;
@@ -52,7 +51,7 @@ use vars qw{%sectionPrototypes};
 BEGIN {
 	%sectionPrototypes = (
 		'(' => { type => '()', _close => ')' },
-		'<'	=> { type => '<>', _close => '>' },
+		'<' => { type => '<>', _close => '>' },
 		'[' => { type => '[]', _close => ']' },
 		'{' => { type => '{}', _close => '}' },
 		);
@@ -145,7 +144,7 @@ sub _fill_normal {
 	# Complete the properties of the first section
 	$self->{sections}->[0] = {
 		position => length $self->{content},
-		size => length($string) - 1
+		size     => length($string) - 1,
 		};
 
 	# We are done if there is only one section

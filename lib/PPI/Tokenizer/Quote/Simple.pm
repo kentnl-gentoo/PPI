@@ -8,9 +8,8 @@ use base 'PPI::Tokenizer::Quote';
 sub new {
 	my $class = shift;
 	my $zone = shift;
-	my $seperator = shift;
-	return undef unless $seperator;
-	
+	my $seperator = shift or return undef;
+
 	# Create a new token containing the seperator
 	my $self = $class->SUPER::new( $zone, $seperator ) or return undef;
 	$self->{seperator} = $seperator;
@@ -22,7 +21,7 @@ sub fill {
 	my $class = shift;
 	my $t = shift;
 	my $self = $t->{token} or return undef;
-	
+
 	# Scan for the end seperator
 	my $string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
 	return undef unless defined $string;

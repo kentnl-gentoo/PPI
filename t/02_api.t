@@ -8,6 +8,7 @@ use Class::Autouse qw{:devel};
 use PPI;
 
 # Execute the tests
+use Test::More 'tests' => 629;
 use Test::ClassAPI;
 Test::ClassAPI->execute;
 
@@ -83,86 +84,86 @@ length=method
 is_a=method
 
 [PPI::Token::Whitespace]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Pod]
-PPI::Common=isa
+PPI::Token=isa
 merge=method
 
 [PPI::Token::Data]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::End]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Comment]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Bareword]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Label]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Structure]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Number]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Symbol]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::ArrayIndex]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Operator]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Magic]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Cast]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::SubPrototype]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::DashedBareword]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::Single]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::Double]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::Execute]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::OperatorSingle]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::OperatorDouble]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::OperatorExecute]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::Words]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Quote::Regex]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Regex::Match]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Regex::Replace]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Regex::Transform]
-PPI::Common=isa
+PPI::Token=isa
 
 [PPI::Token::Regex::Pattern]
-PPI::Common=isa
+PPI::Token=isa

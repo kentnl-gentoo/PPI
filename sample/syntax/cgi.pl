@@ -24,7 +24,7 @@ use PPI ();
 use PPI::Format::HTML ();
 
 # Initialise globals and modules
-use vars qw{$fin $message $cmd};
+use vars qw{%in $message $cmd};
 use vars qw{$errstr};
 BEGIN {
 	# Set the page path
@@ -35,7 +35,7 @@ BEGIN {
 
 # Main application logic
 initialise();
-unless ( keys %$fin ) {
+unless ( keys %in ) {
 	viewFront();
 } else {
 	cmdProcess();
@@ -45,7 +45,7 @@ exit();
 # Stuff to do on every call
 sub initialise {
 	# Get the CGI data
-	$fin = AppLib::CGI->ReadParse;
+	CGI::ReadParse();
 }
 
 
@@ -60,42 +60,42 @@ sub initialise {
 sub cmdProcess {
 	# Step 1 - Aquire the source code and create the processor
 	my $PPI;
-	if ( $fin->{source} eq 'file' ) {
-		$PPI = PPI->load( $fin->{source_file} );
-		Error( "Failed to load file '$fin->{source_file}'" ) unless $PPI;
+	if ( $in{source} eq 'file' ) {
+		$PPI = PPI->load( $in{source_file} );
+		Error( "Failed to load file '$in{source_file}'" ) unless $PPI;
 
-	} elsif ( $fin->{source} eq 'upload' ) {
+	} elsif ( $in{source} eq 'upload' ) {
 		# Get the contents of the file
-		Error( "You did not upload a file" ) unless $fin->{source_file};
-		my $contents = AppLib::CGI->slurpUpload( $fin->{source_file} );
+		Error( "You did not upload a file" ) unless $in{source_file};
+		my $contents = AppLib::CGI->slurpUpload( $in{source_file} );
 		ASError( "Could not get file contents" ) unless $contents;
 
 		# Create the processor
 		$PPI = PPI->new( $$contents );
 		Error( "Failed to create processor from uploaded file" ) unless $PPI;
 
-	} elsif ( $fin->{source} eq 'direct' ) {
-		Error( "You did not enter any source code" ) unless $fin->{source_direct};
+	} elsif ( $in{source} eq 'direct' ) {
+		Error( "You did not enter any source code" ) unless $in{source_direct};
 
 		# Create the processor
-		$PPI = PPI->new( $fin->{source_direct} );
+		$PPI = PPI->new( $in{source_direct} );
 		Error( "Failed to create processor from direct input" ) unless $PPI;
 
 
-	} elsif ( $fin->{source} eq 'stress' ) {
-		Error( "You did not select a stress test" ) unless $fin->{source_stress};
+	} elsif ( $in{source} eq 'stress' ) {
+		Error( "You did not select a stress test" ) unless $in{source_stress};
 
 		# Find the module
-		my $file = File::Spec->catfile( split /::/, $fin->{source_stress} ) . '.pm';
+		my $file = File::Spec->catfile( split /::/, $in{source_stress} ) . '.pm';
 		$file = first { -f $_ and -r $_ } map { File::Spec->catfile( $_, $file ) } @INC;
-		Error( "Could not find module '$fin->{source_stress}' on the system" ) unless $file;
+		Error( "Could not find module '$in{source_stress}' on the system" ) unless $file;
 
 		# Load the module
 		$PPI = PPI->load( $file );
-		Error( "Failed to load module '$fin->{source_stress}' ($file)" ) unless $PPI;
+		Error( "Failed to load module '$in{source_stress}' ($file)" ) unless $PPI;
 
 	} else {
-		Error( "Unknown data source option '$fin->{source}'" );
+		Error( "Unknown data source option '$in{source}'" );
 	}
 
 
@@ -104,9 +104,9 @@ sub cmdProcess {
 
 	# Step 2 - Transforms
 	if ( 0 ) {
-	if ( $fin->{transform} eq 'tidy' ) {
+	if ( $in{transform} eq 'tidy' ) {
 		$PPI->add_transform( 'tidy' ) or Error( "Error adding tidy transform command" );
-	} elsif ( $fin->{transform} eq 'passthrough' ) {
+	} elsif ( $in{transform} eq 'passthrough' ) {
 		# Run the Document through the lexer/delexer to test it
 		my $Lexer = PPI::Lexer->new( $PPI->document )
 			or Error( "Error creating lexer" );
@@ -117,7 +117,7 @@ sub cmdProcess {
 
 		# Set the document back into the source code handler the hacky way
 		$PPI->{Document} = $Document;
-	} elsif ( $fin->{transform} eq 'none' ) {
+	} elsif ( $in{transform} eq 'none' ) {
 		# Do nothing
 	} else {
 		Error( "That transform is not available at this time" );
@@ -129,8 +129,8 @@ sub cmdProcess {
 
 
 	# Handle the special "download the plain file" case
-	if ( $fin->{display} eq 'plain'
-	 and $fin->{delivery} eq 'download'
+	if ( $in{display} eq 'plain'
+	 and $in{delivery} eq 'download'
 	) {
 		AppLib::Client->send( 'plain.txt', $PPI->toString );
 		exit();
@@ -139,38 +139,38 @@ sub cmdProcess {
 
 	# Step 3 - Display layout
 	my $output;
-	if ( $fin->{display} eq 'syntax'
-	  or $fin->{display} eq 'debug'
-	  or $fin->{display} eq 'plain'
+	if ( $in{display} eq 'syntax'
+	  or $in{display} eq 'debug'
+	  or $in{display} eq 'plain'
 	) {
 		# Create the options
 		my $options = {};
-		$options->{linenumbers} = 1 if $fin->{line_numbers};
+		$options->{linenumbers} = 1 if $in{line_numbers};
 
 		# Generate the html
-		$output = $PPI->html( $fin->{display}, $options );
+		$output = $PPI->html( $in{display}, $options );
 		Error( "Error getting html page version of Perl Source Document" ) unless $output;
 
 		# Wrap in a page
-		$output = PPI::Format::HTML->wrap_page( $fin->{display}, $output );
+		$output = PPI::Format::HTML->wrap_page( $in{display}, $output );
 		$output =~ s/^\s+//gm;
 	} else {
-		Error( "Unknown display format '$fin->{display}'" );
+		Error( "Unknown display format '$in{display}'" );
 	}
 
 
 
 	# Deliver the output
-	if ( $fin->{delivery} eq 'browser' ) {
+	if ( $in{delivery} eq 'browser' ) {
 		print AppLib::CGI->header;
 		print $output;
 
-	} elsif ( $fin->{delivery} eq 'download' ) {
+	} elsif ( $in{delivery} eq 'download' ) {
 		# Send it to their browser
 		AppLib::Client->send( 'formatted.html', $output );
 
 	} else {
-		Error( "Unknown display method '$fin->{display}'" );
+		Error( "Unknown display method '$in{display}'" );
 	}
 
 	exit();
