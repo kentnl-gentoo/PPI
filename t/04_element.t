@@ -21,10 +21,11 @@ BEGIN {
 
 # Load the code to test
 use Class::Autouse ':devel';
+BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 146;
+use Test::More tests => 151;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -262,6 +263,10 @@ is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previo
 	is_object( $Doc2->schild(0)->parent, $Doc2, 'Basic parent links stay intact after ->clone' );
 	is_object( $Doc2->schild(0)->schild(3)->start->document, $Doc2,
 		'Clone goes deep, and Structure braces get relinked properly' );
+	isnt( refaddr($Document), refaddr($Doc2),
+		'Cloned Document has a different memory location' );
+	isnt( refaddr($Document->schild(0)), refaddr($Doc2->schild(0)),
+		'Cloned Document has children at different memory locations' );
 }
 
 # Delete the second token
@@ -275,5 +280,39 @@ ok( $Braces->delete, "Deletion of braces returns true" );
 is( $Document->content, 'my =  ;', "Content is modified correctly" );
 is( scalar($Document->tokens), 5, "Modified source contains the correct number of tokens" );
 ok( ! defined $Braces->parent, "Braces are detached from parent" );
+
+
+
+
+
+#####################################################################
+# Test DESTROY
+
+# Start with DESTROY for an element that never has a parent
+{
+	my $Token = PPI::Token::Whitespace->new( ' ' );
+	my $k1 = scalar keys %PPI::Element::_PARENT;
+	$Token->DESTROY;
+	my $k2 = scalar keys %PPI::Element::_PARENT;
+	is( $k1, $k2, '_PARENT key count remains unchanged after naked Element DESTROY' );
+}
+
+# Next, a single element within a parent
+{
+	my $k1 = scalar keys %PPI::Element::_PARENT;
+	my $k2;
+	my $k3;
+	{
+		my $Token     = PPI::Token::Number->new( '1' );
+		my $Statement = PPI::Statement->new;
+		$Statement->add_element( $Token );
+		$k2 = scalar keys %PPI::Element::_PARENT;
+		is( $k2, $k1 + 1, 'PARENT keys increases after adding element' );
+		$Statement->DESTROY;
+	}
+	sleep 1;
+	$k3 = scalar keys %PPI::Element::_PARENT;
+	is( $k3, $k1, 'PARENT keys returns to original on DESTROY' );
+}
 
 1;

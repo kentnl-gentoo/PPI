@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.902';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -133,8 +133,12 @@ sub tokens {
 ### Reimplement this using List::Utils stuff
 sub content {
 	my $self = shift;
-	join '', map { $_->content }
-	( $self->{start} || (), @{$self->{children}}, $self->{finish} || () );
+	my $content = $self->{start} ? $self->{start}->content : '';
+	foreach my $child ( @{$self->{children}} ) {
+		$content .= $child->content;
+	}
+	$content .= $self->{finish}->content if $self->{finish};
+	$content;
 }
 
 1;

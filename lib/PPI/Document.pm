@@ -62,7 +62,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.902';
 }
 
 
@@ -357,6 +357,37 @@ from the tokens.
 
 sub flush_locations {
 	shift->_flush_locations(@_);
+}
+
+=pod
+
+=head2 normalized
+
+The C<normalized> method is used to generate a "Layer 1"
+L<PPI::Document::Normalized> object for the current Document.
+
+A "normalized" Perl Document is an arbitrary structure that removes any
+irrelevant parts of the document and refactors out variations in style,
+to attempt to approach something that is closer to the "true meaning"
+of the Document.
+
+See L<PPI::Normal> for more information on document normalization and
+the tasks for which it is useful.
+
+Returns a L<PPI::Document::Normalized> object, or C<undef> on error.
+
+=cut
+
+sub normalized {
+	my $self = shift;
+
+	# The normalization process will utterly destroy and mangle
+	# anything passed to it, so we are going to only give it a
+	# clone of ourself.
+	my $Document = $self->clone or return undef;
+
+	# Create the normalization object and execute it
+	PPI::Normal->process( $Document );
 }
 
 1;

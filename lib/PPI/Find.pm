@@ -76,7 +76,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.902';
 }
 
 

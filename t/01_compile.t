@@ -18,7 +18,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 use Class::Autouse ':devel';
 
 
@@ -29,12 +29,17 @@ use Class::Autouse ':devel';
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
+BEGIN {
+	$PPI::XS_DISABLE = 1;
+	$PPI::XS_DISABLE = 1; # Kill warning
+}
 use_all_ok( qw{
 	PPI
 	PPI::Tokenizer
 	PPI::Lexer
 	PPI::Dumper
 	PPI::Find
+	PPI::Normal
 	} );
 
 sub use_all_ok {
@@ -55,4 +60,6 @@ sub use_all_ok {
 	}
 }
 
-exit();
+ok( ! $PPI::XS::VERSION, 'PPI::XS is explicitly NOT loaded' );
+
+exit(0);

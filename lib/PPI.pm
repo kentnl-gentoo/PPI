@@ -13,7 +13,7 @@ use Class::Autouse   ();
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '0.901';
+	$VERSION       = '0.902';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -26,6 +26,8 @@ use PPI::Structure ();
 
 # Autoload the remainder of the classes
 use Class::Autouse 'PPI::Document',
+                   'PPI::Document::Normalized',
+                   'PPI::Normal',
                    'PPI::Tokenizer',
                    'PPI::Lexer';
 

@@ -1,5 +1,18 @@
 Revision history for Perl extension PPI
 
+0.902 Sun Feb  6 2005
+	General:
+	- Added Document Normalization functions from old Perl::Compare
+	  (although it is very very limited in function at this point)
+
+	Details:
+	- Added class PPI::Normal
+	- Added class PPI::Normal::Standard
+	- Added class PPI::Document::Normalized
+	- Added method PPI::Document->normalize
+	- Bug: ->clone was going to all the trouble to build a clone,
+	       but then returning the original :( Fixed
+
 0.901 Sat Jan 29 2005
 	General:
 	- Moved all up-to-date code over to SourceForge

@@ -16,12 +16,15 @@ inc/Test/ClassAPI.pm
 lib/PPI.pm
 lib/PPI/Document.pm
 lib/PPI/Document/Fragment.pm
+lib/PPI/Document/Normalized.pm
 lib/PPI/Dumper.pm
 lib/PPI/Element.pm
 lib/PPI/Find.pm
 lib/PPI/Lexer.pm
 lib/PPI/Manual.pod
 lib/PPI/Node.pm
+lib/PPI/Normal.pm
+lib/PPI/Normal/Standard.pm
 lib/PPI/Statement.pm
 lib/PPI/Statement/Break.pm
 lib/PPI/Statement/Compound.pm
@@ -128,3 +131,4 @@ t/05_lexer_practical.t
 t/06_round_trip.t
 t/07_token.t
 t/08_regression.t
+t/09_normal.t

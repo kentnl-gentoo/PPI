@@ -34,7 +34,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.902';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -102,6 +102,7 @@ Returns the basic code as a string (excluding here-doc content).
 
 =cut
 
+### XS -> PPI/XS.xs:_PPI_Element__content 0.900+
 sub content { '' }
 
 
@@ -634,6 +635,7 @@ sub _clear {
 # ->delete means our reference count has probably fallen to zero.
 # Therefore we don't need to remove ourselves from our parent,
 # just the index ( just in case ).
+### XS -> PPI/XS.xs:_PPI_Element__DESTROY 0.900+
 sub DESTROY { delete $_PARENT{refaddr shift} }
 
 # Operator overloads

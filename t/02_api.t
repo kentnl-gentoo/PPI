@@ -18,6 +18,7 @@ BEGIN {
 
 # Load the API to test
 use Class::Autouse ':devel';
+BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 use PPI::Tokenizer;
 use PPI::Lexer;
@@ -26,12 +27,14 @@ use PPI::Find;
 # use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2067;
+use Test::More tests => 2089;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
 $Test::ClassAPI::IGNORE{'DESTROY'}++;
 $Test::ClassAPI::IGNORE{'refaddr'}++;
+$Test::ClassAPI::IGNORE{'reftype'}++;
+$Test::ClassAPI::IGNORE{'blessed'}++;
 
 # Execute the tests
 Test::ClassAPI->execute('complete', 'collisions');
@@ -47,6 +50,7 @@ PPI::Lexer=class
 PPI::Dumper=class
 PPI::Find=class
 # PPI::Transform=abstract
+PPI::Normal=class
 
 # The abstract PDOM classes
 PPI::Element=abstract
@@ -343,6 +347,7 @@ save=method
 serialize=method
 index_locations=method
 flush_locations=method
+normalized=method
 
 [PPI::Document::Fragment]
 PPI::Document=isa
@@ -396,3 +401,20 @@ errstr=method
 # transform_file=method
 # transform_source=method
 # transform_document=method
+
+[PPI::Normal]
+register=method
+new=method
+layer=method
+process=method
+errstr=method
+
+[PPI::Normal::Standard]
+import=method
+remove_insignificant_elements=method
+
+[PPI::Document::Normalized]
+new=method
+version=method
+functions=method
+equal=method

@@ -57,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.902';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -595,6 +595,7 @@ sub tokens {
 	map { $_->tokens } @{$_[0]->{children}}
 }
 
+### XS -> PPI/XS.xs:_PPI_Element__content 0.900+
 sub content {
 	join '', map { $_->content } @{$_[0]->{children}}
 }
@@ -619,7 +620,7 @@ sub clone {
 		$_PARENT{refaddr($Node->finish)} = $Node if $Node->finish;
 	}
 
-	$self;
+	$clone;
 }
 
 

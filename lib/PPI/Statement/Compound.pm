@@ -39,7 +39,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.902';
 
 	# Keyword type map
 	%TYPES = (
