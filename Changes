@@ -1,12 +1,23 @@
 Revision history for Perl extension PPI
 
+0.822 Wed Jul 21 2004
+	- Filling out the API test as much as possible
+	- Added PPI::Statement::label object method
+	- Moved PPI::Structure::elements object method to PPI::Node::elements
+	- Re-organised statement parsing to better implement ::Compound statements
+	- Added PPI::Statement::Data class
+	- Added PPI::Statement::End class
+	- Re-organised the _lex_statement, _statement_continues stuff, ready for while
+	- Added PPI::Lexer::_lex_statement_end to handle PPI::Statement::End properly
+	- Organising 02_api.t was getting hard, so added implicit Module=class to Test::ClassAPI
+
 0.821 Mon Jul 19 2004
 	- Cleaned up test data files directories
-	- Added PPI::Statement::Variable::type
-	- Added PPI::Statement::Variable::variables
+	- Added PPI::Statement::Variable::type object method
+	- Added PPI::Statement::Variable::variables object method
 	- Added some more classes to the API testing
 	- Started 07_tokens.t for testing particular token classes
-	- Added PPI::Token::Symbol::canonical ( and tests )
+	- Added PPI::Token::Symbol::canonical object method (and tests)
 	- PPI::Token::Magic now ISA PPI::Token::Symbol
 	- PPI::Element::clone now fixes _PARENT links for Nodes
 
@@ -20,7 +31,7 @@ Revision history for Perl extension PPI
 	- Removed dependencies for the sample application
 	- Removed custom META.yml, as now no longer needed
 
-0.819 Mon Jul  5 2004
+0.819 Mon Jul 14 2004
 	- Many parts of PPI are VASTLY changed in this revision
 	- Breaks API compatibility heavily
 	- Adds dependency on List::MoreUtils

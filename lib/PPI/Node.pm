@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.821';
+	$VERSION = '0.822';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -110,19 +110,39 @@ sub add_element {
 
 =pod
 
+=head2 elements
+
+The C<elements> method access all child elements B<structurally> within the
+PPI::Node object. Note that in the base of the PPI::Structure classes, this
+C<DOES> include the brace tokens at either end of the structure.
+
+Returns a list of zero or more PPI::Element objects.
+
+Alternatively, if called in the scalar context, the C<elements> method
+returns a count of the number of elements.
+
+=cut
+
+sub elements {
+	wantarray ? @{$_[0]->{elements}} : scalar @{$_[0]->{elements}};
+}
+
+=pod
+
 =head2 children
 
 The C<children> method accesses all child elements lexically within the
-PPI::Node object. Note that in the case of the PPI::Structure class, this
+PPI::Node object. Note that in the case of the PPI::Structure classes, this
 does B<NOT> include the brace tokens at either end of the structure.
 
 Returns a list of zero of more PPI::Element objects.
 
 Alternatively, if called in the scalar context, the C<children> method
-returns a count of the number of child elements.
+returns a count of the number of lexical children.
 
 =cut
 
+# In the default case, this is the same as for the elements method
 sub children {
 	wantarray ? @{$_[0]->{elements}} : scalar @{$_[0]->{elements}};
 }

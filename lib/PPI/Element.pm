@@ -24,17 +24,17 @@ implementations.
 
 use strict;
 use UNIVERSAL 'isa';
+use Scalar::Util 'refaddr';
 use base 'PPI::Base';
 use PPI::Node       ();
 use Clone           ();
-use Scalar::Util    ();
 use List::MoreUtils ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.821';
+	$VERSION = '0.822';
 
-	# Child -> Parent links
+	# Master Child -> Parent index
 	%_PARENT = ();
 }
 
@@ -81,7 +81,7 @@ Returns the code as a string, or C<undef> on error.
 
 =cut
 
-sub content { $_[0]->{content} or '' }
+sub content { defined $_[0]->{content} ? $_[0]->{content} : '' }
 
 
 
@@ -103,7 +103,7 @@ patent ::Node object.
 
 =cut
 
-sub parent { $_PARENT{Scalar::Util::refaddr shift} }
+sub parent { $_PARENT{refaddr shift} }
 
 =pod
 
@@ -121,7 +121,7 @@ if it is not within any other ::Elements.
 sub top {
 	my $self = shift;
 	my $cursor = $self;
-	while ( my $parent = $_PARENT{Scalar::Util::refaddr $cursor} ) {
+	while ( my $parent = $_PARENT{refaddr $cursor} ) {
 		$cursor = $parent;
 	}
 	$cursor;
@@ -159,9 +159,9 @@ or some other error occurs.
 sub next_sibling {
 	my $self     = shift;
 	my $parent   = $self->parent or return '';
-	my $key      = Scalar::Util::refaddr $self;
+	my $key      = refaddr $self;
 	my $position = List::MoreUtils::firstidx {
-		Scalar::Util::refaddr $_ == $key
+		refaddr $_ == $key
 		} @{$parent->{elements}};
 	$parent->{elements}->[$position + 1] || '';
 }
@@ -180,9 +180,9 @@ previous ::Element, or C<undef> if the ::Element does not have a parent
 sub previous_sibling {
 	my $self     = shift;
 	my $parent   = $self->parent or return '';
-	my $key      = Scalar::Util::refaddr $self;
+	my $key      = refaddr $self;
 	my $position = List::MoreUtils::firstidx {
-		Scalar::Util::refaddr $_ == $key
+		refaddr $_ == $key
 		} @{$parent->{elements}};
 	$position and $parent->{elements}->[$position - 1] or '';
 }
@@ -260,8 +260,8 @@ or if the PPI::Document object has not been indexed.
 
 sub location {
 	my $self = shift;
-	my $line = $self->_line or return undef;
-	my $col  = $self->_col  or return undef;
+	my $line = $self->_line or return undef; # Can never be 0
+	my $col  = $self->_col  or return undef; # Can never be 0
 	[ $line, $col ];
 }
 
@@ -273,6 +273,6 @@ sub _col  { undef }
 # ->delete means our reference count has probably fallen to zero.
 # Therefore we don't need to remove ourselves from our parent,
 # just the index ( just in case ).
-sub DESTROY { delete $_PARENT{Scalar::Util::refaddr shift} }
+sub DESTROY { delete $_PARENT{refaddr shift} }
 
 1;

@@ -14,7 +14,7 @@ WriteMakefile(
 
 		# Testing dependency
 		Test::More       => '0',
-		Test::ClassAPI   => '0.7',
+		Test::ClassAPI   => '0.9',
 	},
 	($] >= 5.005) ? (
 		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',

@@ -9,6 +9,9 @@ lib/PPI/Lexer/Dump.pm
 lib/PPI/Manual.pod
 lib/PPI/Node.pm
 lib/PPI/Statement.pm
+lib/PPI/Statement/Compound.pm
+lib/PPI/Statement/Sub.pm
+lib/PPI/Statement/Variable.pm
 lib/PPI/Structure.pm
 lib/PPI/Token.pm
 lib/PPI/Token/_Pod.pm

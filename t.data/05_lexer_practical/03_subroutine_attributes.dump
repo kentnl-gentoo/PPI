@@ -9,7 +9,6 @@ PPI::Document
     PPI::Token::Attribute  	'bar(quax => &#"Foo")'
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
-    PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement::Sub
     PPI::Token::Bareword  	'sub'
@@ -21,7 +20,6 @@ PPI::Document
     PPI::Token::Attribute  	'bar(quax => &#"Foo")'
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
-    PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement::Sub
     PPI::Token::Bareword  	'sub'
@@ -43,5 +41,4 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
       PPI::Token::Whitespace  	' '
-    PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'

@@ -33,7 +33,7 @@ use File::Slurp  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.821';
+	$VERSION = '0.822';
 }
 
 

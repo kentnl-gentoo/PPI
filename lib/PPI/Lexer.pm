@@ -49,7 +49,7 @@ use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.821';
+	$VERSION = '0.822';
 }
 
 
@@ -217,8 +217,8 @@ sub _lex_document {
 			$self->_add_delayed( $Document ) or return undef;
 			$self->_lex_structure( $Structure ) or return undef;
 
-			# Add the resolved Structure to the Document $self-
-			$self->_add_element( $Document, $Structure ) or return undef;
+			# Add the resolved Structure to the Document $self-
+			$self->_add_element( $Document, $Structure ) or return undef;
 			next;
 		}
 
@@ -248,35 +248,39 @@ BEGIN {
 	# Keyword -> Statement Subclass
 	%STATEMENT_CLASSES = (
 		# Things that affect the timing of execution
-		'BEGIN'   => 'PPI::Statement::Scheduled',
-		'CHECK'   => 'PPI::Statement::Scheduled',
-		'INIT'    => 'PPI::Statement::Scheduled',
-		'END'     => 'PPI::Statement::Scheduled',
+		'BEGIN'    => 'PPI::Statement::Scheduled',
+		'CHECK'    => 'PPI::Statement::Scheduled',
+		'INIT'     => 'PPI::Statement::Scheduled',
+		'END'      => 'PPI::Statement::Scheduled',
 
 		# Loading and context statement
-		'package' => 'PPI::Statement::Package',
-		'use'     => 'PPI::Statement::Include',
-		'no'      => 'PPI::Statement::Include',
-		'require' => 'PPI::Statement::Include',
+		'package'  => 'PPI::Statement::Package',
+		'use'      => 'PPI::Statement::Include',
+		'no'       => 'PPI::Statement::Include',
+		'require'  => 'PPI::Statement::Include',
 
 		# Various declerations
-		'sub'     => 'PPI::Statement::Sub',
-		'my'      => 'PPI::Statement::Variable',
-		'local'   => 'PPI::Statement::Variable',
-		'our'     => 'PPI::Statement::Variable',
+		'sub'      => 'PPI::Statement::Sub',
+		'my'       => 'PPI::Statement::Variable',
+		'local'    => 'PPI::Statement::Variable',
+		'our'      => 'PPI::Statement::Variable',
 
 		# Compound statement
-		'if'      => 'PPI::Statement::Compound',
-		'unless'  => 'PPI::Statement::Compound',
-		'for'     => 'PPI::Statement::Compound',
-		'foreach' => 'PPI::Statement::Compound',
-		'while'   => 'PPI::Statement::Compound',
+		'if'       => 'PPI::Statement::Compound',
+		'unless'   => 'PPI::Statement::Compound',
+		'for'      => 'PPI::Statement::Compound',
+		'foreach'  => 'PPI::Statement::Compound',
+		'while'    => 'PPI::Statement::Compound',
 
 		# Various ways of breaking out of scope
-		'redo'    => 'PPI::Statement::Break',
-		'next'    => 'PPI::Statement::Break',
-		'last'    => 'PPI::Statement::Break',
-		'return'  => 'PPI::Statement::Break',
+		'redo'     => 'PPI::Statement::Break',
+		'next'     => 'PPI::Statement::Break',
+		'last'     => 'PPI::Statement::Break',
+		'return'   => 'PPI::Statement::Break',
+
+		# Special sections of the file
+		'__DATA__' => 'PPI::Statement::Data',
+		'__END__'  => 'PPI::Statement::End',
 		);
 }
 
@@ -300,7 +304,12 @@ sub _resolve_new_statement {
 		return 'PPI::Statement::Expression';
 	}
 
-	# Beyond that, I have no frigging idea for now
+	if ( isa($Token, 'PPI::Token::Label') ) {
+		return 'PPI::Statement::Compound';
+	}
+
+	# Beyond that, I have no idea for the moment.
+	# Just keep adding more conditions above this.
 	'PPI::Statement';
 }
 
@@ -308,76 +317,67 @@ sub _lex_statement {
 	my $self = shift;
 	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
 
+	# Handle some special statements
+	if ( $Statement->isa('PPI::Statement::End') ) {
+		return $self->_lex_statement_end( $Statement );
+	}
+
 	# Begin processing tokens
 	my $Token;
 	while ( $Token = $self->_get_token ) {
-		# Delay whitespace and comments
+		# Delay whitespace and comment tokens
 		unless ( $Token->significant ) {
 			$self->_delay_element( $Token ) or return undef;
 			next;
 		}
 
-		# Add normal things
-		unless ( isa($Token, 'PPI::Token::Structure') ) {
-			unless ( $Statement->_implied_end ) {
-				# Doesn't need the special logic
-				$self->_add_element( $Statement, $Token ) or return undef;
-				next;
-			}
+		# Structual closes implicitly end statements
+		if ( $Token->_closes ) {
+			# Rollback and end the statement
+			return $self->_rollback( $Token );
+		}
 
-			# Does this token continue the statement
-			my $add = $self->_statement_continues( $Statement, $Token );
-			if ( $add ) {
-				# The token belongs in this statement
-				$self->_add_element( $Statement, $Token ) or return undef;
-				next;
-
-			} elsif ( defined $add ) {
-				# The token represents the beginning of a new statement.
-				# Rollback the token and return.
+		# Normal statements never implicitly end
+		unless ( $Statement->__LEXER__normal ) {
+			# Have we hit an implicit end to the statement
+			unless ( $self->_statement_continues( $Statement, $Token ) ) {
+				# Rollback and finish the statement
 				return $self->_rollback( $Token );
-
-			} else {
-				# Error during the check
-				return undef;
 			}
 		}
 
-		# Does the token force the end of the this statement
+		# Any normal character just gets added
+		unless ( isa($Token, 'PPI::Token::Structure') ) {
+			$self->_add_element( $Statement, $Token ) or return undef;
+			next;
+		}
+
+		# Handle normal statement terminators
 		if ( $Token->content eq ';' ) {
 			$self->_add_element( $Statement, $Token ) or return undef;
 			return 1;
 		}
 
-		# Is it the opening of a structure within the statement
-		if ( $Token->_opens ) {
-			# Determine the class for the structure and create it
-			my $_class = $self->_resolve_new_structure($Statement, $Token) or return undef;
-			my $Structure = $_class->new( $Token ) or return undef;
+		# Which leaves us with a new structure than continues the statement
 
-			# Move the lexing down into the Structure
-			$self->_add_delayed( $Statement ) or return undef;
-			$self->_lex_structure( $Structure ) or return undef;
+		# Determine the class for the structure and create it
+		my $sclass = $self->_resolve_new_structure($Statement, $Token) or return undef;
+		my $Structure = $sclass->new( $Token ) or return undef;
 
-			# Add the completed Structure to the statement
-			$self->_add_element( $Statement, $Structure ) or return undef;
-			next;
-		}
+		# Move the lexing down into the Structure
+		$self->_add_delayed( $Statement )   or return undef;
+		$self->_lex_structure( $Structure ) or return undef;
 
-		# Otherwise, it must be a structure close, which means
-		# our statement ends by falling out of scope.
-
-		# Roll back anything not added, so our parent structure can
-		# process it.
-		return $self->_rollback( $Token );
+		# Add the completed Structure to the statement
+		$self->_add_element( $Statement, $Structure ) or return undef;
 	}
 
 	# Was it an error in the tokenizer?
 	return undef unless defined $Token;
 
 	# No, it's just the end of the file...
-	# Add any insignificant trailing tokens.
-	$self->_add_delayed( $Statement );
+	# Roll back any insignificant tokens, they'll get added at the Document level
+	$self->_rollback;
 }
 
 # For many statements, it can be dificult to determine the end-point.
@@ -388,30 +388,36 @@ sub _statement_continues {
 	my $self = shift;
 	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
 	my $Token     = isa($_[0], 'PPI::Token')     ? shift : return undef;
-	my $LastToken = $Statement->schild(-1) or return undef;
 
 	# Alrighty then, there are only three implied end statement types,
 	# ::Scheduled blocks, ::Sub declarations, and ::Compound statements.
-	# Of these, ::Scheduled and ::Sub both follow the same rule.
+	unless ( ref($Statement) =~ /\b(?:Scheduled|Sub|Compound)$/ ) {
+		return 1;
+	}
+
+	# Of these three, ::Scheduled and ::Sub both follow the same simple
+	# rule and can be handled first.
+	my $LastChild = $Statement->schild(-1) or return undef;
 	unless ( $Statement->isa('PPI::Statement::Compound') ) {
 		# If the last significant element of the statement is a block,
 		# then a scheduled statement is done, no questions asked.
-		return ! $LastToken->isa('PPI::Structure::Block');
+		return ! $LastChild->isa('PPI::Structure::Block');
 	}
 
-	# Now we get to compound statements, which kind of suck hard.
-	# The simplest of these 'if' type statements.
+	# Now we get to compound statements, which kind of suck (to lex).
+	# However, of them all, the 'if' type, which includes unless, are
+	# relatively easy to handle compared to the others.
 	my $type = $Statement->type or return undef;
 	if ( $type eq 'if' ) {
-		# Unless the last token is a block, anything is fine
-		unless ( $LastToken->isa('PPI::Structure::Block') ) {
+		# We only implicitly end on a block
+		unless ( $LastChild->isa('PPI::Structure::Block') ) {
 			return 1;
 		}
 
 		# If the token before the block is an 'else',
 		# it's over, no matter what.
-		my $Before = $Statement->schild(-2);
-		if ( $Before and $Before->isa('PPI::Token') and $Before->is_a('Bareword','else') ) {
+		my $NextLast = $Statement->schild(-2);
+		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->is_a('Bareword','else') ) {
 			return 0;
 		}
 
@@ -421,9 +427,43 @@ sub _statement_continues {
 		return 0;
 	}
 
+	if ( $type eq 'label' ) {
+		# We only have the label so far.
+
+		# Handle cases with a work after the label
+		if ( $Token->isa('PPI::Token::Bareword') and $Token->content =~ /^(?:while|for|foreach)$/ ) {
+			return 1;
+		}
+	
+		# Handle labelled blocks
+		if ( $Token->isa('PPI::Structure::Block') ) {
+			return 1;
+		}
+	}
+
 	### FIXME - Default to 1 for now so we can test
 	1;
 }
+
+sub _lex_statement_end {
+	my $self = shift;
+	my $Statement = isa($_[0], 'PPI::Statement::End') ? shift : return undef;
+	
+	# End of the file, EVERYTHING is ours
+	my $Token;
+	while ( $Token = $self->_get_token ) {
+		$Statement->add_element( $Token ) or return undef;
+	}
+
+	# Was it an error in the tokenizer?
+	return undef unless defined $Token;
+
+	# No, it's just the end of the file...
+	# Roll back any insignificant tokens, they'll get added at the Document level
+	$self->_rollback;
+}
+
+
 
 
 
@@ -534,7 +574,12 @@ sub _resolve_new_structure_curly {
 		# $foo{}, @foo{}
 		return 'PPI::Structure::Subscript';
 	}
-	### FIXME - More cases to catch
+
+	# Are we in a compound statement
+	if ( $Parent->isa('PPI::Statement::Compound') ) {
+		# We will only encounter blocks in compound statements
+		return 'PPI::Structure::Block';
+	}
 
 	# Is this an anonymous hashref constructor
 	### FIXME - Much harder...
@@ -672,8 +717,9 @@ sub _add_element {
 		$Parent->add_element( $el ) or return undef;
 	}
 
-	# Clear the delated elements
-	$self->{delayed} = [];
+	# Clear the delayed elements if needed
+	$self->{delayed} = [] if @{$self->{delayed}};
+
 	1;
 }
 
