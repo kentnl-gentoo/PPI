@@ -1,5 +1,20 @@
 Revision history for Perl extension PPI
 
+0.826
+	- Added PPI::Element::statement object method
+	- Added PPI::Transform abstract class
+	- Sped up the 'bool' overload for PPI::Element
+	- Added PPI::Element::snext_sibling object method
+	- Added PPI::Element::sprevious_sibling object method
+	- Added PPI::Element::insert_before object method placeholder
+	- Added PPI::Element::insert_after object method placeholder
+	- Changed {elements} to {children} to match PPI::Node defintions
+	- Added PPI::Node::first_element object method
+	- Added PPI::Node::last_element object method
+	- Added PPI::Element::next_token object method
+	- Added PPI::Element::previous_token object method
+	- Added PPI::Token::Symbol::symbol object method
+
 0.825 Mon Jul 26 2004
 	- Added PPI::Statement::Include::type object method
 	- Added PPI::Statement::Include::module object method

@@ -23,7 +23,7 @@ use PPI::Lexer::Dump;
 use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 1644;
+use Test::More 'tests' => 2048;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -47,6 +47,7 @@ PPI::Tokenizer=class
 PPI::Lexer=class
 PPI::Lexer::Dump=class
 PPI::Format::HTML=class
+PPI::Transform=abstract
 
 # Only list the non-classes for data objects
 PPI::Token=abstract
@@ -70,8 +71,15 @@ clone=method
 parent=method
 top=method
 document=method
-previous_sibling=method
+statement=method
 next_sibling=method
+snext_sibling=method
+previous_sibling=method
+sprevious_sibling=method
+next_token=method
+previous_token=method
+insert_before=method
+insert_after=method
 remove=method
 delete=method
 content=method
@@ -83,6 +91,8 @@ location=method
 PPI::Element=isa
 add_element=method
 elements=method
+first_element=method
+last_element=method
 children=method
 schildren=method
 child=method
@@ -138,9 +148,15 @@ syntax_page=method
 debug_string=method
 debug_page=method
 
-
-
-
+[PPI::Transform]
+matches=method
+matches_file=method
+matches_source=method
+matches_document=method
+transform=method
+transform_file=method
+transform_source=method
+transform_document=method
 
 [PPI::Token]
 PPI::Element=isa
@@ -185,6 +201,7 @@ PPI::Token=isa
 [PPI::Token::Symbol]
 PPI::Token=isa
 canonical=method
+symbol=method
 
 [PPI::Token::ArrayIndex]
 PPI::Token=isa

@@ -57,7 +57,7 @@ use PPI::Document::Fragment ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 }
 
 
@@ -178,9 +178,7 @@ See L<PPI>
 
 =head1 AUTHOR
 
-        Adam Kennedy ( Maintainer )
-        cpan@ali.as
-        http://ali.as/
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

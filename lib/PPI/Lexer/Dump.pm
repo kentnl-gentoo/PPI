@@ -8,7 +8,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 }
 
 
@@ -76,7 +76,7 @@ sub dump_array_ref {
 	# Recurse into our children
 	if ( isa($Element, 'PPI::Node') ) {
 		my $child_indent = $indent . $self->{indent_string};
-		foreach my $child ( @{$Element->{elements}} ) {
+		foreach my $child ( @{$Element->{children}} ) {
 			$self->dump_array_ref( $child, $child_indent, $output );
 		}
 	}

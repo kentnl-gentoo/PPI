@@ -18,7 +18,7 @@ use Class::Autouse;
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 
 	# If we are in a mod_perl environment, always fully load
 	# modules, in case Apache::Reload is present, and also to
@@ -58,7 +58,8 @@ BEGIN {
 # Autoload the remainder of the classes
 use Class::Autouse 'PPI::Tokenizer', 
                    'PPI::Lexer',
-                   'PPI::Document';
+                   'PPI::Document',
+                   'PPI::Transform';
 
 
 
@@ -360,9 +361,7 @@ if you want to be using this.
 
 =head1 AUTHOR
 
-    Adam Kennedy (Maintainer)
-    cpan@ali.as
-    http//ali.as/
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

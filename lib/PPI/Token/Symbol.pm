@@ -8,7 +8,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 }
 
 sub _on_char {
@@ -30,15 +30,46 @@ sub _on_char {
 	$t->_finalize_token->_on_char( $t );
 }
 
-# Returns the normalised, canonical symbol name.
+# Returns the normalised, canonical symbol.
 # For example, converts '$ ::foo'bar::baz' to '$main::foo::bar::baz'
+# However, this does not resolve the symbol
 sub canonical {
+	my $symbol = shift->content;
+	$symbol =~ s/\s+//;
+	$symbol =~ s/(?<=[\$\@\%\&\*])::/main::/;
+	$symbol =~ s/\'/::/g;
+	$symbol;
+}
+
+# Returns the actual symbol this token refers to.
+# A token of '$foo' might actually be refering to '@foo' if there is
+# a '[1]' after it. This method attempts to resolve these issues.
+sub symbol {
 	my $self = shift;
-	my $name = $self->content;
-	$name =~ s/\s+//;
-	$name =~ s/(?<=[\$\@\%\&\*])::/main::/;
-	$name =~ s/\'/::/g;
-	$name;
+	my $symbol = $self->canonical;
+
+	# Immediately return the cases where it can't be anything else
+	my $type   = substr( $symbol, 0, 1 );
+	return $symbol if $type eq '%';
+	return $symbol if $type eq '&';
+
+	# Unless the next significant Element is a structure, it's correct.
+	my $after  = $self->snext_sibling;
+	return $symbol unless isa( $after, 'PPI::Structure' );
+
+	# Process the rest for cases where it might actually be somethign else
+	my $braces = $after->braces;
+	return $symbol unless defined $braces;
+	if ( $type eq '$' ) {
+		return substr( $symbol, 0, 1, '@' ) if $braces eq '[]';
+		return substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
+
+	} elsif ( $type eq '@' ) {
+		return substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
+
+	}
+
+	$symbol;
 }
 
 1;

@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -70,7 +70,7 @@ BEGIN {
 
 sub new {
 	my $class = ref $_[0] || $_[0];
-	bless { elements => [] }, $class;
+	bless { children => [] }, $class;
 }
 
 
@@ -102,7 +102,7 @@ sub add_element {
 	$_PARENT{refaddr $Element} and return undef;
 
 	# Add the argument to the elements
-	push @{$self->{elements}}, $Element;
+	push @{$self->{children}}, $Element;
 	$_PARENT{refaddr $Element} = $self;
 
 	1;
@@ -111,16 +111,16 @@ sub add_element {
 # In a typical run profile, add_element is the number 1 resource drain.
 # This is a highly optimised unsafe version, for internal use only.
 sub __add_element {
-	push @{($_PARENT{refaddr $_[1]} = $_[0])->{elements}}, $_[1];
+	push @{($_PARENT{refaddr $_[1]} = $_[0])->{children}}, $_[1];
 }
 
 =pod
 
 =head2 elements
 
-The C<elements> method access all child elements B<structurally> within the
-PPI::Node object. Note that in the base of the PPI::Structure classes, this
-C<DOES> include the brace tokens at either end of the structure.
+The C<elements> method accesses all child elements B<structurally> within
+the PPI::Node object. Note that in the base of the PPI::Structure classes,
+this C<DOES> include the brace tokens at either end of the structure.
 
 Returns a list of zero or more PPI::Element objects.
 
@@ -130,7 +130,43 @@ returns a count of the number of elements.
 =cut
 
 sub elements {
-	wantarray ? @{$_[0]->{elements}} : scalar @{$_[0]->{elements}};
+	wantarray ? @{$_[0]->{children}} : scalar @{$_[0]->{children}};
+}
+
+=pod
+
+=head2 first_element
+
+The C<first_element> method accesses the first element structurally within
+the PPI::Node object. As for the C<elements> method, this does include the
+brace tokens for PPI::Structure objects.
+
+Returns a PPI::Element object, or C<undef> if for some reason the PPI::Node
+object does not contain any elements.
+
+=cut
+
+# Normally the first element is also the first child
+sub first_element {
+	$_[0]->{children}->[0];
+}
+
+=pod
+
+=head2 last_element
+
+The C<last_element> method accesses the last element structurally within
+the PPI::Node object. As for the C<elements> method, this does include the
+brace tokens for PPI::Structure objects.
+
+Returns a PPI::Element object, or C<undef> if for some reason the PPI::Node
+object does not contain any elements.
+
+=cut
+
+# Normally the last element is also the last child
+sub last_element {
+	$_[0]->{children}->[-1];
 }
 
 =pod
@@ -150,7 +186,7 @@ returns a count of the number of lexical children.
 
 # In the default case, this is the same as for the elements method
 sub children {
-	wantarray ? @{$_[0]->{elements}} : scalar @{$_[0]->{elements}};
+	wantarray ? @{$_[0]->{children}} : scalar @{$_[0]->{children}};
 }
 
 =pod
@@ -184,14 +220,14 @@ element at that node.
 =cut
 
 sub child {
-	$_[0]->{elements}->[$_[1]];
+	$_[0]->{children}->[$_[1]];
 }
 
 =pod
 
 =head2 schild $index
 
-The lexical structure of the Perl language ignores 'insignifcant' items,
+The lexical structure of the Perl language ignores 'insignificant' items,
 such as whitespace and comments, while PPI treats these items as valid
 tokens so that it can reassemble the file at any time. Because of this,
 in many situations there is a need to find an Element within a Node by
@@ -207,7 +243,10 @@ negative indexes used to identify a "from the end" position.
 sub schild {
 	my $self = shift;
 	my $idx  = 0 + shift;
-	my @el   = @{$self->{elements}};
+	unless ( defined $self->{children} ) {
+		$DB::single = 1;
+	}
+	my @el   = @{$self->{children}};
 	if ( $idx < 0 ) {
 		my $cursor = 0;
 		while ( exists $el[--$cursor] ) {
@@ -349,11 +388,11 @@ sub remove_child {
 
 	# Find the position of the child
 	my $key      = refaddr $child;
-	my $position = List::MoreUtils::firstidx { refaddr $_ == $key } @{$self->{elements}};
+	my $position = List::MoreUtils::firstidx { refaddr $_ == $key } @{$self->{children}};
 	return undef unless defined $position;
 
 	# Splice it out, and remove the child's parent entry
-	splice( @{$self->{elements}}, $position, 1 );
+	splice( @{$self->{children}}, $position, 1 );
 	delete $_PARENT{refaddr $child};
 
 	# Return the child as a convenience
@@ -423,11 +462,11 @@ sub _condition {
 # PPI::Element overloaded methods
 
 sub tokens {
-	map { $_->tokens } @{$_[0]->{elements}}
+	map { $_->tokens } @{$_[0]->{children}}
 }
 
 sub content {
-	join '', map { $_->content } @{$_[0]->{elements}}
+	join '', map { $_->content } @{$_[0]->{children}}
 }
 
 # Clone as normal, but then go down and relink all the _PARENT entries
@@ -439,7 +478,7 @@ sub clone {
 	my @queue = ( $clone );
 	while ( my $Node = shift @queue ) {
 		# Link our immediate children
-		foreach my $Element ( @{$Node->{elements}} ) {
+		foreach my $Element ( @{$Node->{children}} ) {
 			$_PARENT{refaddr($Element)} = $Node;
 			unshift @queue, $Element if isa($Element, 'PPI::Node');
 		}
@@ -456,21 +495,21 @@ sub clone {
 
 sub _line {
 	my $self = shift;
-	my $first = $self->{elements}->[0] or return undef;
+	my $first = $self->{children}->[0] or return undef;
 	$first->_line;
 }
 
 sub _col {
 	my $self = shift;
-	my $first = $self->{elements}->[0] or return undef;
+	my $first = $self->{children}->[0] or return undef;
 	$first->_col;
 }
 
 sub DESTROY {
-	if ( $_[0]->{elements} ) {
+	if ( $_[0]->{children} ) {
 		my @queue = $_[0];
 		while ( defined($_ = shift @queue) ) {
-			unshift @queue, @{delete $_->{elements}} if $_->{elements};
+			unshift @queue, @{delete $_->{children}} if $_->{children};
 
 			# Removed all internal/private weird crosslinking so that
 			# the cascading DESTROY calls will get called properly.

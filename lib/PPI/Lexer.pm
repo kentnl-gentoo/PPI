@@ -50,7 +50,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 }
 
 
@@ -905,15 +905,13 @@ sub _rollback {
 
 Bugs should be reported via the CPAN bug tracker at
 
-  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
 For other issues, contact the author
 
 =head1 AUTHOR
 
-        Adam Kennedy ( maintainer )
-        cpan@ali.as
-        http://ali.as/
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 SEE ALSO
 

@@ -11,7 +11,7 @@ use Scalar::Util ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.825';
+	$VERSION = '0.826';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -29,7 +29,7 @@ sub new {
 
 	# Create the object
 	my $self = bless {
-		elements => [],
+		children => [],
 		start    => $Token,
 		}, $class;
 
@@ -85,14 +85,28 @@ sub elements {
 
 	if ( wantarray ) {
 		# Return a list in array context
-		return ( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
+		return ( $self->{start} || (), @{$self->{children}}, $self->{finish} || () );
 	} else {
 		# Return the number of elements in scalar context.
 		# This is memory-cheaper than creating another big array
-		return scalar(@{$self->{elements}})
+		return scalar(@{$self->{children}})
 			+ ($self->{start} ? 1 : 0)
 			+ ($self->{start} ? 1 : 0);
 	}
+}
+
+# For us, the first element is probably the opening brace
+sub first_element {
+	# Technically, if we have no children and no opening brace,
+	# then the first element is the closing brace.
+	$_[0]->{start} or $_[0]->{children}->[0] or $_[0]->{finish};
+}
+
+# For us, the last element is probably the closing brace
+sub last_element {
+	# Technically, if we have no children and no closing brace,
+	# then the last element is the opening brace
+	$_[0]->{finish} or $_[0]->{children}->[-1] or $_[0]->{start};
 }
 
 
@@ -114,7 +128,7 @@ sub tokens {
 sub content {
 	my $self = shift;
 	join '', map { $_->content }
-	( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
+	( $self->{start} || (), @{$self->{children}}, $self->{finish} || () );
 }
 
 
@@ -127,7 +141,7 @@ package PPI::Structure::Block;
 # The general block curly braces
 
 BEGIN {
-	$PPI::Structure::Block::VERSION = '0.825';
+	$PPI::Structure::Block::VERSION = '0.826';
 	@PPI::Structure::Block::ISA     = 'PPI::Structure';
 }
 
@@ -139,7 +153,7 @@ BEGIN {
 package PPI::Structure::Subscript;
 
 BEGIN {
-	$PPI::Structure::Subscript::VERSION = '0.825';
+	$PPI::Structure::Subscript::VERSION = '0.826';
 	@PPI::Structure::Subscript::ISA     = 'PPI::Structure';
 }
 
@@ -152,7 +166,7 @@ package PPI::Structure::Constructor;
 
 # The else block
 BEGIN {
-	$PPI::Structure::Constructor::VERSION = '0.825';
+	$PPI::Structure::Constructor::VERSION = '0.826';
 	@PPI::Structure::Constructor::ISA     = 'PPI::Structure';
 }
 
@@ -167,7 +181,7 @@ package PPI::Structure::Condition;
 # if ( ) { ... }
 
 BEGIN {
-	$PPI::Structure::Condition::VERSION = '0.825';
+	$PPI::Structure::Condition::VERSION = '0.826';
 	@PPI::Structure::Condition::ISA     = 'PPI::Structure';
 }
 
@@ -179,7 +193,7 @@ BEGIN {
 package PPI::Structure::List;
 
 BEGIN {
-	$PPI::Structure::List::VERSION = '0.825';
+	$PPI::Structure::List::VERSION = '0.826';
 	@PPI::Structure::List::ISA     = 'PPI::Structure';
 }
 
@@ -191,7 +205,7 @@ BEGIN {
 package PPI::Structure::ForLoop;
 
 BEGIN {
-	$PPI::Structure::ForLoop::VERSION = '0.825';
+	$PPI::Structure::ForLoop::VERSION = '0.826';
 	@PPI::Structure::ForLoop::ISA     = 'PPI::Structure';
 }
 
@@ -207,7 +221,7 @@ package PPI::Structure::Unknown;
 # clues.
 
 BEGIN {
-	$PPI::Structure::Unknown::VERSION = '0.825';
+	$PPI::Structure::Unknown::VERSION = '0.826';
 	@PPI::Structure::Unknown::ISA     = 'PPI::Structure';
 }
 
