@@ -5,11 +5,14 @@ package PPI::Structure;
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
-use PPI ();
+use PPI          ();
+use PPI::Element ();
+use Scalar::Util ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.819';
+	$VERSION = '0.820';
+	*_PARENT = *PPI::Element::_PARENT;
 }
 
 
@@ -21,14 +24,36 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $token = (isa( ref $_[0], 'PPI::Token::Structure' ) && $_[0]->_opens)
+	my $Token = (isa( ref $_[0], 'PPI::Token::Structure' ) && $_[0]->_opens)
 		? shift : return undef;
 
 	# Create the object
-	bless {
+	my $self = bless {
 		elements => [],
-		start    => $token,
+		start    => $Token,
 		}, $class;
+
+	# Set the start braces parent link
+	$_PARENT{Scalar::Util::refaddr($Token)} = $self;
+
+	$self;
+}
+
+# Hacky method to let the Lexer set the finish token, so it doesn't
+# have to import %PPI::Element::_PARENT itself.
+sub _set_finish {
+	my $self  = shift;
+
+	# Check the Token
+	my $Token = isa(ref $_[0], 'PPI::Token::Structure') ? shift : return undef;
+	$Token->parent and return undef; # Must be a detached token
+	($self->start->_opposite eq $Token->content) or return undef; # ... that matches the opening token
+
+	# Set the token
+	$self->{finish} = $Token;
+	$_PARENT{Scalar::Util::refaddr($Token)} = $self;
+
+	1;
 }
 
 
@@ -50,15 +75,14 @@ sub braces {
 # Get the full set of elements, including the start and finish
 sub elements {
 	my $self = shift;
-	( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
+	my @elements = ( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
+	@elements;
 }
 
 # Get the full set of tokens, including start and finish
 sub tokens {
 	my $self = shift;
-	my @tokens = $self->SUPER::tokens(@_);
-	unshift @tokens, $self->{start} if $self->{start};
-	push @tokens, $self->{finish} if $self->{finish};
+	my @tokens = ( $self->{start} || (), $self->SUPER::tokens(@_), $self->{finish} || () );
 	@tokens;
 }
 
@@ -79,7 +103,7 @@ package PPI::Structure::Block;
 
 # The general block curly braces
 BEGIN {
-	$PPI::Structure::Block::VERSION = '0.819';
+	$PPI::Structure::Block::VERSION = '0.820';
 	@PPI::Structure::Block::ISA     = 'PPI::Structure';
 }
 
@@ -91,7 +115,7 @@ BEGIN {
 package PPI::Structure::Subscript;
 
 BEGIN {
-	$PPI::Structure::Subscript::VERSION = '0.819';
+	$PPI::Structure::Subscript::VERSION = '0.820';
 	@PPI::Structure::Subscript::ISA     = 'PPI::Structure';
 }
 
@@ -104,7 +128,7 @@ package PPI::Structure::Constructor;
 
 # The else block
 BEGIN {
-	$PPI::Structure::Constructor::VERSION = '0.819';
+	$PPI::Structure::Constructor::VERSION = '0.820';
 	@PPI::Structure::Constructor::ISA     = 'PPI::Structure';
 }
 
@@ -119,7 +143,7 @@ package PPI::Structure::Condition;
 # if ( ) { ... }
 
 BEGIN {
-	$PPI::Structure::Condition::VERSION = '0.819';
+	$PPI::Structure::Condition::VERSION = '0.820';
 	@PPI::Structure::Condition::ISA     = 'PPI::Structure';
 }
 
@@ -131,7 +155,7 @@ BEGIN {
 package PPI::Structure::List;
 
 BEGIN {
-	$PPI::Structure::List::VERSION = '0.819';
+	$PPI::Structure::List::VERSION = '0.820';
 	@PPI::Structure::List::ISA     = 'PPI::Structure';
 }
 
@@ -143,7 +167,7 @@ BEGIN {
 package PPI::Structure::ForLoop;
 
 BEGIN {
-	$PPI::Structure::ForLoop::VERSION = '0.819';
+	$PPI::Structure::ForLoop::VERSION = '0.820';
 	@PPI::Structure::ForLoop::ISA     = 'PPI::Structure';
 }
 
@@ -159,7 +183,7 @@ package PPI::Structure::Unknown;
 # clues.
 
 BEGIN {
-	$PPI::Structure::Unknown::VERSION = '0.819';
+	$PPI::Structure::Unknown::VERSION = '0.820';
 	@PPI::Structure::Unknown::ISA     = 'PPI::Structure';
 }	
 

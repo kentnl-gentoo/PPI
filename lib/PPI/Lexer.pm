@@ -49,7 +49,7 @@ use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.819';
+	$VERSION = '0.820';
 }
 
 
@@ -67,7 +67,7 @@ The C<new> constructor creates a new PPI::Lexer object. The object itself
 is merely used to hold various buffers and state data during the lexing
 process, and holds no significant data between -E<gt>lex_xxxxx calls.
 
-Returns a new PPI::Lexer object.
+Returns a new PPI::Lexer object
 
 =cut
 
@@ -195,7 +195,7 @@ sub _lex_document {
 		# Handle anything other than a structural element
 		unless ( ref $Token eq 'PPI::Token::Structure' ) {
 			# Determine the class for the Statement, and create it
-			my $_class = $self->_resolve_statement($Document, $Token) or return undef;
+			my $_class = $self->_resolve_new_statement($Document, $Token) or return undef;
 			my $Statement = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the statement
@@ -210,7 +210,7 @@ sub _lex_document {
 		# Is this the opening of a structure?
 		if ( $Token->_opens ) {
 			# Resolve the class for the Structure and create it
-			my $_class = $self->_resolve_structure($Document, $Token) or return undef;
+			my $_class = $self->_resolve_new_structure($Document, $Token) or return undef;
 			my $Structure = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the structure
@@ -280,7 +280,7 @@ BEGIN {
 		);
 }
 
-sub _resolve_statement {
+sub _resolve_new_statement {
 	my $self   = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token') ? shift : return undef;
@@ -352,7 +352,7 @@ sub _lex_statement {
 		# Is it the opening of a structure within the statement
 		if ( $Token->_opens ) {
 			# Determine the class for the structure and create it
-			my $_class = $self->_resolve_structure($Statement, $Token) or return undef;
+			my $_class = $self->_resolve_new_structure($Statement, $Token) or return undef;
 			my $Structure = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Structure
@@ -449,20 +449,20 @@ BEGIN {
 
 # Given a parent element, and a token which will open a structure, determine
 # the class that the structure should be.
-sub _resolve_structure {
+sub _resolve_new_structure {
 	my $self   = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token::Structure') ? shift : return undef;
 
-	return $self->_resolve_structure_round ($Parent) if $Token->content eq '(';
-	return $self->_resolve_structure_square($Parent) if $Token->content eq '[';
-	return $self->_resolve_structure_curly ($Parent) if $Token->content eq '{';
+	return $self->_resolve_new_structure_round ($Parent) if $Token->content eq '(';
+	return $self->_resolve_new_structure_square($Parent) if $Token->content eq '[';
+	return $self->_resolve_new_structure_curly ($Parent) if $Token->content eq '{';
 	undef;
 }
 
 # Given a parent element, and a ( token to open a structure, determine
 # the class that the structure should be.
-sub _resolve_structure_round {
+sub _resolve_new_structure_round {
 	my $self   = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
@@ -486,7 +486,7 @@ sub _resolve_structure_round {
 
 # Given a parent element, and a [ token to open a structure, determine
 # the class that the structure should be.
-sub _resolve_structure_square {
+sub _resolve_new_structure_square {
 	my $self = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
@@ -514,7 +514,7 @@ sub _resolve_structure_square {
 
 # Given a parent element, and a { token to open a structure, determine
 # the class that the structure should be.
-sub _resolve_structure_curly {
+sub _resolve_new_structure_curly {
 	my $self = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
@@ -560,7 +560,7 @@ sub _lex_structure {
 		# Anything other than a Structure starts a Statement
 		unless ( ref $Token eq 'PPI::Token::Structure' ) {
 			# Determine the class for the Statement and create it
-			my $_class = $self->_resolve_statement($Structure, $Token) or return undef;
+			my $_class = $self->_resolve_new_statement($Structure, $Token) or return undef;
 			my $Statement = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Statement
@@ -572,13 +572,13 @@ sub _lex_structure {
 			next;
 		}
 
-		# Is this the opening of a structure?
+		# Is this the opening of another structure directly inside us?
 		if ( $Token->_opens ) {
 			### FIXME - Now, we really shouldn't be creating Structures
 			###         inside of Structures. There really should be an
 			###         Statement::Expression in here somewhere.
 			# Determine the class for the structure and create it
-			my $_class = $self->_resolve($Structure, $Token) or return undef;
+			my $_class = $self->_resolve_new_structure($Structure, $Token) or return undef;
 			my $Structure2 = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Structure
@@ -596,7 +596,7 @@ sub _lex_structure {
 			if ( $Token->content eq $Structure->start->_opposite ) {
 				# Add any delayed tokens, and the finishing token
 				$self->_add_delayed( $Structure ) or return undef;
-				$Structure->{finish} = $Token;
+				$Structure->_set_finish( $Token ) or return undef;
 				return 1;
 			}
 

@@ -1,5 +1,15 @@
 Revision history for Perl extension PPI
 
+0.820 Mon Jul 19 2004
+	- Added Round-Trip-Safe testing for all PPI files
+	- Added PPI::Node::find_any object method
+	- Added PPI::Node::contains object method
+	- Continuing the never ending addition of tests
+	- Structure open and close brace tokens now see the Structure as their parent
+	- Removed the sample application, to streamline the core install
+	- Removed dependencies for the sample application
+	- Removed custom META.yml, as now no longer needed
+
 0.819 Mon Jul  5 2004
 	- Many parts of PPI are VASTLY changed in this revision
 	- Breaks API compatibility heavily

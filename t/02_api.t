@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 # Basic first pass API testing for PPI
 
@@ -15,12 +15,15 @@ BEGIN {
 	}
 }
 
-# Load the API we will be testing
+# Load the API to test
 use Class::Autouse ':devel';
 use PPI;
+use PPI::Lexer;
+use PPI::Lexer::Dump;
+use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 888;
+use Test::More 'tests' => 925;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -39,6 +42,8 @@ PPI::Element=abstract
 PPI::Node=abstract
 PPI::Document=class
 PPI::Tokenizer=class
+PPI::Lexer=class
+PPI::Lexer::Dump=class
 PPI::Token=abstract
 PPI::Token::Whitespace=class
 PPI::Token::Pod=class
@@ -71,6 +76,7 @@ PPI::Token::Regex::Match=class
 PPI::Token::Regex::Replace=class
 PPI::Token::Regex::Transform=class
 PPI::Token::Regex::Pattern=class
+PPI::Format::HTML=class
 
 [PPI::Base]
 err_stack=method
@@ -95,13 +101,15 @@ location=method
 
 [PPI::Node]
 PPI::Element=isa
-find=method
-prune=method
 add_element=method
 children=method
 child=method
 schild=method
+contains=method
+find=method
+find_any=method
 remove_child=method
+prune=method
 
 [PPI::Document]
 PPI::Node=isa
@@ -243,3 +251,29 @@ all_tokens=method
 increment_cursor=method
 decrement_cursor=method
 
+[PPI::Lexer]
+new=method
+lex_file=method
+lex_source=method
+lex_tokenizer=method
+
+[PPI::Lexer::Dump]
+new=method
+print=method
+dump_string=method
+dump_array=method
+dump_array_ref=method
+
+[PPI::Format::HTML]
+PPI::Base=isa
+Exporter=isa
+serialize=method
+escape_html=method
+escape_whitespace=method
+escape_debug_html=method
+wrap_page=method
+line_label=method
+syntax_string=method
+syntax_page=method
+debug_string=method
+debug_page=method

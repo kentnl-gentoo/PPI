@@ -1,6 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
-# Test the API for PPI
+# Compare a large number of specific constructs
+# with the expected Lexer dumps.
 
 use strict;
 use lib ();
@@ -15,14 +16,10 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 32;
-use Class::Autouse qw{:devel};
-use File::Slurp ();
-
-use vars qw{$testdir};
-BEGIN {
-	$testdir = catdir( 'testdata', 'lexer', 'practical' );
-}
+# Load the code to test
+use Class::Autouse ':devel';
+use PPI::Lexer;
+use PPI::Lexer::Dump;
 
 
 
@@ -31,9 +28,13 @@ BEGIN {
 #####################################################################
 # Prepare
 
-# Load the PPI componants we need
-use_ok( 'PPI::Lexer' );
-use_ok( 'PPI::Lexer::Dump' );
+use Test::More tests => 30;
+use File::Slurp ();
+
+use vars qw{$testdir};
+BEGIN {
+	$testdir = catdir( 'testdata', 'lexer', 'practical' );
+}
 
 # Does the test directory exist?
 ok( (-e $testdir and -d $testdir and -r $testdir), "Test directory $testdir found" );

@@ -17,19 +17,21 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 2;
-use Class::Autouse qw{:devel};
-use Class::Handle;
+use Test::More tests => 6;
+use Class::Autouse ':devel';
+
 
 
 
 
 # Check their perl version
-BEGIN {
-        ok( $] >= 5.005, "Your perl is new enough" );
-}
+ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
 use_ok( 'PPI' );
+use_ok( 'PPI::Tokenizer' );
+use_ok( 'PPI::Lexer' );
+use_ok( 'PPI::Lexer::Dump' );
+use_ok( 'PPI::Format::HTML' );
 
 exit();

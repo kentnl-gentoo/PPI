@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.819';
+	$VERSION = '0.820';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -180,30 +180,30 @@ sub schild {
 
 =pod
 
-=head2 remove_child $Element
+=head2 contains $Element
 
-If passed a L<PPI::Element|PPI::Element> object that is a direct child of
-the Node, the C<remove_element> method will remove the Element intact,
-along with any of it's children. As such, this method acts essentially as
-a lexical 'cut' function.
+The C<contains> method is used to determine if another PPI::Element object
+is logically "within" a PPI::Node. For the special case of the brace tokens
+at either side of a PPI::Structure object, they are generally considered
+"within" a PPI::Structure object, even if they are not actually in the
+elements for the PPI::Structure.
+
+Returns true if the PPI::Element is within us, false if not, or C<undef>
+on error.
 
 =cut
 
-sub remove_child {
-	my $self  = shift;
-	my $child = isa($_[0], 'PPI::Element') ? shift : return undef;
+sub contains {
+	my $self = shift;
+	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 
-	# Find the position of the child
-	my $key      = Scalar::Util::refaddr $child;
-	my $position = List::MoreUtils::firstidx { Scalar::Util::refaddr $_ == $key } @{$self->{elements}};
-	return undef unless defined $position;
+	# Iterate up the Element's parent chain until we either run out
+	# of parents, or get to ourself.
+	while ( $Element = $Element->parent ) {
+		return 1 if Scalar::Util::refaddr($self) == Scalar::Util::refaddr($Element);
+	}
 
-	# Splice it out, and remove the child's parent entry
-	splice( @{$self->{elements}}, $position, 1 );
-	delete $_PARENT{Scalar::Util::refaddr $child};
-
-	# Return the child as a convenience
-	$child;
+	'';
 }
 
 =pod
@@ -248,6 +248,72 @@ sub find {
 	}
 
 	@found ? \@found : '';
+}
+
+=pod
+
+=head2 find_any $class | \&condition
+
+The C<find_any> is a short-circuiting true/false method that behaves like
+the normal C<find> method, but returns true as soon as it finds any Elements
+that match the search condition.
+
+See the C<find> method for details on the format of the search condition.
+
+Returns true if any Elements that match the condition can be found, false if
+not, or C<undef> if given an invalid condition, or an error occurs.
+
+=cut
+
+sub find_any {
+	my $self = shift;
+	my $condition = $self->_condition(shift) or return undef;
+
+	# Use a queue based search, rather than a recursive one
+	my @queue = $self->children;
+	while ( my $Element = shift @queue ) {
+		return 1 if &$condition( $self, $Element );
+
+		# Depth-first keeps the queue size down and provides a
+		# better logical order.
+		if ( $Element->isa('PPI::Structure') ) {
+			unshift @queue, $Element->finish if $Element->finish;
+			unshift @queue, $Element->children;
+			unshift @queue, $Element->start if $Element->start;
+		} elsif ( $Element->isa('PPI::Node') ) {
+			unshift @queue, $Element->children;
+		}
+	}
+
+	'';
+}
+
+=pod
+
+=head2 remove_child $Element
+
+If passed a L<PPI::Element|PPI::Element> object that is a direct child of
+the Node, the C<remove_element> method will remove the Element intact,
+along with any of it's children. As such, this method acts essentially as
+a lexical 'cut' function.
+
+=cut
+
+sub remove_child {
+	my $self  = shift;
+	my $child = isa($_[0], 'PPI::Element') ? shift : return undef;
+
+	# Find the position of the child
+	my $key      = Scalar::Util::refaddr $child;
+	my $position = List::MoreUtils::firstidx { Scalar::Util::refaddr $_ == $key } @{$self->{elements}};
+	return undef unless defined $position;
+
+	# Splice it out, and remove the child's parent entry
+	splice( @{$self->{elements}}, $position, 1 );
+	delete $_PARENT{Scalar::Util::refaddr $child};
+
+	# Return the child as a convenience
+	$child;
 }
 
 =pod

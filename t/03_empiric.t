@@ -19,8 +19,12 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 3;
+# Load the API to test
+use Class::Autouse ':devel';
 use PPI;
+
+# Execute the tests
+use Test::More tests => 3;
 
 
 

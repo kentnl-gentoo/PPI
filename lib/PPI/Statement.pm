@@ -9,7 +9,7 @@ use PPI ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.819';
+	$VERSION = '0.820';
 }
 
 
@@ -50,7 +50,7 @@ package PPI::Statement::Expression;
 # A "normal" expression of some sort
 
 BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.819';
+	$PPI::Statement::Expression::VERSION = '0.820';
 	@PPI::Statement::Expression::ISA     = 'PPI::Statement';
 }
 
@@ -65,7 +65,7 @@ package PPI::Statement::Scheduled;
 # BEGIN/INIT/LAST/END blocks
 
 BEGIN {
-	$PPI::Statement::Scheduled::VERSION = '0.819';
+	$PPI::Statement::Scheduled::VERSION = '0.820';
 	@PPI::Statement::Scheduled::ISA     = 'PPI::Statement';
 }
 
@@ -81,7 +81,7 @@ package PPI::Statement::Package;
 # Package decleration
 
 BEGIN {
-	$PPI::Statement::Package::VERSION = '0.819';
+	$PPI::Statement::Package::VERSION = '0.820';
 	@PPI::Statement::Package::ISA     = 'PPI::Statement';
 }
 
@@ -97,7 +97,7 @@ package PPI::Statement::Include;
 ### require should be a function, not a special statement?
 
 BEGIN {
-	$PPI::Statement::Include::VERSION = '0.819';
+	$PPI::Statement::Include::VERSION = '0.820';
 	@PPI::Statement::Include::ISA     = 'PPI::Statement';
 }
 
@@ -111,7 +111,7 @@ package PPI::Statement::Sub;
 # Subroutine or prototype declaration
 
 BEGIN {
-	$PPI::Statement::Sub::VERSION = '0.819';
+	$PPI::Statement::Sub::VERSION = '0.820';
 	@PPI::Statement::Sub::ISA     = 'PPI::Statement';
 }
 
@@ -141,7 +141,7 @@ package PPI::Statement::Variable;
 # Explicit variable decleration ( my, our, local )
 
 BEGIN {
-	$PPI::Statement::Variable::VERSION = '0.819';
+	$PPI::Statement::Variable::VERSION = '0.820';
 	@PPI::Statement::Variable::ISA     = 'PPI::Statement';
 }
 
@@ -155,7 +155,7 @@ package PPI::Statement::Compound;
 # This should cover all flow control statements, if, while, etc, etc
 
 BEGIN {
-	$PPI::Statement::Compound::VERSION = '0.819';
+	$PPI::Statement::Compound::VERSION = '0.820';
 	@PPI::Statement::Compound::ISA     = 'PPI::Statement';
 }
 
@@ -187,7 +187,7 @@ package PPI::Statement::Break;
 # next, last, return.
 
 BEGIN {
-	$PPI::Statement::Break::VERSION = '0.819';
+	$PPI::Statement::Break::VERSION = '0.820';
 	@PPI::Statement::Break::ISA     = 'PPI::Statement';
 }
 
@@ -202,7 +202,7 @@ package PPI::Statement::Null;
 # Usually, just an extra ; on it's own.
 
 BEGIN {
-	$PPI::Statement::Null::VERSION = '0.819';
+	$PPI::Statement::Null::VERSION = '0.820';
 	@PPI::Statement::Null::ISA     = 'PPI::Statement';
 }
 
@@ -219,7 +219,7 @@ package PPI::Statement::Unknown;
 # Currently, the only time this happens is when we start with a label
 
 BEGIN {
-	$PPI::Statement::Unknown::VERSION = '0.819';
+	$PPI::Statement::Unknown::VERSION = '0.820';
 	@PPI::Statement::Unknown::ISA     = 'PPI::Statement';
 }
 
