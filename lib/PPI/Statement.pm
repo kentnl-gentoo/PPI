@@ -5,38 +5,13 @@ package PPI::Statement;
 use strict;
 use UNIVERSAL 'isa';
 use PPI ();
+
+use vars qw{$VERSION %classes};
 BEGIN {
+	$VERSION = '0.801';
 	@PPI::Statement::ISA = 'PPI::ParentElement';
-}
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = "0.7";
-}
-
-
-
-
-
-sub new {
-	my $class = shift;
-
-	# Create the object
-	my $self = bless {
-		elements => [],
-		}, $class;
-
-	# If we have been passed an initial token, add it
-	if ( isa( $_[0], 'PPI::Token' ) ) {
-		$self->add_element( shift );
-	}
-
-	return $self;
-}
-
-# Classify the statement
-use vars qw{%classes};
-BEGIN {
+	# The main keyword -> statement-class map
 	%classes = (
 		# Things that affect the timing of execution
 		'BEGIN'   => 'PPI::Statement::Scheduling',
@@ -66,6 +41,22 @@ BEGIN {
 		);
 }
 
+
+
+
+
+sub new {
+	# Create the object
+	my $self = bless { elements => [] }, shift;
+
+	# If we have been passed an initial token, add it
+	if ( isa( $_[0], 'PPI::Token' ) ) {
+		$self->add_element( shift );
+	}
+
+	$self;
+}
+
 sub class {
 	my $self = shift;
 	return $self->{class} if exists $self->{class};
@@ -84,8 +75,10 @@ sub class {
 		return $self->{class} = 'Statement';
 	}
 
-
+	### ERRR... somethings missing
 }
+
+
 
 
 
@@ -95,14 +88,11 @@ sub class {
 # Main lexing method
 sub lex {
 	my $self = shift;
-
-	# Get the tokenizer
-	$self->{tokenizer} = isa( $_[0], 'PPI::Tokenizer' )
-		? shift : return undef;
+	$self->{tokenizer} = isa( $_[0], 'PPI::Tokenizer' ) ? shift : return undef;
 
 	# Begin processing tokens
 	my $token;
-	while ( $token = $self->{tokenizer}->get_token() ) {
+	while ( $token = $self->{tokenizer}->get_token ) {
 		my $class = $token->class;
 
 		# Delay whitespace and comments
@@ -148,7 +138,7 @@ sub lex {
 	return undef unless defined $token;
 
 	# End of file...
-	return $self->_clean( 1 );
+	$self->_clean( 1 );
 }
 
 
@@ -165,13 +155,11 @@ BEGIN {
 	@PPI::Statement::Sub::ISA = 'PPI::Statement';
 }
 
+# Rebless an ordinary statement
 sub new {
 	my $class = shift;
-	my $element = isa( $_[0], 'PPI::Statement' )
-		? shift : return undef;
-
-	# Rebless the statement
-	return bless $element, $class;
+	my $element = isa( $_[0], 'PPI::Statement' ) ? shift : return undef;
+	bless $element, $class;
 }
 
 # What is the subroutine name

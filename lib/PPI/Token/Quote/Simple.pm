@@ -7,19 +7,22 @@ use base 'PPI::Token::Quote';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
 }
+
+
+
 
 
 sub new {
 	my $class = shift;
-	my $seperator = shift;
-	return undef unless $seperator;
+	my $seperator = shift or return undef;
 
 	# Create a new token containing the seperator
 	my $self = $class->SUPER::new( $seperator ) or return undef;
 	$self->{seperator} = $seperator;
-	return $self;
+
+	$self;
 }
 
 sub fill {
@@ -43,7 +46,7 @@ sub fill {
 
 sub get_string {
 	my $self = shift;
-	return substr( $self->{content}, 1, length($self->{content}) - 2 );
+	substr( $self->{content}, 1, length($self->{content}) - 2 );
 }
 
 1;

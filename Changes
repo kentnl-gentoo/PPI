@@ -1,5 +1,10 @@
 Revision history for Perl extension PPI
 
+0.801 Fri Aug 22 2003
+	- Moved to a new numbering scheme to get more room before 1.0
+	- Always fully load when called under mod_perl
+	- Add mod_perl hook to PPI::Format::HTML
+
 0.8 Fixes to the quote parsing engine
 
 0.7 Fixed some minor bugs

@@ -19,21 +19,21 @@ package PPI::Token::Quote;
 # If ->fill returns true, finailise the token.
 
 use strict;
-use Class::Autouse;
-
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
 }
+
+
+
 
 
 # Hook for the _on_char token call
 sub _on_char {
 	my $class = shift;
-	my $t = shift;
-	return undef unless $t->{token};
+	my $t = $_[0]->{token} ? shift : return undef;
 
 	# Call the fill method to process the quote
 	my $rv = $t->{token}->fill( $t );
@@ -42,7 +42,8 @@ sub _on_char {
 	# Finalize the token and return 0 to tell the tokenizer
 	# to go to the next character.
 	$t->_finalize_token;
-	return 0;
+
+	0;
 }
 
 

@@ -11,7 +11,7 @@ use base 'PPI::Common';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
 }
 
 
@@ -24,10 +24,7 @@ sub new {
 	my $filename = (-f $_[0] and -r $_[0]) ? shift : return undef;
 
 	# Create and return the object
-	return bless {
-		# Data attributes
-		filename   => $filename,
-		};
+	bless { filename => $filename }, $class;
 }
 
 
@@ -38,8 +35,8 @@ sub new {
 # Accessor methods
 
 sub filename { $_[0]->{filename} }
-sub loaded { $_[0]->{loaded} }
-sub lexed { $_[0]->{lexed} }
+sub loaded   { $_[0]->{loaded} }
+sub lexed    { $_[0]->{lexed} }
 
 
 
@@ -65,17 +62,17 @@ sub load {
 	# Create the tokenizer
 	$self->{tokenizer} = PPI::Tokenizer->new( source => $source ) or return undef;
 
-	return 1;
+	1;
 }
 
 # Lex the file, loading if needed
 sub lex {
 	my $self = shift;
 	return 1 if $self->{document};
-	$self->{tokenizer} or $self->load() or return undef;
+	$self->{tokenizer} or $self->load or return undef;
 
 	# Create the lexer document
-	$self->{document} = PPI::Document->new() or return undef;
+	$self->{document} = PPI::Document->new or return undef;
 
 	# Lex the file
 	$self->{document}->lex( $self->{tokenizer} ) or return undef;
@@ -84,14 +81,14 @@ sub lex {
 	# for memory garbage collecting reasons.
 	delete $self->{tokenizer};
 
-	return 1;
+	1;
 }
 
 # Get the document, lexing if needed
 sub Document {
 	my $self = shift;
-	$self->{document} or $self->lex() or return undef;
-	return $self->{document};
+	$self->{document} or $self->lex or return undef;
+	$self->{document};
 }
 
 1;

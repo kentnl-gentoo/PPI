@@ -3,22 +3,23 @@ package PPI::Common;
 # Provides common functionality
 
 use strict;
-use PPI ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @err_stack};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION   = '0.801';
+	@err_stack = ();
 }
+
+
+
 
 
 #####################################################################
 # Error handling
 
-use vars qw{@err_stack};
-BEGIN { @err_stack = () }
-sub _error { shift; push @err_stack, @_; undef }
-sub err_stack { @err_stack }
-sub errstr { join ": ", reverse @err_stack }
+sub _error         { shift; push @err_stack, @_; undef }
+sub err_stack      { @err_stack }
+sub errstr         { join ": ", reverse @err_stack }
 sub errstr_console { join "\n", reverse @err_stack }
 
 1;

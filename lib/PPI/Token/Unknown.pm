@@ -12,8 +12,11 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
 }
+
+
+
 
 
 sub _on_char {

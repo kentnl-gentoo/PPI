@@ -5,14 +5,10 @@ package PPI::Token::Quote::Full;
 use strict;
 use base 'PPI::Token::Quote';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = "0.7";
-}
+	$VERSION = '0.801';
 
-
-use vars qw{%quotes};
-BEGIN {
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
 	%quotes = (
@@ -35,12 +31,23 @@ BEGIN {
 		# this and the trinary operator, but it's here for completeness.
 		'?'   => { operator => undef, braced => 0, seperator => '?', _sections => 1, modifieds => {} },
 		);
+
+	# Prototypes for the different braced sections
+	%sections = (
+		'(' => { type => '()', _close => ')' },
+		'<' => { type => '<>', _close => '>' },
+		'[' => { type => '[]', _close => ']' },
+		'{' => { type => '{}', _close => '}' },
+		);
+
 }
+
+
+
 
 sub new {
 	my $class = shift;
-	my $init = shift;
-	return undef unless defined $init;
+	my $init = defined $_[0] ? shift : return undef;
 
 	# Create the token
 	my $self = $class->SUPER::new($init) or return undef;
@@ -49,18 +56,9 @@ sub new {
 	my $options = $quotes{$init} or return $self->_error( "Unknown quote like operator '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
 
-	return $self;
+	$self;
 }
 
-use vars qw{%sections};
-BEGIN {
-	%sections = (
-		'(' => { type => '()', _close => ')' },
-		'<' => { type => '<>', _close => '>' },
-		'[' => { type => '[]', _close => ']' },
-		'{' => { type => '{}', _close => '}' },
-		);
-}
 sub fill {
 	my $class = shift;
 	my $t = shift;
@@ -252,11 +250,6 @@ sub _fill_braced {
 
 # In a scalar context, get the number of sections
 # In an array context, get the section information
-sub sections {
-	my $self = shift;
-	return wantarray
-		? @{ $self->{sections} }
-		: scalar @{ $self->{sections} };
-}
+sub sections { wantarray ? @{$_[0]->{sections}} : scalar @{$_[0]->{sections}} }
 
 1;

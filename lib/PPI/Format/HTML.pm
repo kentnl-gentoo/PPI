@@ -6,17 +6,17 @@ use strict;
 use UNIVERSAL 'isa';
 use PPI::Tokenizer ();
 use base qw{Exporter PPI::Common};
-# use Class::Autouse;
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = "0.7";
-}
-
-
-# Keyword lists
+use vars qw{$VERSION @EXPORT_OK};
+use vars qw{@EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
+	$VERSION = '0.801';
+
+	# Some methods will also work as exportable functions
+	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
+
+	# Reserved words and symbols
 	@keywords = qw{
 		-A -B -C -M -O -R -S -T -W -X
 		-b -c -d -e -f -g -k -l -o -p -r -s -t -u -w -x -z
@@ -61,7 +61,7 @@ BEGIN {
 		wait waitpid wantarray warn write
 		};
 	$colormap = {};
-	foreach ( @keywords ) { $colormap->{$_} = 'blue' }
+	foreach ( @keywords )  { $colormap->{$_} = 'blue' }
 	foreach ( @functions ) { $colormap->{$_} = 'red' }
 }
 
@@ -109,9 +109,8 @@ sub serialize {
 
 sub _serialize_syntax {
 	my $class = shift;
-	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' )
-		? shift : return undef;
-	my $options = shift;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' ) ? shift : return undef;
+	my $options = isa( $_[0], 'HASH' ) ? shift : {};
 	my ($token, $html, $color) = ();
 	my $delayed_whitespace = '';
 
@@ -173,7 +172,7 @@ sub _serialize_syntax {
 			!ge;
 	}
 
-	return $html;
+	$html;
 }
 
 # Determine the appropriate color for a token.
@@ -197,6 +196,8 @@ sub _get_token_color {
 		return '#999999';
 	} elsif ( $class eq 'PPI::Token::RawInput::String' ) {
 		return '#999999';
+	} elsif ( $class =~ /^PPI::Token::Regex::/ or $class eq 'PPI::Token::Quote::Regex' ) {
+		return '#9900AA';
 	} elsif ( $class =~ /^PPI::Token::Quote::/ ) {
 		return '#999999';
 	} elsif ( $class eq 'PPI::Token::Whitespace' ) {
@@ -205,23 +206,21 @@ sub _get_token_color {
 		return ''; # Transparent
 	} elsif ( $class eq 'PPI::Token::Magic' ) {
 		return '#0099FF';
-	} elsif ( $class =~ /^PPI::Token::Regex::/ ) {
-		return '#9900AA';
 	} elsif ( $class eq 'PPI::Token::Operator' ) {
 		return '#FF9900';
 	} elsif ( $class eq 'PPI::Token::Number' ) {
 		return '#990000';
 	} elsif ( $class eq 'PPI::Token::Cast' ) {
 		return '#008080';
+	} else {
+		return 'black';
 	}
-	return 'black';
 }
 
 sub _serialize_debug {
 	my $class = shift;
-	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' )
-		? shift : return undef;
-	my $options = shift;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' ) ? shift : return undef;
+	my $options = isa( $_[0], 'HASH' ) ? shift : {};
 	my ($token, $html) = ();
 
 	# Reset the cursor and loop
@@ -251,16 +250,15 @@ sub _serialize_debug {
 
 sub _serialize_plain {
 	my $class = shift;
-	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' )
-		? shift : return undef;
-	my $options = shift;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' ) ? shift : return undef;
+	my $options = isa( $_[0], 'HASH' ) ? shift : {};
 
 	# Get the content
 	my $plain = '';
 	while ( my $token = $Tokenizer->get_token ) {
 		$plain .= $token->{content};
 	}
-	$plain = escape_html( $Tokenizer->to_string );
+	$plain = escape_html( $plain );
 
 	# Optionally add line numbers
 	if ( $options->{linenumbers} ) {
@@ -274,8 +272,7 @@ sub _serialize_plain {
 			!ge;
 	}
 
-	# Done, return the content
-	return $plain;
+	$plain;
 }
 
 sub escape_html {
@@ -286,7 +283,7 @@ sub escape_html {
 	s/\n/<br>\n/g;
 	s/\t/        /g;
 	s/  /&nbsp;&nbsp;/g;
-	return $_;
+	$_;
 }
 
 sub escape_whitespace {
@@ -294,7 +291,7 @@ sub escape_whitespace {
 	s/\n/<br>\n/g;
 	s/\t/        /g;
 	s/  /&nbsp;&nbsp;/g;
-	return $_;
+	$_;
 }
 
 sub escape_debug_html {
@@ -306,7 +303,7 @@ sub escape_debug_html {
 	s/\t/        /g;
 	s/ /&nbsp;/g;
 	s!(</b>)(.)!$1<br>$2!g;
-	return $_;
+	$_;
 }
 
 # Wrap source code in a minamilist page
@@ -315,50 +312,49 @@ sub wrap_page {
 	my $style = shift;
 	my $content = shift;
 
-	if ( $style eq 'syntax' ) {
-		return qq~<html>
-		<head>
-		<title>Formatted Perl Source Code</title>
-		</head>
-		<body bgcolor="#FFFFFF" text="#000000">
-		<font face="Courier" size=-1>
-		$content
-		</font>
-		</body>
-		</html>
-		~;
+	return <<END if $style eq 'syntax';
+<html>
+<head>
+  <title>Formatted Perl Source Code</title>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+<font face="Courier" size=-1>
+$content
+</font>
+</body>
+</html>
+END
 
-	} elsif ( $style eq 'debug' ) {
-		return qq~<html>
-		<head>
-		<title>Debug Perl Source Code</title>
-		<style type="text/css">
-		<!--
-		body {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px}
-		td {  font-size: 12px; font-family: Verdana, Arial, Helvetica, sans-serif}
-		th {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px}
-		-->
-		</style>
-		</head>
-		<body bgcolor="#FFFFFF" text="#000000">
-		$content
-		</body>
-		</html>
-		~;
+	return <<END if $style eq 'debug';
+<html>
+<head>
+  <title>Debug Perl Source Code</title>
+  <style type="text/css">
+  <!--
+    body {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px}
+    td {  font-size: 12px; font-family: Verdana, Arial, Helvetica, sans-serif}
+    th {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px}
+  -->
+</style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+$content
+</body>
+</html>
+END
 
-	} else {
-		return qq~<html>
-		<head>
-		<title>Perl Source Code</title>
-		</head>
-		<body bgcolor="#FFFFFF" text="#000000">
-		<font face="Courier" size=-1>
-		$content
-		</font>
-		</body>
-		</html>
-		~;
-	}
+	return <<END;
+<head>
+  <title>Perl Source Code</title>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+<font face="Courier" size=-1>
+$content
+</font>
+</body>
+</html>
+END
+
 }
 
 sub line_label {
@@ -367,8 +363,9 @@ sub line_label {
 	my $width = shift;
 	my $label = sprintf( '%'.$width.'d:', $line );
 	$label =~ s/ /&nbsp;/g;
-	return $label;
+	$label;
 }
+
 
 
 
@@ -378,35 +375,30 @@ sub line_label {
 
 # These will work as both exportable functions, and methods
 
-use vars qw{@EXPORT_OK};
-BEGIN {
-	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
-}
-
 sub syntax_string {
-	shift if $_[0] eq 'PPI::HTML::Format';
+	shift if isa($_[0], __PACKAGE__);
 	my $Tokenizer = PPI::Tokenizer->new( shift ) or return undef;
 	my $options = isa( $_[0], 'HASH' ) ? shift : {};
 	return __PACKAGE__->serialize( $Tokenizer, 'syntax', $options );
 }
 
 sub syntax_page {
-	shift if $_[0] eq 'PPI::HTML::Format';
+	shift if isa($_[0], __PACKAGE__);
 	my $html = __PACKAGE__->syntax_string( shift ) or return undef;
-	return PPI::Format::HTML->wrap_page( 'syntax', $html );
+	PPI::Format::HTML->wrap_page( 'syntax', $html );
 }
 
 sub debug_string {
-	shift if $_[0] eq 'PPI::HTML::Format';
+	shift if isa($_[0], __PACKAGE__);
 	my $Tokenizer = PPI::Tokenizer->new( shift ) or return undef;
 	my $options = isa( $_[0], 'HASH' ) ? shift : {};
-	return __PACKAGE__->serialize( $Tokenizer, 'debug', $options );
+	__PACKAGE__->serialize( $Tokenizer, 'debug', $options );
 }
 
 sub debug_page {
-	shift if $_[0] eq 'PPI::HTML::Format';
+	shift if isa($_[0], __PACKAGE__);
 	my $html = __PACKAGE__->debug_string( shift ) or return undef;
-	return PPI::Format::HTML->wrap_page( 'debug', $html );
+	PPI::Format::HTML->wrap_page( 'debug', $html );
 }
 
 1;

@@ -5,7 +5,7 @@ package PPI::Token::_Pod;
 # for loading PPI down.
 
 # When loaded, it overwrites the PPI::Token::Pod class methods
-# as needed.
+# as needed. Note, there isn't much in here yet... it will grow.
 
 use strict;
 use UNIVERSAL 'isa';
@@ -65,7 +65,7 @@ sub merge {
 	}
 
 	# Return the static method response
-	return $either->new( $merged );
+	$either->new( $merged );
 }
 
 # Link the methods

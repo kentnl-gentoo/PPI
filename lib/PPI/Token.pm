@@ -9,15 +9,15 @@ use base 'PPI::Element';
 
 # When we load PPI::Token, make sure all our children are loaded.
 # Note that the load order is important here.
-use PPI::Token::Quote ();
-use PPI::Token::Quote::Full ();
+use PPI::Token::Quote         ();
 use PPI::Token::Quote::Simple ();
-use PPI::Token::Unknown ();
-use PPI::Token::Classes (); # This must be last
+use PPI::Token::Quote::Full   ();
+use PPI::Token::Unknown       ();
+use PPI::Token::Classes       (); # This must be last
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
 }
 
 
@@ -67,7 +67,7 @@ sub set_class {
 	delete $self->{$_} foreach keys %$self;
 	$self->{$_} = $token->{$_} foreach keys %$token;
 
-	return 1;
+	1;
 }
 
 
@@ -77,11 +77,10 @@ sub set_class {
 #####################################################################
 # Content related
 
-sub content { $_[0]->{content} }
+sub content     { $_[0]->{content} }
 sub set_content { $_[0]->{content} = $_[1] }
 sub add_content { $_[0]->{content} .= $_[1] }
-sub length { &CORE::length( $_[0]->{content} ) }
-
+sub length      { &CORE::length( $_[0]->{content} ) }
 
 
 
@@ -91,8 +90,8 @@ sub length { &CORE::length( $_[0]->{content} ) }
 # Tokenizer Default Methods
 
 sub _on_line_start { 1 }
-sub _on_line_end { 1 }
-sub _on_char { 'Unknown' }
+sub _on_line_end   { 1 }
+sub _on_char       { 'Unknown' }
 
 
 
@@ -101,7 +100,7 @@ sub _on_char { 'Unknown' }
 #####################################################################
 # Structure Related Tests
 
-sub _opens_structure { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\(|\[|\{)/ }
+sub _opens_structure  { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\(|\[|\{)/ }
 sub _closes_structure { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\)|\]|\})/ }
 
 
@@ -121,9 +120,7 @@ sub is_a {
 	return '' unless isa( $self, $class );
 
 	# Test the content if needed
-	return @_
-		? ($self->{content} eq shift) ? 1 : ''
-		: 1;
+	return ! (@_ and $self->{content} ne shift);
 }
 
 1;

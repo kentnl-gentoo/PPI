@@ -5,13 +5,11 @@ package PPI::Structure;
 use strict;
 use UNIVERSAL 'isa';
 use PPI ();
-BEGIN {
-	@PPI::Structure::ISA = 'PPI::ParentElement';
-}
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
+	@PPI::Structure::ISA = 'PPI::ParentElement';
 }
 
 
@@ -20,13 +18,13 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $token = isa( $_[0], 'PPI::Token' ) && $_[0]->_opens_structure
+	my $token = (isa( $_[0], 'PPI::Token' ) && $_[0]->_opens_structure)
 		? shift : return undef;
 
 	# Create the object
 	return bless {
-		elements    => [],
-		start       => $token,
+		elements => [],
+		start    => $token,
 		}, $class;
 }
 
@@ -37,8 +35,10 @@ sub new {
 #####################################################################
 # Accessors
 
-sub start { $_[0]->{start} }
+sub start  { $_[0]->{start} }
 sub finish { $_[0]->{finish} }
+
+
 
 
 
@@ -54,7 +54,7 @@ sub lex {
 
 	# Start the processing loop
 	my $token;
-	while ( $token = $self->{tokenizer}->get_token() ) {
+	while ( $token = $self->{tokenizer}->get_token ) {
 		# Is this a direct type token
 		unless ( $token->significant ) {
 			$self->add_element( $token );
@@ -110,7 +110,7 @@ sub lex {
 	return undef unless defined $token;
 
 	# No, it's the end of file
-	return $self->_clean( 1 );
+	$self->_clean( 1 );
 }
 
 

@@ -4,15 +4,15 @@ package PPI::Element;
 # It contains large sections of common code, accessible by all.
 
 use strict;
-use PPI ();
-BEGIN {
-	@PPI::Element::ISA = 'PPI::Common';
-}
+use base 'PPI::Common';
 use Scalar::Util qw{refaddr};
 
-use vars qw{$VERSION};
+use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
+	
+	# Child -> Parent links
+	%_PARENT = ()
 }
 
 
@@ -21,11 +21,6 @@ BEGIN {
 
 #####################################################################
 # Tree related code
-
-use vars qw{%_PARENT};
-BEGIN {
-	%_PARENT = ();
-}
 
 # Find our parent
 sub parent { $_PARENT{ refaddr $_[0] } }
@@ -39,7 +34,7 @@ sub previous_sibling {
 	return undef unless defined $position;
 
 	# Is there a previous?
-	return $parent->{elements}->[$position - 1] || '';
+	$parent->{elements}->[$position - 1] || '';
 }
 
 sub next_sibling {
@@ -51,7 +46,7 @@ sub next_sibling {
 	return undef unless defined $position;
 
 	# Is there a next?
-	return $parent->{elements}->[$position + 1] || '';
+	$parent->{elements}->[$position + 1] || '';
 }
 
 
@@ -72,7 +67,7 @@ sub extract {
 	my $parent = $_PARENT{ refaddr $self } or return 1;
 
 	# Remove us from our parent
-	return $parent->remove_element( $self );
+	$parent->remove_element( $self );
 }
 
 # Deleting an element involves removing ourselves, from our
@@ -90,21 +85,17 @@ sub delete {
 		delete $_PARENT{$key};
 	}
 
-	# Delete ourselves in what I'm told is the mod_perl
-	# friendly way.
-	### CHECK THIS WITH A MOD_PERL EXPERT
+	# Delete ourselves in a friendly way.
 	$self = {}; undef $self;
 
-	return 1;
+	1;
 }
 
 # Being DESTROYed in this manner, rather than by an explicit
 # ->delete means our reference count has fallen to zero.
 # Therefore we don't need to remove ourselves from our parent,
 # just the index ( just in case ).
-sub DESTROY {
-	delete $_PARENT{ refaddr $_[0] };
-}
+sub DESTROY { delete $_PARENT{ refaddr $_[0] } }
 
 
 
@@ -153,15 +144,15 @@ BEGIN {
 # Delay the addition of an element
 sub _delay_element {
 	my $self = shift;
-	return undef unless defined $_[0];
+	my $element = defined $_[0] ? shift : return undef;
 
 	if ( exists $self->{delayed} ) {
-		push @{$self->{delayed}}, shift;
+		push @{$self->{delayed}}, $element;
 	} else {
-		$self->{delayed} = [ shift ];
+		$self->{delayed} = [ $element ];
 	}
 
-	return 1;
+	1;
 }
 
 # Just add anything delayed to the elements
@@ -170,14 +161,15 @@ sub _add_delayed {
 	my $self = shift;
 
 	if ( exists $self->{delayed} ) {
-		while ( shift @{$self->{delayed}} ) {
+		foreach ( @{$self->{delayed}} ) {
 			push @{$self->{elements}}, $_;
 			$PPI::Element::_PARENT{ refaddr $_ } = $self;
 		}
+
 		delete $self->{delayed};
 	}
 
-	return 1;
+	1;
 }
 
 # Our reference count has hit zero...
@@ -196,7 +188,8 @@ sub DESTROY {
 
 	# Delete ourselves
 	delete $PPI::Element::_PARENT{ refaddr $self };
-	$self = {}; undef $self;
+	$self = {}; 
+	undef $self;
 }
 
 
@@ -216,7 +209,6 @@ sub position {
 		return $_ if $elements->[$_] eq $child;
 	}
 
-	# Not found
 	return undef;
 }
 
@@ -240,14 +232,13 @@ sub add_element {
 	push @{$self->{elements}}, $element;
 	$PPI::Element::_PARENT{ refaddr $element } = $self;
 
-	return 1;
+	1;
 }
 
 # Remove an element, given the child element we want to remove.
 sub remove_element {
 	my $self = shift;
-	my $child = isa( $_[0], 'PPI::Element' )
-		? shift : return undef;
+	my $child = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
 
 	# Where is the child
 	my $position = $self->position( $child );
@@ -258,7 +249,8 @@ sub remove_element {
 
 	# Remove it's parent entry
 	delete $PPI::Element::_PARENT{ refaddr $self };
-	return 1;
+
+	1;
 }
 
 # Remove a given element from our
@@ -271,19 +263,19 @@ sub rollback_tokenizer {
 	# Handle anything passed
 	foreach ( @_ ) {
 		if ( UNIVERSAL::isa( $_, 'PPI::Token' ) ) {
-			$tokenizer->decrement_cursor();
+			$tokenizer->decrement_cursor;
 		}
 	}
 
 	# Handle our delayed queue
 	if ( exists $self->{delayed} ) {
 		foreach ( @{$self->{delayed}} ) {
-			$tokenizer->decrement_cursor();
+			$tokenizer->decrement_cursor;
 		}
 		delete $self->{delayed};
 	}
 
-	return 1;
+	1;
 }
 
 # Overload the PPI::Element::delete method
@@ -302,7 +294,7 @@ sub delete {
 	delete $self->{elements};
 
 	# Now delete ourselves like a normal element
-	return $self->SUPER::delete();
+	$self->SUPER::delete;
 }
 
 
@@ -314,14 +306,10 @@ sub delete {
 # Getting information out
 
 # Overload to merge from our children
-sub content {
-	return join '', map { $_->content } @{$_[0]->{elements}}
-}
+sub content { join '', map { $_->content } @{$_[0]->{elements}} }
 
 # Merge from our children
-sub tokens {
-	return map { $_->tokens } @{$_[0]->{elements}}
-}
+sub tokens { map { $_->tokens } @{$_[0]->{elements}} }
 
 
 
@@ -335,10 +323,10 @@ sub _clean {
 
 	# Clean up everything
 	delete $self->{tokenizer} if exists $self->{tokenizer};
-	$self->rollback_tokenizer() if exists $self->{delayed};
+	$self->rollback_tokenizer if exists $self->{delayed};
 
 	# Return with the argument passed
-	return @_ ? $_[0] : ();
+	@_ and $_[0];
 }
 
 1;

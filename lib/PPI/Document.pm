@@ -7,27 +7,19 @@ use UNIVERSAL 'isa';
 use PPI ();
 use PPI::Statement ();
 use PPI::Structure ();
-BEGIN {
-	@PPI::Document::ISA = 'PPI::ParentElement';
-}
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
+	@PPI::Document::ISA = 'PPI::ParentElement'
 }
 
 
 
 
 
-sub new {
-	my $class = shift;
-
-	# Create the object
-	return bless {
-		elements => [],
-		}, $class;
-}
+# Constructor
+sub new { bless { elements => [] }, shift }
 
 
 
@@ -44,7 +36,7 @@ sub lex {
 
 	# Start the processing loop
 	my $token;
-	while ( $token = $self->{tokenizer}->get_token() ) {
+	while ( $token = $self->{tokenizer}->get_token ) {
 		# Add insignificant tokens directly to us
 		unless ( $token->significant ) {
 			$self->add_element( $token );

@@ -10,6 +10,7 @@ lib/PPI/Batch.pm
 lib/PPI/Common.pm
 lib/PPI/Document.pm
 lib/PPI/Element.pm
+lib/PPI/Format/Apache.pm
 lib/PPI/Format/HTML.pm
 lib/PPI/Lexer.pm
 lib/PPI/Manual.pm

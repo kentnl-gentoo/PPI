@@ -15,30 +15,25 @@ use strict;
 # use warnings;
 # use diagnostics;
 use PPI::Token;
-BEGIN {
-	@PPI::Token::Whitespace::ISA = 'PPI::Token';
-}
 
 use vars qw{$VERSION};
-BEGIN {
-	$VERSION = "0.7";
-}
-
-
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
+	$VERSION = '0.801';
+	@PPI::Token::Whitespace::ISA = 'PPI::Token';
+
 	# Build the class map
         @classmap = ();
         foreach ( 'a' .. 'z', 'A' .. 'Z' ) { $commitmap[ord $_] = 'PPI::Token::Bareword' }
 	foreach ( qw!; [ ] { } )! )        { $commitmap[ord $_] = 'PPI::Token::Structure' }
-        foreach ( 0 .. 9 )                 { $classmap[ord $_] = 'Number' }
-	foreach ( qw{= ? | + < > . ! ~} )  { $classmap[ord $_] = 'Operator' }
-	foreach ( qw{* $ @ & : - %} )      { $classmap[ord $_] = 'Unknown' }
+        foreach ( 0 .. 9 )                 { $classmap[ord $_]  = 'Number' }
+	foreach ( qw{= ? | + < > . ! ~} )  { $classmap[ord $_]  = 'Operator' }
+	foreach ( qw{* $ @ & : - %} )      { $classmap[ord $_]  = 'Unknown' }
 
 	# Miscellaneous remainder
         $commitmap[ord '#'] = 'PPI::Token::Comment';
-        $classmap[ord ','] = 'PPI::Token::Operator';
+        $classmap[ord ',']  = 'PPI::Token::Operator';
 	$classmap[ord "'"]  = 'Quote::Single';
 	$classmap[ord '"']  = 'Quote::Double';
 	$classmap[ord '`']  = 'Quote::Execute';
@@ -96,7 +91,7 @@ sub _on_line_start {
 		}
 	}
 
-	return 1;
+	1;
 }
 
 sub _on_char {
@@ -203,6 +198,7 @@ sub tidy {
 package PPI::Token::Pod;
 
 use strict;
+
 BEGIN {
 	@PPI::Token::Pod::ISA = 'PPI::Token';
 }
@@ -228,7 +224,7 @@ sub _on_line_start {
 sub lines { [ split /(?:\015\012|\015|\012)/, $_[0]->{content} ] }
 
 # Extended methods.
-# See PPI::Token::_Comment for details
+# See PPI::Token::_Pod for details
 sub merge { require PPI::Token::_Pod; return shift->merge( @_ ) }
 
 
@@ -605,7 +601,7 @@ sub _on_char {
 
 	# Doesn't fit a special case, or is after the end of the token
 	# End of token.
-	return $t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->_on_char( $t );
 }
 
 
@@ -636,7 +632,7 @@ sub _on_char {
 		$t->_set_token_class( 'Magic' );
 	}
 
-	return $t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->_on_char( $t );
 }
 
 
@@ -661,7 +657,7 @@ sub _on_char {
 	}
 
 	# End of token
-	return $t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->_on_char( $t );
 }
 
 
@@ -799,7 +795,7 @@ sub _on_char {
 	}
 
 	# End the current magic token, and recheck
-	return $t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->_on_char( $t );
 }
 
 
@@ -816,7 +812,7 @@ use base 'PPI::Token';
 
 # A cast is always a single character
 sub _on_char {
-	return $_[1]->_finalize_token->_on_char( $_[1] );
+	$_[1]->_finalize_token->_on_char( $_[1] );
 }
 
 
@@ -872,7 +868,7 @@ sub _on_char {
 
 	# Finish the dashed bareword
 	$t->_set_token_class( 'Bareword' ) or return undef;
-	return $t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->_on_char( $t );
 }
 
 

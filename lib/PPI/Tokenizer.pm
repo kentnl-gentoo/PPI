@@ -30,15 +30,17 @@ package PPI::Tokenizer;
 # The tokenizer also maintains some statistics
 
 use strict;
-use PPI ();
-use PPI::Token ();
-BEGIN {
-	@PPI::Tokenizer::ISA = 'PPI::Common';
-}
+
+# Make sure everything we need is loaded, without 
+# resorting to loading all of PPI if possible.
+use PPI::Common  ();
+use PPI::Element ();
+use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
+	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 
 
@@ -115,7 +117,7 @@ sub new {
 	my @source = split /(?<=\n)/, $self->{source};
 	$self->{source} = \@source;
 
-	return $self;
+	$self;
 }
 
 # Creates a new tokenizer from a file
@@ -129,7 +131,7 @@ sub load {
 	my $source = <FILE>;
 	close FILE;
 
-	return $class->new( $source );
+	$class->new( $source );
 }
 
 
@@ -182,7 +184,7 @@ sub get_token {
 	}
 
 	# Error, pass it up to our caller
-	return undef;
+	undef;
 }
 
 # Get all the tokens
@@ -194,17 +196,13 @@ sub all_tokens {
 
 	# Process lines until we get EOF
 	unless ( $self->{token_eof} ) {
-		while ( $_ = $self->_process_next_line ) {}
-		return $self->_error( "Error while processing source" ) unless defined $_;
+		my $rv;
+		while ( $rv = $self->_process_next_line ) {}
+		return $self->_error( "Error while processing source" ) unless defined $rv;
 	}
 
-	# End of file
-	if ( scalar @{ $self->{tokens} } ) {
-		# Return a copy of the token array
-		return [ @{$self->{tokens}} ];
-	} else {
-		return 0;
-	}
+	# End of file, return a copy of the token array.
+	return @{ $self->{tokens} } ? [ @{$self->{tokens}} ] : 0;
 }
 
 # Manually increment the cursor
@@ -214,7 +212,7 @@ sub all_tokens {
 sub increment_cursor {
 	# Do this via the get_token method, which makes sure there
 	# is actually a token there to move to.
-	return ($_ = $_[0]->get_token()) ? 1 : $_;
+	$_[0]->get_token and 1;
 }
 
 # Manually decrement the cursor
@@ -304,7 +302,7 @@ sub _fill_line {
 # Get the current character
 sub _char {
 	my $self = shift;
-	return substr( $self->{line}, $self->{line_cursor}, 1 );
+	substr( $self->{line}, $self->{line_cursor}, 1 );
 }
 
 
@@ -322,7 +320,7 @@ sub _process_next_line {
 	my $self = shift;
 
 	# Fill the line buffer
-	unless ( $_ = $self->_fill_line() ) {
+	unless ( $_ = $self->_fill_line ) {
 		return undef unless defined $_;
 
 		# End of file, finalize last token
@@ -353,7 +351,7 @@ sub _process_next_line {
 	# or a string that it was originally.
 	# Note also that _handle_raw_input has the same return conditions as
 	# this method.
-	return $self->{rawinput_queue} ? $self->_handle_raw_input() : 1;
+	$self->{rawinput_queue} ? $self->_handle_raw_input : 1;
 }
 
 # Read in raw input from the source
@@ -490,7 +488,7 @@ sub _process_next_char {
 		$self->_new_token( $_, $char );
 	}
 
-	return 1;
+	1;
 }
 
 
@@ -528,7 +526,7 @@ sub _new_token {
 	$self->{token} = $class->new( $_[0] ) or return undef;
 	$self->{class} = $class;
 
-	return 1;
+	1;
 }
 
 # Changes the token class
@@ -542,7 +540,7 @@ sub _set_token_class {
 
 	# Update our parse class
 	$self->{class} = ref $self->{token};
-	return 1;
+	1;
 }
 
 
@@ -564,7 +562,7 @@ sub _last_significant_token {
 	}
 
 	# Nothing...
-	return PPI::Token::Whitespace->null;
+	PPI::Token::Whitespace->null;
 }
 
 # Get an array ref of previous significant tokens.
@@ -590,7 +588,7 @@ sub _previous_significant_tokens {
 		push @tokens, PPI::Token::Whitespace->null;
 	}
 
-	return \@tokens;
+	\@tokens;
 }
 
 1;

@@ -2,7 +2,7 @@ package PPI::Manual;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = '0.801';
 }
 
 =pod
@@ -203,11 +203,11 @@ isolated token in a bracket becomes it's own statement. This is needed to
 allow anything inside the tree the ability to grow. It also makes the
 search and analysis algorithms simpler.
 
+Please note that the lexer is partly completed, but not enough to use it on
+anything "real". It needs major work before it can be considered to be 
+"working".
 
-
-
-
-
+TO BE COMPLETED
 
 =cut
 

@@ -13,21 +13,19 @@ use strict;
 # use warnings;
 # use diagnostics;
 use UNIVERSAL 'isa';
+use Class::Autouse;
 
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.8";
+	$VERSION = 0.801;
+
+	# If we are in a mod_perl environment, always fully load
+	# modules, in case Apache::Reload is present.
+	Class::Autouse->devel(1) if $ENV{MOD_PERL};
 }
 
-
-
-
-
-# Load or autoload some prerequisites
-use Class::Autouse 'File::Flat';
-
-# Load the essentials now
+# Load the essentials
 use base 'PPI::Common';
 use PPI::Element ();
 
@@ -56,12 +54,8 @@ BEGIN {
 
 
 # Autoload the remainder of the classes
-use Class::Autouse qw{
-	PPI::Tokenizer
-	PPI::Lexer
-	PPI::Document
-	};
-
+use Class::Autouse 'PPI::Tokenizer', 
+	'PPI::Lexer', 'PPI::Document';
 
 
 
