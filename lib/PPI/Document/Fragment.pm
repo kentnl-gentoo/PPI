@@ -9,6 +9,11 @@ use strict;
 use base 'PPI::Document';
 use UNIVERSAL 'isa';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.827';
+}
+
 # Identical, except for not having it's own scope
 # sub scope { '' }
 

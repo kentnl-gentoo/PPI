@@ -50,7 +50,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.826';
+	$VERSION = '0.827';
 }
 
 
@@ -335,8 +335,9 @@ sub _lex_statement {
 			next;
 		}
 
-		# Structual closes implicitly end statements
-		if ( $Token->_closes ) {
+		# Structual closes, and __DATA__ and __END__ tags implicitly
+		# end every type of statement
+		if ( $Token->_closes or $Token->isa('PPI::Token::Separator') ) {
 			# Rollback and end the statement
 			return $self->_rollback( $Token );
 		}

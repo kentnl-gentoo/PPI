@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.826';
+	$VERSION = '0.827';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
@@ -62,22 +62,6 @@ sub _on_line_start {
 			$t->{class} = 'PPI::Token::Pod';
 		}
 		return 0;
-
-#	} elsif ( /^\s*__(END|DATA)__\s*$/ ) {
-#		# Preprocessor end of file signal
-#		if ( $1 eq 'END' ) {
-#			# Something off the end of the file
-#			$t->_new_token( 'End', $t->{line} );
-#			$t->{class} = 'PPI::Token::End';
-#			$t->{class} = 'PPI::Token::End';
-#			return 0;
-#		} else {
-#			# Data at the end of the file
-#			$t->_new_token( 'Data', $t->{line} );
-#			$t->{class} = 'PPI::Token::Data';
-#			$t->{class} = 'PPI::Token::Data';
-#			return 0;
-#		}
 	}
 
 	1;

@@ -25,7 +25,7 @@ use PPI::Token::Whitespace    ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.826';
+	$VERSION = '0.827';
 }
 
 
@@ -151,7 +151,7 @@ sub _isa {
 package PPI::Token::Data;
 
 BEGIN {
-	$PPI::Token::Data::VERSION = '0.826';
+	$PPI::Token::Data::VERSION = '0.827';
 	@PPI::Token::Data::ISA     = 'PPI::Token';
 }
 
@@ -166,7 +166,7 @@ sub _on_char { 1 }
 package PPI::Token::End;
 
 BEGIN {
-	$PPI::Token::End::VERSION = '0.826';
+	$PPI::Token::End::VERSION = '0.827';
 	@PPI::Token::End::ISA     = 'PPI::Token';
 }
 
@@ -212,7 +212,7 @@ sub _on_line_start {
 package PPI::Token::Label;
 
 BEGIN {
-	$PPI::Token::Label::VERSION = '0.826';
+	$PPI::Token::Label::VERSION = '0.827';
 	@PPI::Token::Label::ISA     = 'PPI::Token';
 }
 
@@ -226,7 +226,7 @@ BEGIN {
 package PPI::Token::Structure;
 
 BEGIN {
-	$PPI::Token::Structure::VERSION = '0.826';
+	$PPI::Token::Structure::VERSION = '0.827';
 	@PPI::Token::Structure::ISA     = 'PPI::Token';
 }
 
@@ -269,7 +269,7 @@ sub _opposite { $match[ord $_[0]->{content} ] }
 package PPI::Token::ArrayIndex;
 
 BEGIN {
-	$PPI::Token::ArrayIndex::VERSION = '0.826';
+	$PPI::Token::ArrayIndex::VERSION = '0.827';
 	@PPI::Token::ArrayIndex::ISA     = 'PPI::Token';
 }
 
@@ -297,7 +297,7 @@ sub _on_char {
 package PPI::Token::Cast;
 
 BEGIN {
-	$PPI::Token::Cast::VERSION = '0.826';
+	$PPI::Token::Cast::VERSION = '0.827';
 	@PPI::Token::Cast::ISA     = 'PPI::Token';
 }
 
@@ -316,7 +316,7 @@ sub _on_char {
 package PPI::Token::SubPrototype;
 
 BEGIN {
-	$PPI::Token::SubPrototype::VERSION = '0.826';
+	$PPI::Token::SubPrototype::VERSION = '0.827';
 	@PPI::Token::SubPrototype::ISA     = 'PPI::Token';
 }
 
@@ -347,7 +347,7 @@ package PPI::Token::DashedBareword;
 # This should be a string... but I'm still musing on whether that's a good idea
 
 BEGIN {
-	$PPI::Token::DashedBareword::VERSION = '0.826';
+	$PPI::Token::DashedBareword::VERSION = '0.827';
 	@PPI::Token::DashedBareword::ISA     = 'PPI::Token';
 }
 
@@ -378,13 +378,29 @@ sub _on_char {
 
 
 #####################################################################
+# The __END__ and __DATA__ "seperator" tokens
+
+package PPI::Token::Separator;
+
+# These don't have any method, they are just for identification
+
+BEGIN {
+	$PPI::Token::Separator::VERSION = '0.827';
+	@PPI::Token::Separator::ISA     = 'PPI::Token::Bareword';
+}
+
+
+
+
+
+#####################################################################
 # All the quote and quote like operators
 
 # Single Quote
 package PPI::Token::Quote::Single;
 
 BEGIN {
-	$PPI::Token::Quote::Single::VERSION = '0.826';
+	$PPI::Token::Quote::Single::VERSION = '0.827';
 	@PPI::Token::Quote::Single::ISA     = 'PPI::Token::Quote::Simple';
 }
 
@@ -392,7 +408,7 @@ BEGIN {
 package PPI::Token::Quote::Double;
 
 BEGIN {
-	$PPI::Token::Quote::Single::VERSION = '0.826';
+	$PPI::Token::Quote::Single::VERSION = '0.827';
 	@PPI::Token::Quote::Double::ISA     = 'PPI::Token::Quote::Simple';
 }
 
@@ -425,7 +441,7 @@ sub simplify {
 package PPI::Token::Quote::Execute;
 
 BEGIN {
-	$PPI::Token::Quote::Execute::VERSION = '0.826';
+	$PPI::Token::Quote::Execute::VERSION = '0.827';
 	@PPI::Token::Quote::Execute::ISA     = 'PPI::Token::Quote::Simple';
 }
 
@@ -433,7 +449,7 @@ BEGIN {
 package PPI::Token::Quote::OperatorSingle;
 
 BEGIN {
-	$PPI::Token::Quote::OperatorSingle::VERSION = '0.826';
+	$PPI::Token::Quote::OperatorSingle::VERSION = '0.827';
 	@PPI::Token::Quote::OperatorSingle::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -441,7 +457,7 @@ BEGIN {
 package PPI::Token::Quote::OperatorDouble;
 
 BEGIN {
-	$PPI::Token::Quote::OperatorDouble::VERSION = '0.826';
+	$PPI::Token::Quote::OperatorDouble::VERSION = '0.827';
 	@PPI::Token::Quote::OperatorDouble::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -449,7 +465,7 @@ BEGIN {
 package PPI::Token::Quote::OperatorExecute;
 
 BEGIN {
-	$PPI::Token::Quote::OperatorExecute::VERSION = '0.826';
+	$PPI::Token::Quote::OperatorExecute::VERSION = '0.827';
 	@PPI::Token::Quote::OperatorExecute::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -457,7 +473,7 @@ BEGIN {
 package PPI::Token::Quote::Words;
 
 BEGIN {
-	$PPI::Token::Quote::Words::VERSION = '0.826';
+	$PPI::Token::Quote::Words::VERSION = '0.827';
 	@PPI::Token::Quote::Words::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -465,7 +481,7 @@ BEGIN {
 package PPI::Token::Quote::Regex;
 
 BEGIN {
-	$PPI::Token::Quote::Regex::VERSION = '0.826';
+	$PPI::Token::Quote::Regex::VERSION = '0.827';
 	@PPI::Token::Quote::Regex::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -473,7 +489,7 @@ BEGIN {
 package PPI::Token::Regex::Match;
 
 BEGIN {
-	$PPI::Token::Regex::Match::VERSION = '0.826';
+	$PPI::Token::Regex::Match::VERSION = '0.827';
 	@PPI::Token::Regex::Match::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -482,7 +498,7 @@ BEGIN {
 package PPI::Token::Regex::Pattern;
 
 BEGIN {
-	$PPI::Token::Regex::Pattern::VERSION = '0.826';
+	$PPI::Token::Regex::Pattern::VERSION = '0.827';
 	@PPI::Token::Regex::Pattern::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -490,7 +506,7 @@ BEGIN {
 package PPI::Token::Regex::Replace;
 
 BEGIN {
-	$PPI::Token::Regex::Replace::VERSION = '0.826';
+	$PPI::Token::Regex::Replace::VERSION = '0.827';
 	@PPI::Token::Regex::Replace::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -498,7 +514,7 @@ BEGIN {
 package PPI::Token::Regex::Transform;
 
 BEGIN {
-	$PPI::Token::Regex::Transform::VERSION = '0.826';
+	$PPI::Token::Regex::Transform::VERSION = '0.827';
 	@PPI::Token::Regex::Transform::ISA     = 'PPI::Token::Quote::Full';
 }
 
@@ -512,21 +528,21 @@ BEGIN {
 package PPI::Token::RawInput::Operator;
 
 BEGIN {
-	$PPI::Token::RawInput::Operator::VERSION = '0.826';
+	$PPI::Token::RawInput::Operator::VERSION = '0.827';
 	@PPI::Token::RawInput::Operator::ISA     = 'PPI::Token';
 }
 
 package PPI::Token::RawInput::Terminator;
 
 BEGIN {
-	$PPI::Token::RawInput::Terminator::VERSION = '0.826';
+	$PPI::Token::RawInput::Terminator::VERSION = '0.827';
 	@PPI::Token::RawInput::Terminator::ISA     = 'PPI::Token';
 }
 
 package PPI::Token::RawInput::String;
 
 BEGIN {
-	$PPI::Token::RawInput::String::VERSION = '0.826';
+	$PPI::Token::RawInput::String::VERSION = '0.827';
 	@PPI::Token::RawInput::String::ISA     = 'PPI::Token';
 }
 

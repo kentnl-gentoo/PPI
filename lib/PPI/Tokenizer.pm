@@ -34,7 +34,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.826';
+	$VERSION = '0.827';
 }
 
 
@@ -477,6 +477,7 @@ sub _process_next_char {
 
 	# Pass control to the token class
 	unless ( $_ = $self->{class}->_on_char( $self ) ) {
+		# undef is error. 0 is "Did stuff ourself, you don't have to do anything"
 		return defined $_ ? 1 : undef;
 	}
 

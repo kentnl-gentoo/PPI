@@ -1,6 +1,12 @@
 Revision history for Perl extension PPI
 
-0.826
+0.827 Thu Aug  5 2004
+	- Added PPI::Token::Seperator class ( for __DATA__ and __END__ )
+	- Added better Tokenizer handling of __DATA__ and __END__
+	- Added better Lexer handling of __DATA__ and __END__
+	- Fixed some version inconsistencies
+
+0.826 Sat Jul 31 2004
 	- Added PPI::Element::statement object method
 	- Added PPI::Transform abstract class
 	- Sped up the 'bool' overload for PPI::Element

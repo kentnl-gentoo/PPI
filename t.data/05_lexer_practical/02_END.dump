@@ -2,5 +2,6 @@ PPI::Document
   PPI::Token::Comment  	'# something\n'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement::End
-    PPI::Token::Bareword  	'__END__'
-    PPI::Token::End  	'\n\nThis is after the end of the file\n\n'
+    PPI::Token::Separator  	'__END__'
+    PPI::Token::Whitespace  	'\n'
+    PPI::Token::End  	'\nThis is after the end of the file\n\n'

@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %quotelike};
 BEGIN {
-	$VERSION = '0.826';
+	$VERSION = '0.827';
 
 	%quotelike = (
 		'q'  => 'Quote::OperatorSingle',
@@ -112,16 +112,25 @@ sub _commit {
 	# Check for the end of the file
 	if ( $word eq '__END__' ) {
 		# Create the token for the __END__ itself
-		$t->_new_token( 'Bareword', $1 );
+		$t->_new_token( 'Separator', $1 );
 		$t->_finalize_token;
 
-		# Change into the End zone
+		# Move into the End zone (heh)
 		$t->{zone} = 'PPI::Token::End';
 
-		# Add the rest of the line as the End token
+		# Add the rest of the line as a comment, and a whitespace newline
+		# Anything after the __END__ on the line is "ignored". So we must
+		# also ignore it, by turning it into a comment.
 		$line = substr( $t->{line}, $t->{line_cursor} );
 		$t->{line_cursor} = length $t->{line};
-		$t->_new_token( 'End', $line );
+		if ( $line =~ /\n$/ ) {
+			chomp $line;
+			$t->_new_token( 'Comment', $line ) if length $line;
+			$t->_new_token( 'Whitespace', "\n" );
+		} else {
+			$t->_new_token( 'Comment', $line ) if length $line;
+		}
+		$t->_finalize_token;
 
 		return 0;
 	}
@@ -129,16 +138,23 @@ sub _commit {
 	# Check for the data section
 	if ( $word eq '__DATA__' ) {
 		# Create the token for the __DATA__ itself
-		$t->_new_token( 'Bareword', "$1" );
+		$t->_new_token( 'Separator', "$1" );
 		$t->_finalize_token;
 
-		# Change into the Data zone
+		# Move into the Data zone
 		$t->{zone} = 'PPI::Token::Data';
 
 		# Add the rest of the line as the Data token
 		$line = substr( $t->{line}, $t->{line_cursor} );
 		$t->{line_cursor} = length $t->{line};
-		$t->_new_token( 'Data', $line );
+		if ( $line =~ /\n$/ ) {
+			chomp $line;
+			$t->_new_token( 'Comment', $line ) if length $line;
+			$t->_new_token( 'Whitespace', "\n" );
+		} else {
+			$t->_new_token( 'Comment', $line ) if length $line;
+		}
+		$t->_finalize_token;
 
 		return 0;
 	}
