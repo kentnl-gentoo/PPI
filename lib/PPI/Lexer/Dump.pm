@@ -40,13 +40,19 @@ sub new {
 	$self;
 }
 
-sub print { shift->dump_element }
+
+
+
+
+#####################################################################
+# Generate the dump
 
 # The function/class method shortcut 
-sub dump_element {
+sub dump_array_ref {
 	my $self = ref $_[0] ? shift : shift->new(shift);
 	my $element = isa( $_[0], 'PPI::Element' ) ? shift : $self->{root};
 	my $indent = shift || '';
+	my $output = shift || [];
 
 	# Print the element if needed
 	my $show = 1;
@@ -55,20 +61,20 @@ sub dump_element {
 	} elsif ( isa( $element, 'PPI::Token::Comment' ) ) {
 		$show = 0 unless $self->{display}->{comments};
 	}
-	print $self->element_string( $element, $indent ) if $show;
+	push @$output, $self->_element_string( $element, $indent ) if $show;
 
 	# Recurse into our children
 	if ( isa( $element, 'PPI::ParentElement' ) ) {
 		my $child_indent = $indent . '  ';
 		foreach my $child ( @{$element->{elements}} ) {
-			$self->dump_element( $child, $child_indent );
+			$self->dump_array_ref( $child, $child_indent, $output );
 		}
 	}
 
-	1;
+	$output;
 }
 
-sub element_string {
+sub _element_string {
 	my $self = ref $_[0] ? shift : shift->new(shift);
 	my $element = isa( $_[0], 'PPI::Element' ) ? shift : $self->{root};
 	my $indent = shift || '';
@@ -110,8 +116,24 @@ sub element_string {
 			$string .= "  \t$start ... $finish";
 		}
 	}
-
-	$string . "\n";
-}
 	
+	$string;
+}
+
+
+
+
+
+#####################################################################
+# Alternative ways to get it
+
+sub dump_array {
+	my $array_ref = shift->dump_array_ref;
+	isa( $array_ref, 'ARRAY' ) ? @$array_ref : ();
+}
+
+sub dump_string { join '', map { "$_\n" } shift->dump_array }
+
+sub print { print shift->dump_string }
+
 1;

@@ -39,7 +39,7 @@ use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 
@@ -286,9 +286,9 @@ sub _fill_line {
 
 		# Mainly to protect ourselves against the horror that is
 		# Crypt::GeneratePassword, don't allow lines longer than 
-		# 1000 characters.
-		if ( $self->{line_length} > 1000 ) {
-			return $self->_error( "Line longer than 1000 characters found ( $self->{line_length} characters )" );
+		# 5000 characters.
+		if ( $self->{line_length} > 5000 ) {
+			return $self->_error( "Line longer than 5000 characters found ( $self->{line_length} characters )" );
 		}
 
 		return 1;
@@ -299,12 +299,13 @@ sub _fill_line {
 		delete $self->{line};
 		delete $self->{line_cursor};
 		delete $self->{line_length};
+
 		return 0;
 	}
 
 	# Must be an error.
 	# Add a comment for from us, and pass the error along
-	return $self->_error( "Error getting line " . ($self->{line_count} + 1) );
+	$self->_error( "Error getting line " . ($self->{line_count} + 1) );
 }
 
 # Get the current character

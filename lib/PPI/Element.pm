@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 	
 	# Child -> Parent links
 	%_PARENT = ()
@@ -189,11 +189,11 @@ sub position {
 	my $child = isa( $_[0], 'PPI::Element' ) or return undef;
 
 	my $elements = $self->{elements};
-	for ( 0 .. $#$elements ) {
-		return $_ if $elements->[$_] eq $child;
+	for my $i ( 0 .. $#$elements ) {
+		return $i if $elements->[$i] eq $child;
 	}
 
-	return undef;
+	undef;
 }
 
 # Add an element.
@@ -280,30 +280,54 @@ sub delete {
 	$self->SUPER::delete;
 }
 
-# Start from the end, find the nth ( default 1st ) significant 
-# child element. Returns the element, 0 if none, or undef or error.
-sub last_significant_child {
-	my $self = shift;
-	my $number = ($_[0] > 0) ? shift : 1;
+# Gets and returns a significant child as indicated by the position.
+# A positive position number returns the nth significant child from the
+# beginning. A negative position number returns the nth significant 
+# child from the end.
+sub nth_significant_child {
+	my $elements = shift->{elements};
+	my ($number, $fromend) = ($_[0] > 0) ? (shift, 0) 
+		: ($_[0] < 0) ? (0 - shift(), 1)
+		: return undef;
 
 	# Start with the index of the last element
-	my $i = $#{$self->{elements}};
-	while ( $i >= 0 ) {
-		if ( $self->{elements}->[$i]->significant ) {
-			if ( $number > 1 ) {
-				# More
-				$number--;
-			} else {
-				# Found it
-				return $self->{elements}->[$i];
-			}
-		}
+	my $last_index = $#$elements;
+	foreach my $p ( 0 .. $last_index ) {
+		# Work out the actual position to test
+		my $i = $fromend ? ($last_index - $p) : $p;
 
-		$i--;
+		if ( $elements->[$i]->significant ) {
+			# Is this the nth?
+			return $elements->[$i] unless $number;
+
+			# Not the nth yet, keep looking
+			$number--;
+		}
 	}
 
-	# Didn't find it
+	# Not found
 	0;
+}
+
+# Search for one or more elements based on a coderef
+sub find {
+	my $self = shift;
+	my $condition = isa( $_[0], 'CODE' ) ? shift : return;
+
+	# Do we match the condition?
+	$_ = $self;
+	my @found = &$condition() ? ($self) : ();
+
+	# Test each of our children, recursing as needed
+	foreach my $child ( @{$self->{children}} ) {
+		if ( isa( $child, 'PPI::ParentElement' ) ) {
+			push @found, $child->find($condition);
+		} elsif ( &$condition() ) {
+			push @found, $_;
+		}
+	}
+
+	@found;
 }
 
 
@@ -313,11 +337,12 @@ sub last_significant_child {
 ####################################################################
 # Getting information out
 
+# Merge from our children
+sub tokens { map { $_->tokens } @{$_[0]->{elements}} }
+
 # Overload to merge from our children
 sub content { join '', map { $_->content } @{$_[0]->{elements}} }
 
-# Merge from our children
-sub tokens { map { $_->tokens } @{$_[0]->{elements}} }
 
 
 

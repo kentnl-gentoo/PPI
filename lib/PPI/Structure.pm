@@ -8,7 +8,7 @@ use PPI ();
 
 use vars qw{$VERSION %round_classes %curly_classes};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 	@PPI::Structure::ISA = 'PPI::ParentElement';
 
 	# Keyword -> Structure class maps
@@ -22,10 +22,14 @@ BEGIN {
 
 	%curly_classes = (
 		'sub'   => 'PPI::Structure::AnonymousSub',
+
 		'BEGIN' => 'PPI::Structure::Block',
 		'INIT'  => 'PPI::Structure::Block',
 		'LAST'  => 'PPI::Structure::Block',
 		'END'   => 'PPI::Structure::Block',
+
+		# Condition related
+		'else'    => 'PPI::Structure::Block::Else',
 		);
 }
 
@@ -64,13 +68,8 @@ sub finish { $_[0]->{finish} }
 
 # What general brace type are we
 sub _brace_type {
-	my $self = shift;
-	return undef unless $self->{start};
-	return { 
-		'[' => '[]', 
-		'(' => '()', 
-		'{' => '{}' 
-		}->{ $self->{start}->{content} };
+	my $self = $_[0]->{start} ? shift : return undef;
+	return { '[' => '[]', '(' => '()', '{' => '{}' }->{ $self->{start}->{content} };
 }
 
 
@@ -177,7 +176,7 @@ sub _resolve_round {
 	my $parent = isa( $_[0], 'PPI::ParentElement' ) ? shift : return undef;
 
 	# Get the last significant element in the parent
-	my $el = $parent->last_significant_child( 1 );
+	my $el = $parent->nth_significant_child( -1 );
 	if ( isa( $el, 'PPI::Token::Bareword' ) ) {
 		# Can it be determined because it is a keyword?
 		my $class = $round_classes{$el->content};
@@ -206,11 +205,12 @@ sub _resolve_curly {
 	my $parent = isa( $_[0], 'PPI::ParentElement' ) ? shift : return undef;
 
 	# Get the last significant element in the parent
-	my $el = $parent->last_significant_child( 1 );
+	my $el = $parent->nth_significant_child( -1 );
 	if ( isa( $el, 'PPI::Token::Bareword' ) ) {
 		# Can it be determined because it is a keyword?
 		my $class = $curly_classes{$el->content};
 		return $class->rebless( $self ) if $class;
+
 	}
 
 	# Don't rebless

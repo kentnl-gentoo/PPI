@@ -22,7 +22,7 @@ use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 
 	# Build the class map

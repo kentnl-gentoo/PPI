@@ -11,7 +11,7 @@ use base 'PPI::Common';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 }
 
 
@@ -53,14 +53,14 @@ sub load {
 	$self->{document} || $self->{tokenizer} and return 1;
 
 	# Load the raw source
-	$/ = undef;
+	local $/ = undef;
 	open( FILE, $self->{filename} ) or return undef;
 	my $source = <FILE>;
 	return undef unless defined $source;
 	close FILE or return undef;
 
 	# Create the tokenizer
-	$self->{tokenizer} = PPI::Tokenizer->new( source => $source ) or return undef;
+	$self->{tokenizer} = PPI::Tokenizer->new( $source ) or return undef;
 
 	1;
 }

@@ -1,8 +1,4 @@
 Changes
-LICENSE
-MANIFEST			This list of files
-Makefile.PL
-README
 data/basic.pl
 data/test.dat
 data/test2.txt
@@ -18,15 +14,19 @@ lib/PPI/Manual.pm
 lib/PPI/Statement.pm
 lib/PPI/Structure.pm
 lib/PPI/Token.pm
+lib/PPI/Token/_Pod.pm
 lib/PPI/Token/Classes.pm
 lib/PPI/Token/Quote.pm
 lib/PPI/Token/Quote/Full.pm
 lib/PPI/Token/Quote/Simple.pm
 lib/PPI/Token/Unknown.pm
-lib/PPI/Token/_Pod.pm
 lib/PPI/Tokenizer.pm
 lib/PPI/Tokenizer/Quote/Full.pm
 lib/PPI/Tokenizer/Quote/Simple.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+README
 sample/syntax/AppLib/CGI.pm
 sample/syntax/AppLib/Error.pm
 sample/syntax/AppLib/HTML.pm
@@ -34,11 +34,15 @@ sample/syntax/AppLib/HTML/Form.pm
 sample/syntax/AppLib/Page.pm
 sample/syntax/AppLib/PageFactory.pm
 sample/syntax/AppLib/Parser.pm
-sample/syntax/README
 sample/syntax/batch.pl
 sample/syntax/cgi.pl
 sample/syntax/html/Error.html
 sample/syntax/html/Front.html
+sample/syntax/README
 t/01_compile.t
 t/02_api.t
 t/03_empiric.t
+t/05_lexer_practical.t
+testdata/lexer/practical/01_simpleassign.code
+testdata/lexer/practical/01_simpleassign.dump
+META.yml                                Module meta-data (added by MakeMaker)

@@ -1,5 +1,11 @@
 Revision history for Perl extension PPI
 
+0.805 Sun Sep 28 2003
+	- The maximum line length regressed, reseting it to 5000.
+	- In PPI::Format::HTML, not any parsing error causing a
+	  premature end of tokenizer by adding it in a comment at
+	  the end of the file.
+
 0.804 Sat Sep 06 2003
 	- Statement and Structure resolution preliminarily work.
 	  Some basic types of statements and structures are identified.

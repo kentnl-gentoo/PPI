@@ -11,7 +11,7 @@ use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
@@ -175,6 +175,12 @@ sub _serialize_syntax {
 			. $class->line_label( ++$line, $lines_width )
 			. "</font> "
 			!ge;
+	}
+
+	if ( PPI::Tokenizer->errstr ) {
+		$html .= "\n<!-- \$errstr = '" 
+			. PPI::Tokenizer->errstr
+			. "' -->\n";
 	}
 
 	$html;

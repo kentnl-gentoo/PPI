@@ -8,7 +8,7 @@ use PPI ();
 
 use vars qw{$VERSION %classes};
 BEGIN {
-	$VERSION = '0.804';
+	$VERSION = '0.805';
 	@PPI::Statement::ISA = 'PPI::ParentElement';
 
 	# Keyword -> Statement Subclass

@@ -1,0 +1,21 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         PPI
+version:      0.805
+version_from: lib/PPI.pm
+installdirs:  site
+requires:
+    CGI:                           0
+    CGI::Carp:                     0
+    Class::Autouse:                1
+    Class::Handle:                 0.4
+    Config::Tiny:                  1.1
+    File::Find::Rule:              0
+    File::Flat:                    0.9
+    File::Spec:                    0.82
+    List::Util:                    1.11
+    Test::ClassAPI:                0
+    Test::More:                    0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.16
