@@ -18,7 +18,7 @@ use Class::Autouse;
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.817';
+	$VERSION = '0.818';
 
 	# If we are in a mod_perl environment, always fully load
 	# modules, in case Apache::Reload is present, and also to
@@ -70,7 +70,7 @@ use Class::Autouse 'PPI::Tokenizer',
 # Create a new object from scratch
 sub new {
 	my $class  = shift;
-	my $source = length($_[0]) ? shift : return undef;
+	my $source = (defined $_[0] and length $_[0]) ? shift : return undef;
 
 	# Create the object
 	bless {
@@ -95,7 +95,7 @@ sub load {
 	my $filename = shift;
 
 	# Try to slurp in the file
-	my $source = File::Flat->slurp( $filename );
+	my $source = File::Slurp::read_file( $filename );
 	return $class->_error( "Error loading file" ) unless $source;
 
 	# Create the new object and set the source
@@ -211,7 +211,8 @@ sub save {
 	return undef unless defined $content;
 
 	# Save the content
-	File::Flat->write( $saveas, $content ) or return undef;
+	File::Slurp::write_file( $saveas, $content ) or return undef;
+
 	1;
 }
 

@@ -1,5 +1,13 @@
 Revision history for Perl extension PPI
 
+0.818 Mon Jul  5 2004
+	- Changed lib/PPI/Manual.pm to lib/PPI/Manual.pod
+	- Added documentation for PPI::Lexer
+	- Fixed the misparsing of s{//}{\}
+	- More clues added for deciding "slash or regex"
+	- Removed PPI::Batch from the default distribution
+	- Replaced File::Flat with File::Slurp to reduce dependencies
+
 0.817 Thu Jul  1 2004
  	- Fixed the misparsing of $#{ }
  	- Changed PPI::ParentElement to PPI::Node and moved it to it's own file

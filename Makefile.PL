@@ -10,7 +10,7 @@ WriteMakefile(
 		Class::Autouse   => 1.03,
 		Class::Handle    => 1.0,
 		File::Spec       => 0.82,
-		File::Flat       => 0.91,
+		File::Slurp      => 9999.04,
 		File::Find::Rule => 0,
 		List::Util       => 1.11,
 		Test::ClassAPI   => 0.5,

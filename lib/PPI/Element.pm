@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$PPI::Element::VERSION = '0.817';
+	$PPI::Element::VERSION = '0.818';
 	
 	# Child -> Parent links
 	%_PARENT = ()

@@ -13,7 +13,7 @@ use PPI::Token::Classes ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.817';
+	$VERSION = '0.818';
 }
 
 # Merges one or more Pod tokens.

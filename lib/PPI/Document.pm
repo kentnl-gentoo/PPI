@@ -12,7 +12,7 @@ use PPI::Structure ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.817';
+	$VERSION = '0.818';
 }
 
 

@@ -21,7 +21,7 @@ use PPI::Token::Quote::Full   ();
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$PPI::Token::Whitespace::VERSION = '0.817';
+	$PPI::Token::Whitespace::VERSION = '0.818';
 	@PPI::Token::Whitespace::ISA     = 'PPI::Token';
 
 	# Build the class map
@@ -173,14 +173,24 @@ sub _on_char {
 		return 'Regex::Match' if $previous->is_a( 'Bareword', 'grep' );
 
 		# As an argument in a list
+		return 'Regex::Match' if $previous->is_a( 'Operator', ',' );
+
+		# What about the char after the slash? There's some things
+		# that would be highly illogical to see if it's an operator.
+		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
+		if ( defined $next_char and length $next_char ) {
+			if ( $next_char =~ /(?:\^|\[|\\)/ ) {
+				return 'Regex::Match';
+			}
+		}
 
 		# Otherwise... erm... assume operator?
-		# I expect we will have to add more tests here
+		# Add more tests here as potential cases come to light
 		return 'Operator';
 
 	} elsif ( $_ == 120 ) { # $_ eq 'x'
 		# Handle an arcane special case where "string"x10 means the x is an operator.
-		# String in this case means single, double or execute, or the operator versions or same.
+		# String in this case means ::Single, ::Double or ::Execute, or the operator versions or same.
 		my $nextchar = substr $t->{line}, $t->{line_cursor} + 1, 1;
 		my $previous = $t->_previous_significant_tokens(1);
 		$previous = ref $previous->[0];

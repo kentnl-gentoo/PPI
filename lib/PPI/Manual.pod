@@ -1,12 +1,3 @@
-package PPI::Manual;
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.817';
-}
-
-=pod
-
 =head1 NAME
 
 PPI Manual - The ( unfinished ) manual for PPI
@@ -208,7 +199,3 @@ anything "real". It needs major work before it can be considered to be
 "working".
 
 TO BE COMPLETED
-
-=cut
-
-1;

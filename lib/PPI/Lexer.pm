@@ -1,7 +1,44 @@
 package PPI::Lexer;
 
-# The PPI::Lexer package does some rudimentary structure analysis of
-# the token stream produced by the tokenizer.
+=pod
+
+=head1 NAME
+
+PPI::Lexer - The PPI Lexer
+
+=head1 SYNOPSIS
+
+  use PPI;
+  
+  # Create a new Lexer
+  my $Lexer = PPI::Lexer->new;
+  
+  # Build a PPI::Document object from a Token stream
+  my $Tokenizer = PPI::Tokenizer->load( 'My/Module.pm' );
+  my $Document = $Lexer->lex_tokenizer( $Tokenizer );
+  
+  # Build a PPI::Document object for some raw source
+  my $source = File::Slurp->read_file( 'My/Module.pm' );
+  $Document = $Lexer->lex_source( $source );
+  
+  # Build a PPI::Document object for a particular file name
+  $Document = $Lexer->lex_file( 'My/Module.pm' );
+
+=head1 DESCRIPTION
+
+The is the PPI Lexer. In the larger scheme of things, it's job is to take
+token streams, in a variety of forms, and "lex" them into nested structures,
+
+Pretty much everything in this module happens behind the scenes at this
+point. In fact, the only reason you need to instantiate the lexer is so that
+it doesn't need to use any global variables to hold state data during the
+lexing process.
+
+All methods do a one-shot "lex this and give me a PPI::Document object".
+
+=head1 METHODS
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -12,7 +49,7 @@ use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.817';
+	$VERSION = '0.818';
 }
 
 
@@ -22,13 +59,23 @@ BEGIN {
 #####################################################################
 # Constructor
 
-# Create a new lexer object
+=pod
+
+=head2 new
+
+The C<new> constructor creates a new PPI::Lexer object. The object itself
+is merely used to hold various buffers and state data during the lexing
+process, and holds no significant data between -E<GT>lex_xxxxx calls.
+
+Returns a new PPI::Lexer object.
+
+=cut
+
 sub new {
 	bless {
 		Tokenizer => undef, # Where we store the tokenizer for a run
 		buffer    => [],    # The input token buffer
 		delayed   => [],    # The "delayed insignificant tokens" buffer
-		# stack     => [],    # Since we add_element post-lex, keep the stack
 		}, shift;
 }
 
@@ -39,7 +86,19 @@ sub new {
 #####################################################################
 # Main Lexing Methods
 
-# Takes a file name, returns a ::Document object
+=pod
+
+=head2 lex_file $filename
+
+The C<lex_file> method takes a filename as argument. It then loads the file,
+creates a PPI::Tokenizer for the content and lexes the token stream
+produced by the tokenizer. Basically, a sort of all-in-one method for
+getting a PPI::Document object from a file name.
+
+Returns a PPI::Document object, or C<undef> on error.
+
+=cut
+
 sub lex_file {
 	my $self = ref $_[0] ? shift : shift->new;
 	my $file = (-f $_[0] and -r $_[0]) ? shift : return undef;
@@ -55,7 +114,18 @@ sub lex_file {
 	$self->lex_source( $source );
 }
 
-# Takes raw source, returns a ::Document object
+=pod
+
+=head2 lex_source $string
+
+The C<lex_source> method takes a normal scalar string as argument. It
+creates a PPI::Tokenizer object for the string, and then lexes the
+resulting token stream.
+
+Returns a PPI::Document object, or C<undef> on error.
+
+=cut
+
 sub lex_source {
 	my $self   = ref $_[0] ? shift : shift->new;
 	my $source = defined $_[0] ? shift : return undef;
@@ -67,7 +137,17 @@ sub lex_source {
 	$self->lex_tokenizer( $Tokenizer );
 }
 
-# Takes a ::Tokenizer object, returns a ::Document object
+=pod
+
+=head2 lex_tokenizer $Tokenizer
+
+The C<lex_tokenizer> takes as argument a PPI::Tokenizer object. It
+lexes the token stream from the tokenizer into a PPI::Document object.
+
+Returns a PPI::Document object, or C<undef> on error.
+
+=cut
+
 sub lex_tokenizer {
 	my $self      = ref $_[0] ? shift : shift->new;
 	my $Tokenizer = isa($_[0], 'PPI::Tokenizer') ? shift : return undef;
@@ -119,10 +199,8 @@ sub _lex_document {
 			my $Statement = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the statement
-			# $self->{stack} = [ $Document ];
 			$self->_add_delayed( $Document ) or return undef;
 			$self->_lex_statement( $Statement ) or return undef;
-			# delete $self->{stack};
 
 			# Add the completed Statement to the document
 			$self->_add_element( $Document, $Statement ) or return undef;
@@ -136,10 +214,8 @@ sub _lex_document {
 			my $Structure = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the structure
-			# $self->{stack} = [ $Document ];
 			$self->_add_delayed( $Document ) or return undef;
 			$self->_lex_structure( $Structure ) or return undef;
-			# delete $self->{stack};
 
 			# Add the resolved Structure to the Document $self-
 			$self->_add_element( $Document, $Structure ) or return undef;
@@ -269,10 +345,8 @@ sub _lex_statement {
 			my $Structure = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Structure
-			# push @{$self->{stack}}, $Statement;
 			$self->_add_delayed( $Statement ) or return undef;
 			$self->_lex_structure( $Structure ) or return undef;
-			# pop @{$self->{stack}};
 
 			# Add the completed Structure to the statement
 			$self->_add_element( $Statement, $Structure ) or return undef;
@@ -467,10 +541,8 @@ sub _lex_structure {
 			my $Statement = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Statement
-			# push @{$self->{stack}}, $Statement;
 			$self->_add_delayed( $Structure ) or return undef;
 			$self->_lex_statement( $Statement ) or return undef;
-			# pop @{$self->{stack}};
 
 			# Add the completed statement to our elements
 			$self->_add_element( $Structure, $Statement ) or return undef;
@@ -487,10 +559,8 @@ sub _lex_structure {
 			my $Structure2 = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Structure
-			# push @{$self->{stack}}, $Structure;
 			$self->_add_delayed( $Structure ) or return undef;
 			$self->_lex_structure( $Structure2 ) or return undef;
-			# pop @{$self->{stack}};
 
 			# Add the completed Structure to the statement
 			$self->_add_element( $Structure, $Structure2 ) or return undef;
@@ -607,3 +677,38 @@ sub _rollback {
 }
 	
 1;
+
+=pod
+
+=head1 TO DO
+
+- Add optional support for some of the more common soure filters
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI
+
+For other issues, contact the author
+
+=head1 AUTHOR
+
+        Adam Kennedy ( maintainer )
+        cpan@ali.as
+        http://ali.as/
+
+=head1 SEE ALSO
+
+L<PPI|PPI>, L<PPI::Manual|PPI::Manual>
+
+=head1 COPYRIGHT
+
+Copyright 2004 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

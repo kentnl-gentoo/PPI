@@ -23,7 +23,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.817';
+	$VERSION = '0.818';
 }
 
 
@@ -139,7 +139,7 @@ sub _scan_for_brace_character {
 	# Create the search string
 	$close_brace = quotemeta $close_brace;
 	$open_brace = quotemeta $open_brace;
-	my $search = qr/^(.*?(?<!\\)(?:$open_brace|$close_brace))/;
+	my $search = qr/^(.*?(?<!\\)(?:\\\\)*(?:$open_brace|$close_brace))/;
 
 	# Loop as long as we can get new lines
 	my $string = '';
