@@ -126,7 +126,8 @@ sub _scan_for_unescaped_character {
 }
 
 # Scan for a close braced, and take into account both escaping,
-# and open close bracket pairs in the string.
+# and open close bracket pairs in the string. When complete, the
+# method leaves the line cursor on the LAST character found.
 sub _scan_for_brace_character {
 	my $class = shift;
 	my $t = shift;
@@ -159,12 +160,13 @@ sub _scan_for_brace_character {
 
 		# Add to the string
 		$string .= $1;
-		$t->{line_cursor} += length($1) - 1;
+		$t->{line_cursor} += length $1;
 
 		# Alter the depth and continue if we arn't at the end
 		$depth += ($1 =~ /$open_brace$/) ? 1 : -1 and next;
 
-		# We are at the end
+		# Rewind the cursor by one character ( cludgy hack )
+		$t->{line_cursor} -= 1;
 		return $string;
 	}
 
@@ -183,19 +185,31 @@ sub _scan_quote_like_operator_gap {
 	my $string = '';
 	while ( exists $t->{line} ) {
 		# Get the search area for the current line
-		$_ = $t->{line_cursor}
-			? substr( $t->{line}, $t->{line_cursor} )
+		$_ = $t->{line_cursor} 
+			? substr( $t->{line}, $t->{line_cursor} ) 
 			: $t->{line};
 
-		# Can we find a match on this line
-		if ( /^(\s*(?:\#.*)?)$/ ) {
-			# Found the character on this line
+		# Since this regex can match zero characters, it should always match
+		/^(\s*(?:\#.*)?)/ or return undef;
+		
+		# Add the chars found to the string
+		$string .= $1;
+		
+		# Did we match the entire line?
+		unless ( length $1 == length $_ ) {
+			# Partial line match, which means we are at
+			# the end of the gap. Fix the cursor and return
+			# the string.
 			$t->{line_cursor} += length $1;
-			return $string . $1;
+			return $string;
 		}
-
-		# Load in the next line
+		
+		# Load in the next line.
+		# If we reach the EOF, $t->{line} gets deleted,
+		# which is caught by the while.
 		return undef unless defined $t->_fill_line;
+			
+		# Set the cursor to the first character
 		$t->{line_cursor} = 0;
 	}
 

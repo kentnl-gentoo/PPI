@@ -8,6 +8,7 @@ use PPI ();
 BEGIN {
 	@PPI::Element::ISA = 'PPI::Common';
 }
+use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION};
 BEGIN {
@@ -27,10 +28,7 @@ BEGIN {
 }
 
 # Find our parent
-sub parent {
-	my $self = shift;
-	return $_PARENT{ $self =~ /([^=]+)$/ } || '';
-}
+sub parent { $_PARENT{ refaddr $_[0] } }
 
 sub previous_sibling {
 	my $self = shift;
@@ -69,10 +67,9 @@ sub next_sibling {
 # break the code.
 sub extract {
 	my $self = ref $_[0] ? shift : return undef;
-	my $key = $self =~ /([^=]+)$/;
 
 	# Do we have a parent
-	my $parent = $_PARENT{$key} or return 1;
+	my $parent = $_PARENT{ refaddr $self } or return 1;
 
 	# Remove us from our parent
 	return $parent->remove_element( $self );
@@ -82,7 +79,7 @@ sub extract {
 # parent ( if any ) and then destroying ourself.
 sub delete {
 	my $self = ref($_[0]) ? shift : return undef;
-	my $key = $self =~ /([^=]+)$/;
+	my $key = refaddr $self;
 
 	# Do we have a parent
 	if ( $_PARENT{$key} ) {
@@ -95,6 +92,7 @@ sub delete {
 
 	# Delete ourselves in what I'm told is the mod_perl
 	# friendly way.
+	### CHECK THIS WITH A MOD_PERL EXPERT
 	$self = {}; undef $self;
 
 	return 1;
@@ -105,7 +103,7 @@ sub delete {
 # Therefore we don't need to remove ourselves from our parent,
 # just the index ( just in case ).
 sub DESTROY {
-	delete $_PARENT{ $_[0] =~ /([^=]+)$/ };
+	delete $_PARENT{ refaddr $_[0] };
 }
 
 
@@ -174,7 +172,7 @@ sub _add_delayed {
 	if ( exists $self->{delayed} ) {
 		while ( shift @{$self->{delayed}} ) {
 			push @{$self->{elements}}, $_;
-			$PPI::Element::_PARENT{ /([^=]+)$/ } = $self;
+			$PPI::Element::_PARENT{ refaddr $_ } = $self;
 		}
 		delete $self->{delayed};
 	}
@@ -190,16 +188,15 @@ sub DESTROY {
 	# Delete our children
 	foreach ( @{$self->{elements}} ) {
 		next unless defined $_;
-		delete $PPI::Element::_PARENT{ /([^=]+)$/ };
+		delete $PPI::Element::_PARENT{ refaddr $_ };
 		$_->DESTROY;
 	}
 	$self->{elements} = [];
 	delete $self->{elements};
 
 	# Delete ourselves
-	delete $PPI::Element::_PARENT{ $self =~ /([^=]+)$/ };
-	$self = {};
-	undef $self;
+	delete $PPI::Element::_PARENT{ refaddr $self };
+	$self = {}; undef $self;
 }
 
 
@@ -234,14 +231,14 @@ sub add_element {
 	if ( exists $self->{delayed} ) {
 		while ( shift @{$self->{delayed}} ) {
 			push @{$self->{elements}}, $_;
-			$PPI::Element::_PARENT{ /([^=]+)$/ } = $self;
+			$PPI::Element::_PARENT{ refaddr $_ } = $self;
 		}
 		delete $self->{delayed};
 	}
 
 	# Add the argument to the elements
 	push @{$self->{elements}}, $element;
-	$PPI::Element::_PARENT{ $element =~ /([^=]+)$/ } = $self;
+	$PPI::Element::_PARENT{ refaddr $element } = $self;
 
 	return 1;
 }
@@ -260,7 +257,7 @@ sub remove_element {
 	splice( @{$self->{elements}}, $position, 1 );
 
 	# Remove it's parent entry
-	delete $PPI::Element::_PARENT{ $self =~ /([^=]+)$/ };
+	delete $PPI::Element::_PARENT{ refaddr $self };
 	return 1;
 }
 
@@ -296,7 +293,7 @@ sub delete {
 	# Remove our element's parent index entry, and
 	# call delete on them
 	foreach ( @{$self->{elements}} ) {
-		delete $PPI::Element::_PARENT{ /([^=]+)$/ };
+		delete $PPI::Element::_PARENT{ refaddr $_ };
 		$_->DESTROY;
 	}
 

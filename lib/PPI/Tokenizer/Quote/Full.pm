@@ -90,7 +90,7 @@ sub fill {
 		}
 		
 		# Advance the cursor into the first region
-		$t->{char} = substr( $t->{line_buffer}, ++$t->{line_position}, 1 );
+		$t->{char} = substr( $t->{line}, ++$t->{line_cursor}, 1 );
 	}
 	
 	# Ready to go.
@@ -108,19 +108,19 @@ sub fill {
 		# Check for modifiers	
 		my $char;
 		my $len = 0;
-		while ( ($char = substr( $t->{line_buffer}, $t->{line_position} + 1, 1 )) =~ /\w/ ) {
+		while ( ($char = substr( $t->{line}, $t->{line_cursor} + 1, 1 )) =~ /\w/ ) {
 			if ( $char eq '_' ) {
 				return $self->_error( "Syntax error. Cannot use underscore '_' as regex modifier" );
 			} else {
 				$len++;
 				$self->{content} .= $char;
 				$self->{modifiers}->{ lc $char } = 1;
-				$t->{line_position}++;
+				$t->{line_cursor}++;
 			}
 		}
 		
 		# Correct the state
-		$t->{char} = substr( $t->{line_buffer}, $t->{line_position}, 1 );
+		$t->{char} = substr( $t->{line}, $t->{line_cursor}, 1 );
 	}
 	
 	# Done
@@ -155,7 +155,7 @@ sub _fill_normal {
 	# There are two sections.
 	
 	# Advance into the next section
-	$t->{char} = substr( $t->{line_buffer}, ++$t->{line_position}, 1 );	
+	$t->{char} = substr( $t->{line}, ++$t->{line_cursor}, 1 );	
 
 	# Get the content up to the end seperator
 	$string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
@@ -205,7 +205,7 @@ sub _fill_braced {
 	# There are two sections.	
 
 	# Advance to the (space|openseperator)
-	$t->{char} = substr( $t->{line_buffer}, ++$t->{line_position}, 1 );		
+	$t->{char} = substr( $t->{line}, ++$t->{line_cursor}, 1 );		
 
 	# Is there a gap between the sections.
 	if ( $t->{char} =~ /\s/ ) {
@@ -230,7 +230,7 @@ sub _fill_braced {
 	}
 
 	# Advance into the second region
-	$t->{char} = substr( $t->{line_buffer}, ++$t->{line_position}, 1 );		
+	$t->{char} = substr( $t->{line}, ++$t->{line_cursor}, 1 );		
 
 	# Get the content up to the close character
 	$section = $self->{sections}->[1];	

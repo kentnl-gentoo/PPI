@@ -17,7 +17,7 @@ use UNIVERSAL 'isa';
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.7";
+	$VERSION = "0.8";
 }
 
 
@@ -185,7 +185,7 @@ sub html {
 	my $options = shift || {};
 
 	# Get the tokenizer, and generate the HTML
-	my $Tokenizer = $self->Tokenizer or return undef;
+	my $Tokenizer = $self->tokenizer or return undef;
 	return PPI::Format::HTML->serialize( $Tokenizer, $style, $options );
 }
 

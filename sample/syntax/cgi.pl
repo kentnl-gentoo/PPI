@@ -14,12 +14,12 @@ use File::Spec;
 use File::Find::Rule;
 use CGI; BEGIN { $CGI::DEBUG = 2 }
 use CGI::Carp qw{fatalsToBrowser};
+use List::Util 'first';
 use AppLib::CGI;
 use AppLib::Page;
 use AppLib::PageFactory;
 use AppLib::Parser;
 use AppLib::HTML::Form;
-use Class::Inspector;
 use PPI ();
 use PPI::Format::HTML ();
 
@@ -28,7 +28,9 @@ use vars qw{$fin $message $cmd};
 use vars qw{$errstr};
 BEGIN {
 	# Set the page path
-	AppLib::Page->setBasePath( './html' );
+	AppLib::Page->setBasePath( 
+		File::Spec->catdir( File::Spec->curdir, 'html' )
+		);
 }
 
 # Main application logic
@@ -83,10 +85,9 @@ sub cmdProcess {
 	} elsif ( $fin->{source} eq 'stress' ) {
 		Error( "You did not select a stress test" ) unless $fin->{source_stress};
 
-		# Find the module ( Dodgy hack into Class::Autouse )
-		my $file = &Class::Autouse::_class_file( $fin->{source_stress} );
-		Error( "'$fin->{source_stress}' does not appear to be a valid module" ) unless $file;
-		$file = &Class::Autouse::_file_exists( $file );
+		# Find the module
+		my $file = File::Spec->catfile( split /::/, $fin->{source_stress} ) . '.pm';
+		$file = first { -f $_ and -r $_ } map { File::Spec->catfile( $_, $file ) } @INC;
 		Error( "Could not find module '$fin->{source_stress}' on the system" ) unless $file;
 
 		# Load the module

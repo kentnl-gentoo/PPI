@@ -1,7 +1,6 @@
-.#test.pl.1.4
 Changes
 LICENSE
-MANIFEST
+MANIFEST			This list of files
 Makefile.PL
 README
 data/test.dat
@@ -26,7 +25,6 @@ lib/PPI/Token/_Pod.pm
 lib/PPI/Tokenizer.pm
 lib/PPI/Tokenizer/Quote/Full.pm
 lib/PPI/Tokenizer/Quote/Simple.pm
-pod.pl
 sample/syntax/AppLib/CGI.pm
 sample/syntax/AppLib/Error.pm
 sample/syntax/AppLib/HTML.pm
@@ -42,4 +40,3 @@ sample/syntax/html/Front.html
 t/01_compile.t
 t/02_api.t
 t/03_empiric.t
-test.pl

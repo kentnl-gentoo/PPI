@@ -87,7 +87,7 @@ sub fill {
 		$_ = substr( $t->{line}, $t->{line_cursor}++, 1 );
 		$self->{content} .= $_;
 
-		# Determine is these are normal or braced type sections
+		# Determine if these are normal or braced type sections
 		if ( my $section = $sections{$_} ) {
 			$self->{braced} = 1;
 			$self->{sections}->[0] = { %$section };
@@ -213,8 +213,10 @@ sub _fill_braced {
 
 	# Check that the next character is an open selector
 	if ( $section = $sections{$char} ) {
+		$self->{content} .= $char;
+
 		# Initialize the second section
-		$self->{sections}->[1] = { %$section };
+		$section = $self->{sections}->[1] = { %$section };
 
 	} else {
 		# Error, it has to be a brace of some sort

@@ -59,7 +59,7 @@ sub new {
 		source_bytes   => undef,
 
 		# Line buffer
-		line_buffer    => undef,
+		line           => undef,
 		line_length    => undef,
 		line_cursor    => undef,
 		line_count     => 0,
