@@ -1,20 +1,74 @@
 NAME
-    PPI ( Parse::Perl::Isolated ) - Parsing an manipulating Perl code
+    PPI ( Parse::Perl::Isolated ) - Parse and manipulate Perl code
 
 DESCRIPTION
-    Most of this is really broken, and put in CPAN for the benefit of the
-    interested.
+    This is a checkpoint upload for the current state of PPI at the end of
+    April 2003.
 
-    The API is going to compltely change, the Lexer replaced. After that, we
-    get docs.
+STATUS
+    Tokenizer
+        The tokenizer now has something close to it's final API completed.
+        You should however expect changes. It now runs about 25% faster,
+        some innacuracies have been fixed, and the memory overhead for
+        tokenized code has been significantly reduced. The Tokenizer can be
+        considered complete, but with some minor bugs.
 
-    For now, look at the syntax highlighter in the samples directory.
+    Lexer
+        The basic framework of the lexer has been completely replaced. The
+        new lexer should be sufficient, but the lex logic is far from
+        complete, and so the parse tree may look kind of odd, but works for
+        basic statements.
 
-TODO
-    Shitloads
+        The classes and methods are roughly completed for the basic parse
+        tree manipulation, but more advanced filters and such are yet to be
+        written. Overall, the lexer is considered about half complete.
 
-SUPPRT
-    None
+    Syntax Highlighting
+        The syntax highlighter is virtually unchanged, except that instead
+        of working from an ( old style ) PPI::Document object, it pulls
+        directly from a Tokenizer. This is temporary, and you should expect
+        the entire PPI::Format tree to be overhauled and largely replaced
+        once the lexer is completed.
+
+    Other Functionality
+        Given their current state, I have removed the entire PPI::Transform
+        and PPI::Analysis trees from the upload. They are totally out of
+        date, and will be replaced as the
+
+    Documentation
+        I have started on the very beginning of the manual, which can be
+        found at PPI::Manual. It's raw, incomplete, and subject to change.
+
+TO DO
+    Tokenizer
+        Further optomization work need to be done, and fix any bugs as they
+        come to light. Also, further fragments of token manipulation code
+        need to be added to the PPI::Token tree.
+
+    Lexer
+        PPI::Statement::* and PPI::Structure::* classes need to be written,
+        and the logic to tell what type of statement or structure something
+        is. The lexer itself than needs to use this analysis to build the
+        tree correctly.
+
+        A filter/transform framework needs to be created on top of the basic
+        lexer, to provide for the ability to add higher lever logic and
+        capabilities.
+
+    Other Stuff
+        PPI::Format needs to be created properly. PPI::Analysis packages
+        will need to be written... but they are likely to be largely third
+        party, later.
+
+        Replacements or equivalents are needed for current methods that do
+        POD extraction... some form of auto-doc needs to be written.
+
+    Documentation
+        Both used manuals and API documentation needs to get written.
+
+SUPPORT
+    None. Don't use this for anything you don't want to have to rewrite. To
+    help contribute, contact the author.
 
 AUTHOR
         Adam Kennedy
@@ -22,9 +76,9 @@ AUTHOR
         http//ali.as/
 
 COPYRIGHT
-    opyright (c) 2002 Adam Kennedy. All rights reserved. This program is
-    free software; you can redistribute it and/or modify it under the same
-    terms as Perl itself.
+    opyright (c) 2002-2003 Adam Kennedy. All rights reserved. This program
+    is free software; you can redistribute it and/or modify it under the
+    same terms as Perl itself.
 
     The full text of the license can be found in the LICENSE file included
     with this module.

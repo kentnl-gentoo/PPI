@@ -4,15 +4,15 @@ package PPI::Format::HTML;
 
 use strict;
 use UNIVERSAL 'isa';
-use PPI;
+use PPI::Tokenizer ();
 use base qw{Exporter PPI::Common};
-use Class::Autouse;
+# use Class::Autouse;
 
 # Keyword lists
 use vars qw{@keywords @functions $colormap};
 BEGIN {
 	@keywords = qw{
-		-A -B -C -M -O -R -S -T -W -X 
+		-A -B -C -M -O -R -S -T -W -X
 		-b -c -d -e -f -g -k -l -o -p -r -s -t -u -w -x -z
 		__DATA__ __END__ __FILE__ __LINE__ __PACKAGE__ __WARN__ __DIE__
 		bootstrap continue do else elsif for foreach goto if last local
@@ -22,16 +22,16 @@ BEGIN {
 	@functions = qw{
 		accept alarm atan2
 		bind binmode bless
-		caller chdir chmod chomp chop chown chr chroot close closedir connect 
+		caller chdir chmod chomp chop chown chr chroot close closedir connect
 		cos crypt
 		dbmclose dbmopen defined delete die dump
-		each endgrent endhostent endnetent endprotoent endpwent endservent eof 
+		each endgrent endhostent endnetent endprotoent endpwent endservent eof
 		eval exec exit exp exists
 		fcntl fileno flock fork formline format
-		getc getgrent getgrgid getgrname gethostbyaddr gethostbyname 
-		gethostent getlogin getnetbyaddr getnetbyname getnetent getpeername 
-		getpgrp getppid getpriority getprotobyname getprotobynumber getprotoent 
-		getpwent getpwnam getpwuid getservbyname getservbyport getservent 
+		getc getgrent getgrgid getgrname gethostbyaddr gethostbyname
+		gethostent getlogin getnetbyaddr getnetbyname getnetent getpeername
+		getpgrp getppid getpriority getprotobyname getprotobynumber getprotoent
+		getpwent getpwnam getpwuid getservbyname getservbyport getservent
 		getsockname getsockopt glob gmtime grep
 		hex
 		index int ioctl
@@ -42,12 +42,12 @@ BEGIN {
 		oct open opendir ord
 		pack pipe pop pos print printf push
 		quotemeta
-		rand read readdir readline readlink recv ref rename reset reverse 
+		rand read readdir readline readlink recv ref rename reset reverse
 		rewinddir rindex rmdir
-		scalar seek seekdir select semctl semgett semop send setgrent 
-		sethostent setnetent setpgrp setpriority setprotoent setpwent 
-		setservent setsockopt shift shmctl shmget shmread shmwrite shutdown 
-		sin sleep socket socketpair sort splice split sprintf sqrt srand stat 
+		scalar seek seekdir select semctl semgett semop send setgrent
+		sethostent setnetent setpgrp setpriority setprotoent setpwent
+		setservent setsockopt shift shmctl shmget shmread shmwrite shutdown
+		sin sleep socket socketpair sort splice split sprintf sqrt srand stat
 		study substr symlink syscall sysopen sysread system syswrite
 		tell telldir tie tied time times truncate
 		uc ucfirst umask undef unlink unpack unshift utime
@@ -66,196 +66,208 @@ BEGIN {
 #####################################################################
 # Core methods
 
-sub serialize_document {
+sub serialize {
 	my $class = shift;
-	my $Document = shift;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' ) ? shift
+		: return $class->_error( "Can only serialize from a PPI::Tokenizer object" );
 	my $style = shift || 'plain';
 	my $options = shift || {};
 
 	# Check the arguments
-	unless ( isa( $Document, 'PPI::Document' ) ) {
-		return $class->_error( "Can only serialize PPI::Document objects, not " . ref $Document );
-	}
 	unless ( $style eq 'syntax' or $style eq 'debug' or $style eq 'plain' ) {
 		return $class->_error( "Invalid html format style '$style'" );
 	}
-	
+
 	# Hand off to the appropriate formatter
-	if ( $style eq 'syntax' or $style eq 'Ultraedit' ) {
-		return $class->_serialize_document_syntax( $Document, $options );
+	if ( $style eq 'syntax' ) {
+		return $class->_serialize_syntax( $Tokenizer, $options );
 	} elsif ( $style eq 'debug' ) {
-		return $class->_serialize_document_debug( $Document, $options );
-	} elsif ( $style eq 'plain' or ! $style ) {
-		return $class->_serialize_document_plain( $Document, $options );
-	} else {
-		# Look for a child class
-		my $styleclass = "PPI::Format::HTML::$style";
-		if ( Class::Autouse->class_exists( $styleclass ) ) {
-			# Call the serialize_document function for that class
-			Class::Autouse->load( $styleclass ) 
-				or return $class->_error( "Error loading class $styleclass to format Document" );
-			return $styleclass->_serialize_document_syntax( $Document, $options );	
-		} else {
-			return $class->_error( "Error looking for style '$style'. The class $styleclass foes not exist" );
-		}
+		return $class->_serialize_debug( $Tokenizer, $options );
+	} elsif ( $style eq 'plain' ) {
+		return $class->_serialize_plain( $Tokenizer, $options );
 	}
+
+	# } else {
+		# Look for a child class
+		#my $styleclass = "PPI::Format::HTML::$style";
+		#if ( Class::Autouse->class_exists( $styleclass ) ) {
+			# Call the serialize_document function for that class
+		#	Class::Autouse->load( $styleclass )
+		#		or return $class->_error( "Error loading class $styleclass to format Document" );
+		#	return $styleclass->_serialize_document_syntax( $Tokenizer, $options );
+		#} else {
+		#	return $class->_error( "Error looking for style '$style'. The class $styleclass foes not exist" );
+		#}
+	#}
 }
 
-sub _serialize_document_syntax {
+sub _serialize_syntax {
 	my $class = shift;
-	my $Document = shift or return undef;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' )
+		? shift : return undef;
 	my $options = shift;
 	my ($token, $html, $color) = ();
-	my $baseBuffer = '';
-	
+	my $delayed_whitespace = '';
+
 	# Reset the cursor, and loop through
 	my $current = '';
-	foreach $token ( @{ $Document->get_token_array } ) {
-		unless ( defined $token->{class} ) {
-			die "Token '$token->{content}' missing class at " . $Document->get_position_text( $token );
-		}
-		if ( $token->{class} eq 'Base' ) {
+	while ( my $token = $Tokenizer->get_token ) {
+		if ( isa( $token, 'PPI::Token::Whitespace' ) ) {
 			if ( $token->{content} !~ /^\s*$/ ) {
+				# Something in whitespace that shouldn't be
 				$color = 'pink';
 			} else {
-				# It's a base token
-				$baseBuffer .= $token->{content};
+				# It's a normal whitespace token
+				$delayed_whitespace .= $token->{content};
 				next;
-			}	
+			}
 		}
-		
+
 		# Get the color for the token
 		$color = $class->_get_token_color( $token );
-		
+
 		if ( $color ne $current ) {
 			# End the previous color
 			$html .= "</font>" if $current;
-		}	
-			
-		# Add bufferred whitespace
-		if ( $baseBuffer ) {
-			$html .= escape_whitespace( $baseBuffer ) ;
-			$baseBuffer = '';
+		}
+
+		# Add buffered whitespace
+		if ( $delayed_whitespace ) {
+			$html .= escape_whitespace( $delayed_whitespace ) ;
+			$delayed_whitespace = '';
 		}
 
 		if ( $color ne $current ) {
 			$color = '' if $color eq 'black';
-				
-			# Start the new color				
+
+			# Start the new color
 			$html .= "<font color='$color'>" if $color;
 			$current = $color;
 		}
-		
+
 		# Add the current token
 		$html .= escape_html( $token->{content} );
 		$current = $color;
 	}
-	
+
 	# Terminate any remaining bits
 	$html .= "</font>" if $current;
-	$html .= escape_whitespace( $baseBuffer );
-	
+	$html .= escape_whitespace( $delayed_whitespace );
+
 	# Optionally add line numbers
 	if ( $options->{linenumbers} ) {
 		my $line = 0;
 		my $lines = scalar( my @newlines = $html =~ /\n/g ) + 1;
 		my $lines_width = length $lines;
 		$html =~ s!(^|\n)!
-			$1 
-			. "<font color='#666666'>" 
+			$1
+			. "<font color='#666666'>"
 			. $class->line_label( ++$line, $lines_width )
 			. "</font> "
 			!ge;
 	}
-	
+
 	return $html;
 }
 
 # Determine the appropriate color for a token.
 # This is the method you should overload to make a new html syntax highlighter
 sub _get_token_color {
-	my $token = $_[1] or return '';
-	my $class = $token->{class};
+	shift;
+	my $token = isa( $_[0], 'PPI::Token' ) ? shift : return '';
+	my $class = $token->class;
 	my $content = $token->{content};
-	if ( $class eq 'Keyword' ) {
+	if ( $class eq 'PPI::Token::Keyword' ) {
 		return 'blue';
-	} elsif ( $class eq 'Bareword' ) {
+	} elsif ( $class eq 'PPI::Token::Bareword' ) {
 		return $colormap->{$content} if $colormap->{$content};
-	} elsif ( $class eq 'Comment' ) {
+	} elsif ( $class eq 'PPI::Token::Comment' ) {
 		return '#008080';
-	} elsif ( $class eq 'Pod' ) {
+	} elsif ( $class eq 'PPI::Token::Pod' ) {
 		return '#008080';
-	} elsif ( $class =~ /^Quote::/ or $class =~ /^RawInput::/ ) {
+	} elsif ( $class eq 'PPI::Token::RawInput::Operator' ) {
+		return '#FF9900';
+	} elsif ( $class eq 'PPI::Token::RawInput::Terminator' ) {
 		return '#999999';
-	} elsif ( $class eq 'Base' ) {
-		# There should be no visible Base content
+	} elsif ( $class eq 'PPI::Token::RawInput::String' ) {
+		return '#999999';
+	} elsif ( $class =~ /^PPI::Token::Quote::/ ) {
+		return '#999999';
+	} elsif ( $class eq 'PPI::Token::Whitespace' ) {
+		# There should be no visible Whitespace content
 		return '#FF00FF' if $content =~ /\S/;
 		return ''; # Transparent
-	} elsif ( $class eq 'Magic' ) {
+	} elsif ( $class eq 'PPI::Token::Magic' ) {
 		return '#0099FF';
-	} elsif ( $class =~ /^Regex::/ ) {
+	} elsif ( $class =~ /^PPI::Token::Regex::/ ) {
 		return '#9900AA';
-	} elsif ( $class eq 'Operator' ) {
+	} elsif ( $class eq 'PPI::Token::Operator' ) {
 		return '#FF9900';
-	} elsif ( $class eq 'Number' ) {
+	} elsif ( $class eq 'PPI::Token::Number' ) {
 		return '#990000';
+	} elsif ( $class eq 'PPI::Token::Cast' ) {
+		return '#008080';
 	}
 	return 'black';
 }
-		
-sub _serialize_document_debug {
+
+sub _serialize_debug {
 	my $class = shift;
-	my $Document = shift or return undef;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' )
+		? shift : return undef;
 	my $options = shift;
 	my ($token, $html) = ();
 
 	# Reset the cursor and loop
-	my $lineCounter = 0;
+	my $line_count = 0;
 	my $bgcolor = '#EEEEEE';
-	foreach $token ( @{ $Document->get_token_array } ) {
-		$class = $token->{class} eq 'Comment' ?
-			$token->{tags}
-				? ("Comment (" . join( ', ', map { ucfirst $_ } keys %{$token->{tags}}) . ")")
-				: "Comment"
-			: $token->{class};
+	foreach $token ( @{ $Tokenizer->all_tokens } ) {
+		$class = $token->class eq 'PPI::Token::Comment'
+			? $token->line ? "Comment Line" : "Comment"
+			: $token->class;
 		$bgcolor = $bgcolor eq '#FFFFFF' ? '#EEEEEE' : '#FFFFFF';
-		$html .= "<tr bgcolor='$bgcolor'><td align=right valign=top><b>" 
-			. ++$lineCounter 
+		$html .= "<tr bgcolor='$bgcolor'><td align=right valign=top><b>"
+			. ++$line_count
 			. "</b></td>"
 			. "<td valign=top nowrap>$class</td>"
 			. "<td valign=top>" . escape_debug_html( $token->{content} ) . "</td></tr>\n";
 	}
-	
+
 	return qq~
-		<table border="0" cellspacing="0" cellpadding="1"><tr><td bgcolor="#000000"> 
+		<table border="0" cellspacing="0" cellpadding="1"><tr><td bgcolor="#000000">
       		<table border=0 cellspacing=1 cellpadding=2>
         	<tr bgcolor="#CCCCCC"><th>Token</th><th>Class</th><th>Content</th></tr>
 		$html
 		</table>
 		</td></tr></table>
-		~;	
+		~;
 }
 
-sub _serialize_document_plain {
+sub _serialize_plain {
 	my $class = shift;
-	my $Document = shift;
+	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' )
+		? shift : return undef;
 	my $options = shift;
 
 	# Get the content
-	my $plain = escape_html( $Document->to_string );
-	
+	my $plain = '';
+	while ( my $token = $Tokenizer->get_token ) {
+		$plain .= $token->{content};
+	}
+	$plain = escape_html( $Tokenizer->to_string );
+
 	# Optionally add line numbers
 	if ( $options->{linenumbers} ) {
 		my $line = 0;
 		my $lines = scalar( my @newlines = $plain =~ /\n/g ) + 1;
 		my $lines_width = length $lines;
 		$plain =~ s!(^|\n)!
-			$1 
+			$1
 			. $class->line_label( ++$line, $lines_width )
 			. " "
 			!ge;
 	}
-	
+
 	# Done, return the content
 	return $plain;
 }
@@ -281,7 +293,7 @@ sub escape_whitespace {
 
 sub escape_debug_html {
 	$_ = shift;
-	s/\&/&amp;/g;	
+	s/\&/&amp;/g;
 	s/\</&lt;/g;
 	s/\>/&gt;/g;
 	s!\n!<b>\\n</b>!g;
@@ -296,7 +308,7 @@ sub wrap_page {
 	my $class = shift;
 	my $style = shift;
 	my $content = shift;
-	
+
 	if ( $style eq 'syntax' ) {
 		return qq~<html>
 		<head>
@@ -309,7 +321,7 @@ sub wrap_page {
 		</body>
 		</html>
 		~;
-	
+
 	} elsif ( $style eq 'debug' ) {
 		return qq~<html>
 		<head>
@@ -327,7 +339,7 @@ sub wrap_page {
 		</body>
 		</html>
 		~;
-	
+
 	} else {
 		return qq~<html>
 		<head>
@@ -340,7 +352,7 @@ sub wrap_page {
 		</body>
 		</html>
 		~;
-	}		
+	}
 }
 
 sub line_label {
@@ -349,9 +361,9 @@ sub line_label {
 	my $width = shift;
 	my $label = sprintf( '%'.$width.'d:', $line );
 	$label =~ s/ /&nbsp;/g;
-	return $label;	
+	return $label;
 }
-	
+
 
 
 
@@ -367,26 +379,28 @@ BEGIN {
 
 sub syntax_string {
 	shift if $_[0] eq 'PPI::HTML::Format';
-	my $Perl = Perl->new( shift ) or return undef;
-	return $Perl->html('syntax');
+	my $Tokenizer = PPI::Tokenizer->new( shift ) or return undef;
+	my $options = isa( $_[0], 'HASH' ) ? shift : {};
+	return __PACKAGE__->serialize( $Tokenizer, 'syntax', $options );
 }
 
 sub syntax_page {
 	shift if $_[0] eq 'PPI::HTML::Format';
-	my $Perl = Perl->new( $_[1] ) or return undef;
-	return $Perl->html_page('syntax');
+	my $html = __PACKAGE__->syntax_string( shift ) or return undef;
+	return PPI::Format::HTML->wrap_page( 'syntax', $html );
 }
 
 sub debug_string {
 	shift if $_[0] eq 'PPI::HTML::Format';
-	my $Perl = Perl->new( $_[1] ) or return undef;
-	return $Perl->html('debug');
+	my $Tokenizer = PPI::Tokenizer->new( shift ) or return undef;
+	my $options = isa( $_[0], 'HASH' ) ? shift : {};
+	return __PACKAGE__->serialize( $Tokenizer, 'debug', $options );
 }
 
 sub debug_page {
 	shift if $_[0] eq 'PPI::HTML::Format';
-	my $Perl = Perl->new( $_[1] ) or return undef;
-	return $Perl->html_page('debug');
+	my $html = __PACKAGE__->debug_string( shift ) or return undef;
+	return PPI::Format::HTML->wrap_page( 'debug', $html );
 }
 
 1;

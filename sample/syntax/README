@@ -1,0 +1,31 @@
+PPI Sample Applications
+-----------------------
+
+
+
+
+
+cgi.pl - Syntax Highlighting CGI Interface
+
+This is a simple cgi application that provides an interface over PPI,
+with the purpose of viewing 'coloured' perl code.
+
+To Install
+
+You should have already installed PPI.
+
+Copy the following from this directory to somewhere in your cgi-bin.
+
+cgi.pl    - Main executable
+html      - HTML templates
+AppLib    - Componants of AppLib support library
+
+
+
+
+
+batch.pl - Syntax Highlighting Bulk Processor
+
+This application is currently broken
+
+

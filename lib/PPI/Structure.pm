@@ -1,14 +1,12 @@
-package PPI::Document;
+package PPI::Structure;
 
-# The file lexer element is the top level of parsing.
+# Implements a structure
 
 use strict;
 use UNIVERSAL 'isa';
 use PPI ();
-use PPI::Statement ();
-use PPI::Structure ();
 BEGIN {
-	@PPI::Document::ISA = 'PPI::ParentElement';
+	@PPI::Structure::ISA = 'PPI::ParentElement';
 }
 
 
@@ -17,10 +15,13 @@ BEGIN {
 
 sub new {
 	my $class = shift;
+	my $token = isa( $_[0], 'PPI::Token' ) && $_[0]->_opens_structure
+		? shift : return undef;
 
 	# Create the object
 	return bless {
-		elements => [],
+		elements    => [],
+		start       => $token,
 		}, $class;
 }
 
@@ -28,8 +29,17 @@ sub new {
 
 
 
-# The main lexing method.
-# Takes as an argument a source of tokens.
+#####################################################################
+# Accessors
+
+sub start { $_[0]->{start} }
+sub finish { $_[0]->{finish} }
+
+
+
+#####################################################################
+# Main functional methods
+
 sub lex {
 	my $self = shift;
 
@@ -40,7 +50,7 @@ sub lex {
 	# Start the processing loop
 	my $token;
 	while ( $token = $self->{tokenizer}->get_token() ) {
-		# Add insignificant tokens directly to us
+		# Is this a direct type token
 		unless ( $token->significant ) {
 			$self->add_element( $token );
 			next;
@@ -67,15 +77,21 @@ sub lex {
 			# Pass the lex control to it
 			$Structure->lex( $self->{tokenizer} ) or return undef;
 
-			# On return, add the completed block to our elements
+			# Add the completed block to our elements
 			$self->add_element( $Structure );
 			next;
 		}
 
 		# Is this the close of a structure ( which would be an error )
 		if ( $token->_closes_structure ) {
-			# This means either a mis-parsing, or an
-			# error in the code.
+			# Is this OUR closing structure
+			if ( $token->content eq $self->{start}->_matching_brace ) {
+				# Add and close
+				$self->{finish} = $token;
+				return $self->_clean( 1 );
+			}
+
+			# Unexpected close... error
 			return undef;
 		}
 
@@ -85,11 +101,28 @@ sub lex {
 		$self->add_element( $Statement );
 	}
 
-	# Is this an error?
+	# Is this an error
 	return undef unless defined $token;
 
 	# No, it's the end of file
 	return $self->_clean( 1 );
+}
+
+
+
+
+
+#####################################################################
+# Tools
+
+# Like the token method ->content, get our merged contents.
+# This will recurse downwards through everything
+sub content {
+	my $self = shift;
+	return join '',
+		map { $_->content }
+		grep { $_ }
+		( $self->{start}, @{$self->{elements}}, $self->{finish} );
 }
 
 1;

@@ -1,9 +1,9 @@
 package PPI::Common;
 
-# Provides common functionality 
+# Provides common functionality
 
 use strict;
-use PPI;
+use PPI ();
 
 #####################################################################
 # Error handling
