@@ -5,12 +5,12 @@ package PPI::Format::HTML;
 use strict;
 use UNIVERSAL 'isa';
 use PPI::Tokenizer ();
-use base qw{Exporter PPI::Common};
+use base qw{Exporter PPI::Base};
 
 use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.816';
+	$VERSION = '0.817';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};

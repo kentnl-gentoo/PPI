@@ -2,21 +2,24 @@
 
 # Formal testing for PPI
 
-# This test only tests that the tree compiles
-
+# This test script only tests that the tree compiles
 
 use strict;
-use lib '../../modules'; # Development testing
-use lib '../lib';           # Installation testing
+use lib ();
 use UNIVERSAL 'isa';
+use File::Spec::Functions ':ALL';
+BEGIN {
+	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
+}
+
 use Test::More tests => 2;
 use Class::Autouse qw{:devel};
 use Class::Handle;
-
-# Set up any needed globals
-BEGIN {
-        $| = 1;
-}
 
 
 
@@ -25,10 +28,6 @@ BEGIN {
 BEGIN {
         ok( $] >= 5.005, "Your perl is new enough" );
 }
-
-
-
-
 
 # Does the module load
 use_ok( 'PPI' );

@@ -1,11 +1,11 @@
 package PPI;
 
-# PPI ( Parse::Perl::Isolated ) implements a library for working with
-# reasonably correct perl code, without having to load or run anything
-# outside of the code you wish to work with. i.e. "Isolated" code.
+# PPI, short for Parse::Perl::Isolated, provides a set of APIs for working
+# with reasonably correct perl code, without having to load, read or run
+# anything outside of the code you wish to work with. i.e. "Isolated" code.
 
-# The PPI class itself provides an overall object for working with
-# the various subsystems ( tokenizer, lexer, analysis, formatting,
+# The PPI class itself provides an overall top level module for working
+# with the various subsystems ( tokenizer, lexer, analysis, formatting,
 # and transformation ).
 
 use 5.005;
@@ -18,16 +18,18 @@ use Class::Autouse;
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.816';
+	$VERSION = '0.817';
 
 	# If we are in a mod_perl environment, always fully load
-	# modules, in case Apache::Reload is present.
+	# modules, in case Apache::Reload is present, and also to
+	# let copy-on-write do it's work and save us gobs of memory.
 	Class::Autouse->devel(1) if $ENV{MOD_PERL};
 }
 
 # Load the essentials
-use base 'PPI::Common';
+use base 'PPI::Base';
 use PPI::Element ();
+use PPI::Node ();
 
 
 
@@ -136,7 +138,7 @@ sub document {
 
 	my $self = shift;
 	unless ( $self->{Document} ) {
-		$self->_load_source() or return undef;
+		$self->_load_source or return undef;
 	}
 
 	$self->{Document};
@@ -213,61 +215,6 @@ sub save {
 	1;
 }
 
-
-
-
-
-
-#####################################################################
-# Main functional methods
-
-#sub _load_source {
-#	my $self = shift;
-
-	# Create the tokenizer
-#	my $Tokenizer = PPI::Tokenizer->new( source => $self->{source} );
-#	return $self->_error( "Error creating tokenizer" ) unless $Tokenizer;
-
-	# Create the Document object using the Tokenizer
-#	my $Document = PPI::Document->new( $Tokenizer );
-#	return $self->_error( "Error turning Tokenizer into Lexer document" ) unless $Document;
-
-	# Set the document
-#	$self->{Document} = $Document;
-#	return 1;
-#}
-
-#sub _load_tree {
-#	my $self = shift;
-
-	# Get the raw document
-#	my $Document = $self->document or return undef;
-
-	# Lex the document into a tree
-#	my $Lexer = PPI::Lexer->new( $Document ) or return undef;
-#	my $Tree = $Lexer->get_tree or return undef;
-
-#	$self->{Tree} = $Tree;
-#	return 1;
-#}
-
-#sub _apply_transforms {
-#	my $self = shift;
-
-	# Get the tree
-#	my $Tree = $self->tree or return undef;
-
-	# Iterate through the transforms and apply them
-#	foreach my $transform ( @{ $self->{transforms} } ) {
-#		if ( $transform eq 'tidy' ) {
-#			PPI::Transform::Tidy->tidyTree( $Tree ) or return undef;
-#		}
-#	}
-
-	# Done
-#	return 1;
-#}
-
 1;
 
 __END__
@@ -276,12 +223,24 @@ __END__
 
 =head1 NAME
 
-PPI ( Parse::Perl::Isolated ) - Parse and manipulate Perl code
+PPI - Parse and manipulate Perl code non-destructively, without using perl itself
 
 =head1 DESCRIPTION
 
-This is a checkpoint upload for the current state of PPI at the end of
-April 2003.
+This is an in-development package for parsing, manipulating and saving
+perl code, without using the perl interpreter, the B modules, or any other
+hacks that use perl's inbuilt grammar.
+
+Please note that is project it intended as a mechanism for working with
+perl content, NOT to actually compile and run working perl applications.
+Thus, it provides only an approximation of the detail and flexibility 
+available to the real perl parser, if a quite close approximation.
+
+It has been shown many times that it is impossible to FULLY "parse" Perl
+code without also executing it. We do not intend to fully parse it, just
+get enough details to analyse it, alter it, and save it back without losing
+details like whitespace, comments and other stuff lost when using the B::
+modules.
 
 =head1 STATUS
 
@@ -289,21 +248,19 @@ April 2003.
 
 =item Tokenizer
 
-The tokenizer now has something close to it's final API completed. You
-should however expect changes. It now runs about 25% faster, some
-innacuracies have been fixed, and the memory overhead for tokenized code
-has been significantly reduced. The Tokenizer can be considered complete,
-but with some minor bugs.
+The Tokenizer can be considered complete, but with some remaining bugs that
+will be fixed over time. This should get gradually more accurate as special
+cases are found and handled, and more cruft is added. :)
 
 =item Lexer
 
 The basic framework of the lexer has been completely replaced. The new lexer
 should be sufficient, but the lex logic is far from complete, and so the
-parse tree may look kind of odd, but works for basic statements.
+parse tree may look kind of odd, but works for very basic statements.
 
 The classes and methods are roughly completed for the basic parse tree
 manipulation, but more advanced filters and such are yet to be written.
-Overall, the lexer is considered about half complete.
+Overall, the lexer is considered about three quarters complete.
 
 =item Syntax Highlighting
 
@@ -316,7 +273,11 @@ tree to be overhauled and largely replaced once the lexer is completed.
 
 Given their current state, I have removed the entire PPI::Transform and
 PPI::Analysis trees from the upload. They are totally out of date, and will
-be replaced as the
+be replaced as the Lexer gets closer.
+
+One rewritten module, L<PPI::Analysis::Compare|PPI::Analysis::Compare>, is
+largely done and is currently in CPAN on it's own, as it relies on additional
+modules not needed by the core.
 
 =item Documentation
 
@@ -325,47 +286,80 @@ L<PPI::Manual>. It's raw, incomplete, and subject to change.
 
 =back
 
+=head1 STRUCTURE
+
+This section provides a quick overview of all the classes in PPI, and their
+general layout and inheritance. We start with the main data classes, and then
+move on to the functional classes
+
+  PPI::Base
+    PPI::Element
+      PPI::Node
+        PPI::Document
+        PPI::Statement
+          PPI::Statement::Package
+          PPI::Statement::Scheduled
+          PPI::Statement::Expression
+          PPI::Statement::Include
+          PPI::Statement::Sub
+          PPI::Statement::Variable
+          PPI::Statement::Compound
+          PPI::Statement::Break
+          PPI::Statement::Null
+        PPI::Structure
+          
+      PPI::Token
+      
+    
+
 =head1 TO DO
 
 =over
 
 =item Tokenizer
 
-Further optomization work need to be done, and fix any bugs as they come to
-light. Also, further fragments of token manipulation code need to be added
-to the PPI::Token tree.
+Minor bug fixes and improvements are expected to be done as needed over time.
 
 =item Lexer
 
-PPI::Statement::* and PPI::Structure::* classes need to be written, and the
-logic to tell what type of statement or structure something is. The lexer
-itself than needs to use this analysis to build the tree correctly.
+- Finish the non-if compound statement lexing.
 
-A filter/transform framework needs to be created on top of the basic lexer,
+- Add lex and statement support for labels.
+
+- Add support for statements that start with a block.
+
+Also, a rewritten filter/transform framework needs to be created on top of the basic lexer,
 to provide for the ability to add higher lever logic and capabilities.
 
 =item Other Stuff
 
-PPI::Format needs to be created properly. PPI::Analysis packages will need
-to be written... but they are likely to be largely third party, later.
+PPI::Format needs to be created properly, based on lex output rather than
+the raw token stream. PPI::Analysis packages will need to be rewritten...
+but they are likely to be largely third party, later. However, a base
+collection of search/find/filter/replace type methods probably need to be
+written centrally.
+
+Somewhere in there we also need a SAX filter to generate events based on
+perl structures, so various more complex processing tools can be written.
 
 Replacements or equivalents are needed for current methods that do POD
-extraction... some form of auto-doc needs to be written.
+extraction... some form of auto-doc can probably be written on top of that.
 
 =item Documentation
 
-Both used manuals and API documentation needs to get written.
+Both user manuals and API documentation needs to get written.
 
 =back
 
 =head1 SUPPORT
 
 None. Don't use this for anything you don't want to have to rewrite.
-To help contribute, contact the author.
+As this is changing, you probably need to be in contact with the author
+if you want to be using this.
 
 =head1 AUTHOR
 
-    Adam Kennedy
+    Adam Kennedy (Maintainer)
     cpan@ali.as
     http//ali.as/
 

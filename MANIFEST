@@ -3,14 +3,15 @@ data/basic.pl
 data/test.dat
 data/test2.txt
 lib/PPI.pm
+lib/PPI/Base.pm
 lib/PPI/Batch.pm
-lib/PPI/Common.pm
 lib/PPI/Document.pm
 lib/PPI/Element.pm
 lib/PPI/Format/HTML.pm
 lib/PPI/Lexer.pm
 lib/PPI/Lexer/Dump.pm
 lib/PPI/Manual.pm
+lib/PPI/Node.pm
 lib/PPI/Statement.pm
 lib/PPI/Structure.pm
 lib/PPI/Token.pm

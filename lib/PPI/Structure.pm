@@ -4,11 +4,12 @@ package PPI::Structure;
 
 use strict;
 use UNIVERSAL 'isa';
+use base 'PPI::Node';
 use PPI ();
 
+use vars qw{$VERSION};
 BEGIN {
-	$PPI::Structure::VERSION = '0.816';
-	@PPI::Structure::ISA     = 'PPI::ParentElement';
+	$VERSION = '0.817';
 }
 
 
@@ -20,7 +21,7 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $token = (isa( ref $_[0], 'PPI::Token::Structure' ) && $_[0]->_opens_structure)
+	my $token = (isa( ref $_[0], 'PPI::Token::Structure' ) && $_[0]->_opens)
 		? shift : return undef;
 
 	# Create the object
@@ -46,12 +47,18 @@ sub braces {
 	return { '[' => '[]', '(' => '()', '{' => '{}' }->{ $self->{start}->{content} };
 }
 
+# Get the full set of elements, including the start and finish
+sub elements {
+	my $self = shift;
+	( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
+}
+
 # Like the token method ->content, get our merged contents.
 # This will recurse downwards through everything
 sub content {
 	my $self = shift;
-	join '', map { $_->content } grep { $_ }
-		( $self->{start}, @{$self->{elements}}, $self->{finish} );
+	join '', map { $_->content }
+	( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
 }
 
 
@@ -63,7 +70,7 @@ package PPI::Structure::Block;
 
 # The general block curly braces
 BEGIN {
-	$PPI::Structure::Block::VERSION = '0.816';
+	$PPI::Structure::Block::VERSION = '0.817';
 	@PPI::Structure::Block::ISA     = 'PPI::Structure';
 }
 
@@ -75,7 +82,7 @@ BEGIN {
 package PPI::Structure::Subscript;
 
 BEGIN {
-	$PPI::Structure::Subscript::VERSION = '0.816';
+	$PPI::Structure::Subscript::VERSION = '0.817';
 	@PPI::Structure::Subscript::ISA     = 'PPI::Structure';
 }
 
@@ -88,7 +95,7 @@ package PPI::Structure::Constructor;
 
 # The else block
 BEGIN {
-	$PPI::Structure::Constructor::VERSION = '0.816';
+	$PPI::Structure::Constructor::VERSION = '0.817';
 	@PPI::Structure::Constructor::ISA     = 'PPI::Structure';
 }
 
@@ -103,7 +110,7 @@ package PPI::Structure::Condition;
 # if ( ) { ... }
 
 BEGIN {
-	$PPI::Structure::Condition::VERSION = '0.816';
+	$PPI::Structure::Condition::VERSION = '0.817';
 	@PPI::Structure::Condition::ISA     = 'PPI::Structure';
 }
 
@@ -115,7 +122,7 @@ BEGIN {
 package PPI::Structure::List;
 
 BEGIN {
-	$PPI::Structure::List::VERSION = '0.816';
+	$PPI::Structure::List::VERSION = '0.817';
 	@PPI::Structure::List::ISA     = 'PPI::Structure';
 }	
 
@@ -131,7 +138,7 @@ package PPI::Structure::Unknown;
 # clues.
 
 BEGIN {
-	$PPI::Structure::Unknown::VERSION = '0.816';
+	$PPI::Structure::Unknown::VERSION = '0.817';
 	@PPI::Structure::Unknown::ISA     = 'PPI::Structure';
 }	
 

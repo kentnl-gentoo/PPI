@@ -9,7 +9,7 @@ use Scalar::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.816';
+	$VERSION = '0.817';
 }
 
 
@@ -75,7 +75,7 @@ sub dump_array_ref {
 	push @$output, $self->_element_string( $element, $indent ) if $show;
 
 	# Recurse into our children
-	if ( isa( $element, 'PPI::ParentElement' ) ) {
+	if ( isa( $element, 'PPI::Node' ) ) {
 		my $child_indent = $indent . $self->{indent_string};
 		foreach my $child ( @{$element->{elements}} ) {
 			$self->dump_array_ref( $child, $child_indent, $output );

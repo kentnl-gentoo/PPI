@@ -1,11 +1,21 @@
 #!/usr/bin/perl
 
 # Test the API for PPI
+
 use strict;
+use lib ();
 use UNIVERSAL 'isa';
-use File::Spec::Functions qw{catdir catfile updir};
+use File::Spec::Functions ':ALL';
+BEGIN {
+	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
+}
+
 use Test::More tests => 28;
-use lib catdir( updir(), updir(), 'modules' );
 use Class::Autouse qw{:devel};
 
 use vars qw{$testdir};

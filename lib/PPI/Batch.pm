@@ -4,12 +4,12 @@ package PPI::Batch;
 
 use strict;
 use UNIVERSAL 'isa';
-use base 'PPI::Common';
+use base 'PPI::Base';
 use File::Spec;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION   = '0.816';
+	$VERSION   = '0.817';
 }
 
 sub new {

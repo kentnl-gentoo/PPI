@@ -33,14 +33,14 @@ use strict;
 
 # Make sure everything we need is loaded, without 
 # resorting to loading all of PPI if possible.
-use PPI::Common  ();
+use PPI::Base  ();
 use PPI::Element ();
 use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.816';
-	@PPI::Tokenizer::ISA = 'PPI::Common';
+	$VERSION = '0.817';
+	@PPI::Tokenizer::ISA = 'PPI::Base';
 }
 
 

@@ -21,7 +21,7 @@ use PPI::Token::Quote::Full   ();
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$PPI::Token::Whitespace::VERSION = '0.816';
+	$PPI::Token::Whitespace::VERSION = '0.817';
 	@PPI::Token::Whitespace::ISA     = 'PPI::Token';
 
 	# Build the class map
@@ -883,7 +883,7 @@ sub _on_char {
 	# All of the tests below match this one, so it should provide a
 	# small speed up. This regex should be updated to match the inside
 	# tests if they are changed.
-	if ( /^\$.*[\w:\$]$/ ) {
+	if ( /^\$.*[\w:\$\{]$/ ) {
 
 		if ( /^(\$(?:\_[\w:]|::))/ or /^\$\'[\w]/ ) {
 			# It's actually a normal symbol in the style
@@ -918,6 +918,17 @@ sub _on_char {
 
 		if ( /^\$\^\w/o ) {
 			# It's an escaped char magic... maybe ( like $^M )
+			return 1;
+		}
+
+		if ( /^\$\#\{/ ) {
+			# The $# is actually a case, and { is it's block
+			# Add the current token as the cast...
+			$t->{token} = PPI::Token::Cast->new( '$#' );
+			$t->_finalize_token;
+
+			# ... and create a new token for the block
+			$t->_new_token( 'Structure', '{' ) or return undef;
 			return 1;
 		}
 	}

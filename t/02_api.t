@@ -4,8 +4,10 @@
 
 use strict;
 use lib ();
-use File::Spec::Functions qw{:ALL};
+use UNIVERSAL 'isa';
+use File::Spec::Functions ':ALL';
 BEGIN {
+	$|++;
 	unless ( $ENV{HARNESS_ACTIVE} ) {
 		require FindBin;
 		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
@@ -18,7 +20,7 @@ use Class::Autouse qw{:devel};
 use PPI;
 
 # Execute the tests
-use Test::More 'tests' => 736;
+use Test::More 'tests' => 792;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -32,8 +34,10 @@ exit(0);
 # Now, define the API for the classes
 __DATA__
 
-PPI::Common=abstract
+PPI::Base=abstract
 PPI::Element=abstract
+PPI::Node=abstract
+PPI::Document=class
 PPI::Tokenizer=class
 PPI::Token=abstract
 PPI::Token::Whitespace=class
@@ -68,8 +72,9 @@ PPI::Token::Regex::Replace=class
 PPI::Token::Regex::Transform=class
 PPI::Token::Regex::Pattern=class
 
-[PPI::Common]
+[PPI::Base]
 err_stack=method
+errclear=method
 errstr=method
 errstr_console=method
 
@@ -82,6 +87,7 @@ increment_cursor=method
 decrement_cursor=method
 
 [PPI::Element]
+new=method
 parent=method
 previous_sibling=method
 next_sibling=method
@@ -92,8 +98,20 @@ content=method
 tokens=method
 significant=method
 
+[PPI::Node]
+PPI::Element=isa
+find=method
+prune=method
+elements=method
+add_element=method
+remove_element=method
+position=method
+nth_significant_child=method
+
+[PPI::Document]
+PPI::Node=isa
+
 [PPI::Token]
-PPI::Common=isa
 PPI::Element=isa
 new=method
 add_content=method

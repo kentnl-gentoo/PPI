@@ -1,5 +1,14 @@
 Revision history for Perl extension PPI
 
+0.817 Thu Jul  1 2004
+ 	- Fixed the misparsing of $#{ }
+ 	- Changed PPI::ParentElement to PPI::Node and moved it to it's own file
+	- Changed PPI::Common to PPI::Base
+	- Fixed PPI::Node::find
+	- Added PPI::Node::prune
+	- Started to add a little more class structure documentation
+	- Tried to make the DESTROY sequence of events work better
+
 0.816 Tue Jun 29 2004
 	- Solved the "last token in file parses wrong" bug
 

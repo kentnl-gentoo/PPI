@@ -17,7 +17,7 @@ use PPI::Token::Classes       (); # This must be last
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.816';
+	$VERSION = '0.817';
 }
 
 
@@ -100,8 +100,8 @@ sub _on_char       { 'Unknown' }
 #####################################################################
 # Structure Related Tests
 
-sub _opens_structure  { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\(|\[|\{)/ }
-sub _closes_structure { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\)|\]|\})/ }
+sub _opens  { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\(|\[|\{)/ }
+sub _closes { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\)|\]|\})/ }
 
 
 

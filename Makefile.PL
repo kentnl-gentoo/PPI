@@ -21,6 +21,6 @@ WriteMakefile(
 	},
 	($] >= 5.005) ? (
 		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',
-		'ABSTRACT' => 'Parse, analyze, manipulate and display perl code',
+		'ABSTRACT' => 'Parse and manipulate Perl code non-destructively, with using perl itself',
 	) : (),
 );

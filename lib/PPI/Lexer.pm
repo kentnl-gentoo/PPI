@@ -8,11 +8,11 @@ use UNIVERSAL 'isa';
 use PPI           ();
 use PPI::Token    ();
 use PPI::Document ();
-use base 'PPI::Common';
+use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.816';
+	$VERSION = '0.817';
 }
 
 
@@ -130,7 +130,7 @@ sub _lex_document {
 		}
 
 		# Is this the opening of a structure?
-		if ( $Token->_opens_structure ) {
+		if ( $Token->_opens ) {
 			# Resolve the class for the Structure and create it
 			my $_class = $self->_resolve_structure($Document, $Token) or return undef;
 			my $Structure = $_class->new( $Token ) or return undef;
@@ -205,7 +205,7 @@ BEGIN {
 
 sub _resolve_statement {
 	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token') ? shift : return undef;
 
 	# If it's a token in our list, use that class
@@ -263,7 +263,7 @@ sub _lex_statement {
 		}
 
 		# Is it the opening of a structure within the statement
-		if ( $Token->_opens_structure ) {
+		if ( $Token->_opens ) {
 			# Determine the class for the structure and create it
 			my $_class = $self->_resolve_structure($Statement, $Token) or return undef;
 			my $Structure = $_class->new( $Token ) or return undef;
@@ -360,7 +360,7 @@ BEGIN {
 # the class that the structure should be.
 sub _resolve_structure {
 	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token::Structure') ? shift : return undef;
 
 	return $self->_resolve_structure_round ($Parent) if $Token->content eq '(';
@@ -373,7 +373,7 @@ sub _resolve_structure {
 # the class that the structure should be.
 sub _resolve_structure_round {
 	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->nth_significant_child( -1 );
@@ -391,7 +391,7 @@ sub _resolve_structure_round {
 # the class that the structure should be.
 sub _resolve_structure_square {
 	my $self = shift;
-	my $Parent = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->nth_significant_child( -1 );
@@ -419,7 +419,7 @@ sub _resolve_structure_square {
 # the class that the structure should be.
 sub _resolve_structure_curly {
 	my $self = shift;
-	my $Parent = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->nth_significant_child( -1 );
@@ -478,7 +478,7 @@ sub _lex_structure {
 		}
 
 		# Is this the opening of a structure?
-		if ( $Token->_opens_structure ) {
+		if ( $Token->_opens ) {
 			### FIXME - Now, we really shouldn't be creating Structures
 			###         inside of Structures. There really should be an
 			###         Statement::Expression in here somewhere.
@@ -498,7 +498,7 @@ sub _lex_structure {
 		}
 
 		# Is this the close of a structure ( which would be an error )
-		if ( $Token->_closes_structure ) {
+		if ( $Token->_closes ) {
 			# Is this OUR closing structure
 			if ( $Token->content eq $Structure->start->_opposite ) {
 				# Add any delayed tokens, and the finishing token
@@ -556,10 +556,10 @@ sub _delay_element {
 	push @{$self->{delayed}}, $Element;
 }
 
-# Add an Element to a ParentElement, including any delayed Elements
+# Add an Element to a Node, including any delayed Elements
 sub _add_element {
 	my $self = shift;
-	my $Parent  = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent  = isa($_[0], 'PPI::Node') ? shift : return undef;
 	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 
 	# Add first the delayed, from the front, then the passed element
@@ -575,7 +575,7 @@ sub _add_element {
 # Specifically just add any delayed tokens, if any.
 sub _add_delayed {
 	my $self = shift;
-	my $Parent = isa($_[0], 'PPI::ParentElement') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Add any delayed
 	foreach my $el ( @{$self->{delayed}} ) {

@@ -7,16 +7,21 @@
 
 
 use strict;
-use lib '../../modules'; # Development testing
-use lib '../lib';           # Installation testing
+use lib ();
 use UNIVERSAL 'isa';
+use File::Spec::Functions ':ALL';
+BEGIN {
+	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
+}
+
 use Test::More tests => 3;
 use PPI;
 
-# Set up any needed globals
-BEGIN {
-        $| = 1;
-}
 
 
 

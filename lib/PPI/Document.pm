@@ -5,19 +5,15 @@ package PPI::Document;
 
 use strict;
 use UNIVERSAL 'isa';
+use base 'PPI::Node';
 use PPI            ();
 use PPI::Statement ();
 use PPI::Structure ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.816';
-	@PPI::Document::ISA = 'PPI::ParentElement'
+	$VERSION = '0.817';
 }
 
-# Constructor
-sub new {
-	bless { elements => [] }, shift;
-}
 
 1;
