@@ -12,7 +12,7 @@ use base 'PPI::Common';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.813';
+	$VERSION = '0.814';
 }
 
 
@@ -189,12 +189,14 @@ BEGIN {
 		'local'   => 'PPI::Statement::Variable',
 		'our'     => 'PPI::Statement::Variable',
 
-		# Flow control
-		'if'      => 'PPI::Statement::Flow',
-		'unless'  => 'PPI::Statement::Flow',
-		'for'     => 'PPI::Statement::Flow',
-		'foreach' => 'PPI::Statement::Flow',
-		'while'   => 'PPI::Statement::Flow',
+		# Compound statement
+		'if'      => 'PPI::Statement::Compound',
+		'unless'  => 'PPI::Statement::Compound',
+		'for'     => 'PPI::Statement::Compound',
+		'foreach' => 'PPI::Statement::Compound',
+		'while'   => 'PPI::Statement::Compound',
+
+		'redo'    => 'PPI::Statement::Break',
 		'next'    => 'PPI::Statement::Break',
 		'last'    => 'PPI::Statement::Break',
 		'return'  => 'PPI::Statement::Break',
@@ -230,11 +232,31 @@ sub _lex_statement {
 
 		# Add normal things
 		unless ( isa($Token, 'PPI::Token::Structure') ) {
-			$self->_add_element( $Statement, $Token ) or return undef;
-			next;
+			unless ( $Statement->_implied_end ) {
+				# Doesn't need the special logic
+				$self->_add_element( $Statement, $Token ) or return undef;
+				next;
+			}
+
+			# Does this token continue the statement
+			my $add = $self->_statement_continues( $Statement, $Token );
+			if ( $add ) {
+				# The token belongs in this statement
+				$self->_add_element( $Statement, $Token ) or return undef;
+				next;
+
+			} elsif ( defined $add ) {
+				# The token represents the beginning of a new statement.
+				# Rollback the token and return.
+				return $self->_rollback( $Token );
+
+			} else {
+				# Error during the check
+				return undef;
+			}
 		}
 
-		# Does the token end this statement
+		# Does the token force the end of the this statement
 		if ( $Token->content eq ';' ) {
 			$self->_add_element( $Statement, $Token ) or return undef;
 			return 1;
@@ -273,7 +295,50 @@ sub _lex_statement {
 	$self->_add_delayed( $Statement );
 }
 
+# For many statements, it can be dificult to determine the end-point.
+# This method takes a statement and the next significant token, and attempts
+# to determine if the there is a statement boundary between the two, or if
+# the statement can continue with the token.
+sub _statement_continues {
+	my $self = shift;
+	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
+	my $Token     = isa($_[0], 'PPI::Token')     ? shift : return undef;
+	my $LastToken = $Statement->nth_significant_child(-1) or return undef;
 
+	# Alrighty then, there are only three implied end statement types,
+	# ::Scheduled blocks, ::Sub declarations, and ::Compound statements.
+	# Of these, ::Scheduled and ::Sub both follow the same rule.
+	unless ( $Statement->isa('PPI::Statement::Compound') ) {
+		# If the last significant element of the statement is a block,
+		# then a scheduled statement is done, no questions asked.
+		return ! $LastToken->isa('PPI::Structure::Block');
+	}
+
+	# Now we get to compound statements, which kind of suck hard.
+	# The simplest of these 'if' type statements.
+	my $type = $Statement->type or return undef;
+	if ( $type eq 'if' ) {
+		# Unless the last token is a block, anything is fine
+		unless ( $LastToken->isa('PPI::Structure::Block') ) {
+			return 1;
+		}
+
+		# If the token before the block is an 'else',
+		# it's over, no matter what.
+		my $Before = $Statement->nth_significant_child(-2);
+		if ( $Before and $Before->isa('PPI::Token') and $Before->is_a('Bareword','else') ) {
+			return 0;
+		}
+
+		# Otherwise, we continue for 'elsif' or 'else' only.
+		return 1 if $Token->is_a('Bareword', 'else');
+		return 1 if $Token->is_a('Bareword', 'elsif');
+		return 0;
+	}
+
+	### FIXME - Default to 1 for now so we can test
+	1;
+}
 
 
 

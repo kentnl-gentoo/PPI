@@ -1,5 +1,24 @@
 Revision history for Perl extension PPI
 
+0.814 Sat Jun 26 2004
+	- Added the PPI tester, a desktop-based interactive debugger, which
+	  should greatly accelerate finding and fixing both ::Tokenizer
+	  and ::Lexer bugs. This will probably end up as a seperate
+	  distribution though, as it has a dependency on wxPerl.
+
+	- Fixed the misparsing of Foo::Bar::Baz
+	- Fixed the misparsing of *100
+	- Fixed the misparsing of Class::->method properly, or rather Foo::
+	- Tokenizer correctly identifies labels
+	- Changed PPI::Statement::Flow to PPI::Statement::Compound
+	- Removed the extra null whitespace token appearing after a bareword
+	  at the end of a file.
+	- -X operator are recognised correctly, although not at end of file
+	- Lexer detects subroutine and if () statement ends correctly
+
+0.813 Sat Jun 26 2004
+	- PPI::Lexer is not structurally complete
+
 0.812 Tue Jun 22 2004
 	- No changes to PPI itself.
 	- With the addition of Test::ClassAPI 'complete' support,

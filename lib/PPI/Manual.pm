@@ -2,7 +2,7 @@ package PPI::Manual;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.813';
+	$VERSION = '0.814';
 }
 
 =pod

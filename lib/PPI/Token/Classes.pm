@@ -21,7 +21,7 @@ use PPI::Token::Quote::Full   ();
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$PPI::Token::Whitespace::VERSION = '0.813';
+	$PPI::Token::Whitespace::VERSION = '0.814';
 	@PPI::Token::Whitespace::ISA     = 'PPI::Token';
 
 	# Build the class map
@@ -385,7 +385,7 @@ sub _on_char {
 
 	# Suck in till the end of the bareword
 	my $line = substr( $t->{line}, $t->{line_cursor} );
-	if ( $line =~ /^(\w+(?:::\w+)?)/ ) {
+	if ( $line =~ /^(\w+(?:::[^\W\d]\w*)*(?:::)?)/ ) {
 		$t->{token}->{content} .= $1;
 		$t->{line_cursor} += length $1;
 	}
@@ -398,22 +398,35 @@ sub _on_char {
 	}
 
 	# Check for a quote like operator
-	my $bareword = $t->{token}->{content};
-	if ( $quotelike{$bareword} ) {
+	my $word = $t->{token}->{content};
+	if ( $quotelike{$word} ) {
 		# Turn it into the appropriate class
-		$t->_set_token_class( $quotelike{$bareword} );
+		$t->_set_token_class( $quotelike{$word} );
 		return $t->{class}->_on_char( $t );
+	}
 
 	# Or one of the word operators
-	} elsif ( $PPI::Token::Operator::operator{$bareword} ) {
+	if ( $PPI::Token::Operator::operator{$word} ) {
 	 	$t->_set_token_class( 'Operator' );
+	 	return $t->_finalize_token->_on_char( $t );
+	}
 
-	# Or is it a label
-	} elsif ( $bareword =~ /^[A-Za-z_]\w*:$/ ) {
+	# Unless this is a simple identifier, at this point
+	# it has to be a normal bareword
+	if ( $word =~ /\:/ ) {
+		return $t->_finalize_token->_on_char( $t );
+	}
+
+	# If the NEXT character in the line is a colon, this
+	# is a label.
+	my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
+	if ( $char eq ':' ) {
+		$t->{token}->{content} .= ':';
+		$t->{line_cursor}++;
 		$t->_set_token_class( 'Label' );
 
-	# Or the magic filehandle
-	} elsif ( $bareword eq '_' ) {
+	# If not a label, '_' on it's own is the magic filehandle
+	} elsif ( $word eq '_' ) {
 		$t->_set_token_class( 'Magic' );
 
 	}
@@ -422,14 +435,15 @@ sub _on_char {
 	$t->_finalize_token->_on_char( $t );
 }
 
-# We are committed to being a bareword
+# We are committed to being a bareword.
+# Or so we would like to believe.
 sub _commit {
 	my $t = $_[1];
 
 	# Our current position is the first character of the bareword.
 	# Capture the bareword.
 	my $line = substr( $t->{line}, $t->{line_cursor} );
-	unless ( $line =~ /^(\w+(?:::\w+)?)/ ) {
+	unless ( $line =~ /^([^\W\d]\w*(?:::[^\W\d]\w*)*(?:::)?)/ ) {
 		# Programmer error
 		$DB::single = 1;
 		die "Fatal error... regex failed to match when expected";
@@ -443,13 +457,15 @@ sub _commit {
 	my $tokens = $t->_previous_significant_tokens(1);
 	if ( $tokens and $tokens->[0]->{_attribute} ) {
 		$t->_new_token( 'Attribute', $word );
-		return $t->{class}->_on_char($t);
+		return ($t->{line_cursor} >= $t->{line_length}) ? 0
+			: $t->{class}->_on_char($t);
 	}
 
 	# Check for the special case of the quote-like operator
 	if ( $quotelike{$word} ) {
 		$t->_new_token( $quotelike{$word}, $word );
-		return $t->{class}->_on_char( $t );
+		return ($t->{line_cursor} >= $t->{line_length}) ? 0
+			: $t->{class}->_on_char( $t );
 	}
 
 	# Check for the end of the file
@@ -484,14 +500,37 @@ sub _commit {
 		return 0;
 	}
 
-	# Normal case
-	my $token_class = $PPI::Token::Operator::operator{$word} ? 'Operator'
-		: ($word =~ /^[A-Za-z_]\w*:$/) ? 'Label'
-		: 'Bareword';
+	my $token_class;
+	if ( $PPI::Token::Operator::operator{$word} ) {
+		# Word operator
+		$token_class = 'Operator';
+
+	} elsif ( $word =~ /\:/ ) {
+		# Since it's not a simple identifier...
+		$token_class = 'Bareword';
+
+	} else {
+		# Now, if the next character is a :, it's a label
+		my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
+		if ( $char eq ':' ) {
+			$word .= ':';
+			$t->{line_cursor}++;
+			$token_class = 'Label';
+		} elsif ( $word eq '_' ) {
+			$token_class = 'Magic';
+		} else {
+			$token_class = 'Bareword';
+		}
+	}
 
 	# Create the new token and finalise
 	$t->_new_token( $token_class, $word );
-	$t->_finalize_token->_on_char( $t );
+	if ( $t->{line_cursor} >= $t->{line_length} ) {
+		# End of the line
+		$t->_finalize_token;
+		return 0;
+	}
+	$t->_finalize_token->_on_char($t);
 }
 
 
@@ -1041,8 +1080,15 @@ sub _on_char {
 		$t->{line_cursor} += length $1;
 	}
 
-	# Finish the dashed bareword
-	$t->_set_token_class( 'Bareword' ) or return undef;
+	# Are we a file test operator?
+	if ( $t->{token}->{content} =~ /^\-[rwxoRWXOezsfdlpSbctugkTBMAC]$/ ) {
+		# File test operator
+		$t->_set_token_class( 'Operator' ) or return undef;
+	} else {
+		# No, normal dashed bareword
+		$t->_set_token_class( 'Bareword' ) or return undef;
+	}
+
 	$t->_finalize_token->_on_char( $t );
 }
 

@@ -9,7 +9,7 @@ use Scalar::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.813';
+	$VERSION = '0.814';
 }
 
 
@@ -26,7 +26,7 @@ sub new {
 		root    => $root,
 		display => {
 			memaddr    => '', # Show the refaddr of the item
-			indent     => 1,  # Indent the structures
+			indent     => 2,  # Indent the structures
 			class      => 1,  # Show the object class
 			content    => 1,  # Show the object contents
 			whitespace => 1,  # Show whitespace tokens
@@ -38,9 +38,15 @@ sub new {
 	my %options = map { lc $_ } @_;
 	foreach ( keys %{$self->{display}} ) {
 		if ( exists $options{$_} ) {
-			$self->{display}->{$_} = !! $options{$_};
+			if ( $_ eq 'indent' ) {
+				$self->{display}->{indent} = $options{$_};
+			} else {
+				$self->{display}->{$_} = !! $options{$_};
+			}
 		}
 	}
+
+	$self->{indent_string} = join '', (' ' x $self->{display}->{indent});
 
 	$self;
 }
@@ -70,7 +76,7 @@ sub dump_array_ref {
 
 	# Recurse into our children
 	if ( isa( $element, 'PPI::ParentElement' ) ) {
-		my $child_indent = $indent . '  ';
+		my $child_indent = $indent . $self->{indent_string};
 		foreach my $child ( @{$element->{elements}} ) {
 			$self->dump_array_ref( $child, $child_indent, $output );
 		}
