@@ -5,11 +5,13 @@ package PPI::Tokenizer::Quote::Full;
 use strict;
 use base 'PPI::Tokenizer::Quote';
 
-use vars qw{%quoteTypes};
+use vars qw{$VERSION %quote_types %section_prototypes};
 BEGIN {
+	$VERSION = '0.811';
+
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
-	%quoteTypes = (
+	%quote_types = (
 		'q'   => { operator => 'q',  braced => undef, seperator => undef, _sections => 1 },
 		'qq'  => { operator => 'qq', braced => undef, seperator => undef, _sections => 1 },
 		'qx'  => { operator => 'qx', braced => undef, seperator => undef, _sections => 1 },
@@ -29,6 +31,16 @@ BEGIN {
 		# this and the trinary operator, but it's here for completeness.
 		'?' => { operator => undef, braced => 0, seperator => '?', _sections => 1, modifieds => {} },
 		);
+
+	# For quotes that use matching braces, defined the default structure
+	%section_prototypes = (
+		'(' => { type => '()', _close => ')' },
+		'<' => { type => '<>', _close => '>' },
+		'[' => { type => '[]', _close => ']' },
+		'{' => { type => '{}', _close => '}' },
+		);
+}
+
 }
 
 sub new {
@@ -40,22 +52,13 @@ sub new {
 	my $self = $class->SUPER::new($zone, $init) or return undef;
 	
 	# Do we have a prototype for the intializer? If so, add the extra fields
-	my $options = $quoteTypes{$init}
+	my $options = $quote_types{$init}
 		or return $self->_error( "Unknown quote like operator '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
 
 	$self;
 }
 
-use vars qw{%sectionPrototypes};
-BEGIN {
-	%sectionPrototypes = (
-		'(' => { type => '()', _close => ')' },
-		'<' => { type => '<>', _close => '>' },
-		'[' => { type => '[]', _close => ']' },
-		'{' => { type => '{}', _close => '}' },
-		);
-}
 sub fill {
 	my $class = shift;
 	my $t = shift;
@@ -82,7 +85,7 @@ sub fill {
 		$self->{content} .= $t->{char};
 		if ( $t->{char} =~ /(?:\<|\[|\{|\()/ ) {
 			$self->{braced} = 1;
-			$self->{sections}->[0] = {%{ $sectionPrototypes{$t->{char}} }};
+			$self->{sections}->[0] = {%{ $section_prototypes{$t->{char}} }};
 		} else {
 			$self->{braced} = 0;
 			$self->{seperator} = $t->{char};
@@ -220,7 +223,7 @@ sub _fill_braced {
 	# Check that the next character is an open selector
 	if ( $t->{char} =~ /(?:\<|\[|\{|\()/ ) {
 		# Initialize the second section
-		$self->{sections}->[1] = {%{ $sectionPrototypes{$t->{char}} }};
+		$self->{sections}->[1] = {%{ $section_prototypes{$t->{char}} }};
 	} else {
 		# Error, it has to be a brace of some sort
 		return $self->_error( "Syntax error. Second section of quote does not start with an open brace" );

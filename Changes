@@ -1,5 +1,10 @@
 Revision history for Perl extension PPI
 
+0.811 Mon Jun 21 2004
+	- Added support for subroutine attributes
+	- Fixed some problems with anonymous subroutines and prototypes
+	- $#$foo parses as (Cast,Symbol) now, not (Magic,Symbol)
+
 0.810 Mon Jun 14 2004
 	- Recognise the _ magic filehandle
 

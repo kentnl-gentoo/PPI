@@ -5,6 +5,11 @@ package PPI::Tokenizer::Quote::Simple;
 use strict;
 use base 'PPI::Tokenizer::Quote';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.811';
+}
+
 sub new {
 	my $class = shift;
 	my $zone = shift;

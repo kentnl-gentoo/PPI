@@ -4,7 +4,7 @@
 use strict;
 use UNIVERSAL 'isa';
 use File::Spec::Functions qw{catdir catfile updir};
-use Test::More tests => 31;
+use Test::More tests => 40;
 use lib catdir( updir(), updir(), 'modules' );
 use Class::Autouse qw{:devel};
 

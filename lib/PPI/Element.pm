@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.810';
+	$VERSION = '0.811';
 	
 	# Child -> Parent links
 	%_PARENT = ()
@@ -298,10 +298,7 @@ sub nth_significant_child {
 
 		if ( $elements->[$i]->significant ) {
 			# Is this the nth?
-			return $elements->[$i] unless $number;
-
-			# Not the nth yet, keep looking
-			$number--;
+			return $elements->[$i] unless --$number;
 		}
 	}
 

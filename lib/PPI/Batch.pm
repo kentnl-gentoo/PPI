@@ -9,7 +9,7 @@ use File::Spec;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION   = '0.810';
+	$VERSION   = '0.811';
 }
 
 sub new {

@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.810';
+	$VERSION = '0.811';
 }
 
 
@@ -20,8 +20,8 @@ BEGIN {
 
 
 sub _on_char {
-	my $t = $_[1];                              # Tokenizer object
-	my $c = $t->{token}->{content};             # Current token contents
+	my $t = $_[1];                                    # Tokenizer object
+	my $c = $t->{token}->{content};                   # Current token contents
 	$_ = substr( $t->{line}, $t->{line_cursor}, 1 );  # Current character
 
 
@@ -138,16 +138,61 @@ sub _on_char {
 			return $t->_set_token_class( 'Bareword' ) ? 1 : undef;
 		}
 
-		# Second half of the ?: trinary operator
+		# Now, : acts very very differently in different contexts.
+		# Mainly, we need to find out if this is a subroutine attribute.
+		# We'll leave a hint in the token to indicate that, if it is.
+		if ( $_[0]->_is_an_attribute( $t ) ) {
+			# This : is an attribute indicator
+			$t->_set_token_class( 'Operator' ) or return undef;
+			$t->{token}->{_attribute} = 1;
+			return $t->_finalize_token->_on_char( $t );
+		}
+
+		# It MIGHT be a label, but it's probably the ?: trinary operator
 		$t->_set_token_class( 'Operator' ) or return undef;
 		return $t->{class}->_on_char( $t );
-
-
-
 	}
 
 	### erm...
 	die 'Unknown value in PPI::Token::Unknown token';
+}
+
+# Are we at a location where a ':' would indicate a subroutine attribute
+sub _is_an_attribute {
+	my $t = $_[1]; # Tokenizer object
+	my $tokens = $t->_previous_significant_tokens( 3 ) or return undef;
+
+	# If we just had another attribute, we are also an attribute
+	if ( $tokens->[0]->is_a('Attribute') ) {
+		return 1;
+	}
+
+	# If we just had a prototype, then we are an attribute
+	if ( $tokens->[0]->is_a('SubPrototype') ) {
+		return 1;
+	}
+
+	# Other than that, we would need to have had a bareword
+	unless ( $tokens->[0]->is_a('Bareword') ) {
+		return '';
+	}
+
+	# We could be an anonymous subroutine
+	if ( $tokens->[0]->is_a('Bareword', 'sub') ) {
+		return 1;
+	}
+
+	# Or, we could be a named subroutine
+	if ( $tokens->[1]->is_a('Bareword', 'sub')
+		and ( $tokens->[2]->is_a('Structure')
+			or $tokens->[2]->is_a('Whitespace','')
+		)
+	) {
+		return 1;
+	}
+
+	# We arn't an attribute
+	'';	
 }
 
 1;

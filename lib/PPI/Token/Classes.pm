@@ -22,16 +22,16 @@ use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.810';
+	$VERSION = '0.811';
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 
 	# Build the class map
         @classmap = ();
         foreach ( 'a' .. 'z', 'A' .. 'Z', '_' ) { $commitmap[ord $_] = 'PPI::Token::Bareword' }
-	foreach ( qw!; [ ] { } )! )        { $commitmap[ord $_] = 'PPI::Token::Structure' }
-        foreach ( 0 .. 9 )                 { $classmap[ord $_]  = 'Number' }
-	foreach ( qw{= ? | + < > . ! ~} )  { $classmap[ord $_]  = 'Operator' }
-	foreach ( qw{* $ @ & : - %} )      { $classmap[ord $_]  = 'Unknown' }
+	foreach ( qw!; [ ] { } )! )             { $commitmap[ord $_] = 'PPI::Token::Structure' }
+        foreach ( 0 .. 9 )                      { $classmap[ord $_]  = 'Number' }
+	foreach ( qw{= ? | + < > . ! ~} )       { $classmap[ord $_]  = 'Operator' }
+	foreach ( qw{* $ @ & : - %} )           { $classmap[ord $_]  = 'Unknown' }
 
 	# Miscellaneous remainder
         $commitmap[ord '#'] = 'PPI::Token::Comment';
@@ -118,15 +118,23 @@ sub _on_char {
 
 		# Get the three previous significant tokens
 		my $tokens = $t->_previous_significant_tokens( 3 );
-		if ( $tokens
-		     and $tokens->[0]->is_a( 'Bareword' )
-		     and $tokens->[1]->is_a( 'Bareword', 'sub' )
-		     and ( $tokens->[2]->is_a( 'Structure' )
-		 	or $tokens->[2]->is_a( 'Bareword', '' )
-		     )
-		) {
-			# This is a sub prototype
-			return 'SubPrototype';
+		if ( $tokens ) {
+			# A normal subroutine declaration
+		     	if ( $tokens->[0]->is_a('Bareword')
+		     		and $tokens->[1]->is_a('Bareword', 'sub')
+		     	 	and (
+			     		$tokens->[2]->is_a('Structure')
+					or $tokens->[2]->is_a('Whitespace', '')
+			     		)
+		     	) {
+				# This is a sub prototype
+				return 'SubPrototype';
+			}
+
+			# An prototyped anonymous subroutine
+			if ( $tokens->[0]->is_a( 'Bareword', 'sub' ) ) {
+				return 'SubPrototype';
+			}
 		}
 
 		# This is a normal open bracket
@@ -351,12 +359,10 @@ sub line {
 
 package PPI::Token::Bareword;
 
-BEGIN {
-	@PPI::Token::Bareword::ISA = 'PPI::Token';
-}
-
 use vars qw{%quotelike};
 BEGIN {
+	@PPI::Token::Bareword::ISA = 'PPI::Token';
+
 	%quotelike = (
 		'q'  => 'Quote::OperatorSingle',
 		'qq' => 'Quote::OperatorDouble',
@@ -379,6 +385,13 @@ sub _on_char {
 	if ( $line =~ /^(\w+(?:::\w+)?)/ ) {
 		$t->{token}->{content} .= $1;
 		$t->{line_cursor} += length $1;
+	}
+
+	# We might be a subroutine attribute.
+	my $tokens = $t->_previous_significant_tokens(1);
+	if ( $tokens and $tokens->[0]->{_attribute} ) {
+		$t->_set_token_class( 'Attribute' );
+		return $t->{class}->_commit( $t );
 	}
 
 	# Check for a quote like operator
@@ -420,19 +433,24 @@ sub _commit {
 	}
 
 	# Advance the position one after the end of the bareword
-	$t->{line_cursor} += length $1;
+	my $word = $1;
+	$t->{line_cursor} += length $word;
+
+	# We might be a subroutine attribute.
+	my $tokens = $t->_previous_significant_tokens(1);
+	if ( $tokens and $tokens->[0]->{_attribute} ) {
+		$t->_new_token( 'Attribute', $word );
+		return $t->{class}->_on_char($t);
+	}
 
 	# Check for the special case of the quote-like operator
-	my $word = $1;
 	if ( $quotelike{$word} ) {
 		$t->_new_token( $quotelike{$word}, $word );
-
-		# And hand off to the quotelike _on_char
 		return $t->{class}->_on_char( $t );
 	}
 
 	# Check for the end of the file
-	if ( $word eq '__END__' ) { 
+	if ( $word eq '__END__' ) {
 		# Create the token for the __END__ itself
 		$t->_new_token( 'Bareword', $1 );
 		$t->_finalize_token;
@@ -800,7 +818,7 @@ sub _on_char {
 	# All of the tests below match this one, so it should provide a
 	# small speed up. This regex should be updated to match the inside
 	# tests if they are changed.
-	if ( /^\$.*[\w:]$/ ) {
+	if ( /^\$.*[\w:\$]$/ ) {
 
 		if ( /^(\$(?:\_[\w:]|::))/ or /^\$\'[\w]/ ) {
 			# It's actually a normal symbol in the style
@@ -810,7 +828,7 @@ sub _on_char {
 		}
 
 		if ( /^\$\$\w/ ) {
-			# This is really a referenced scalar ref. ( $$foo )
+			# This is really a scalar dereference. ( $$foo )
 			# Add the current token as the cast...
 			$t->{token} = PPI::Token::Cast->new( '$' );
 			$t->_finalize_token;
@@ -818,6 +836,13 @@ sub _on_char {
 			# ... and create a new token for the symbol
 			$t->_new_token( 'Symbol', '$' ) or return undef;
 			return 1;
+		}
+
+		if ( $_ eq '$#$' or $_ eq '$#{' ) {
+			# This is really an index dereferencing cast, although
+			# it has the same two chars as the magic variable $#.
+			$t->_set_token_class('Cast');
+			return $t->_finalize_token->_on_char( $t );
 		}
 
 		if ( /^(\$\#\w)/ ) {
@@ -849,7 +874,7 @@ BEGIN {
 	@PPI::Token::Cast::ISA = 'PPI::Token';
 }
 
-# A cast is always a single character
+# A cast is either % @ $ or $#
 sub _on_char {
 	$_[1]->_finalize_token->_on_char( $_[1] );
 }
@@ -859,7 +884,7 @@ sub _on_char {
 
 
 #####################################################################
-# Subroutine prototype descriptor
+# Subroutine prototype
 
 package PPI::Token::SubPrototype;
 
@@ -882,6 +907,101 @@ sub _on_char {
 	$t->_finalize_token->_on_char( $t );
 }
 
+
+
+
+
+#####################################################################
+# Subroutine Attribute
+
+# Attributes are a relatively new invention.
+# Given C< sub foo : bar(something) {} >, bar(something) is an attribute.
+
+package PPI::Token::Attribute;
+
+BEGIN {
+	@PPI::Token::Attribute::ISA = 'PPI::Token';
+}
+
+sub _on_char {
+	my $class = shift;
+	my $t = shift;
+	my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
+
+	# Unless this is a '(', we are finished.
+	unless ( $char eq '(' ) {
+		# Finalise and recheck
+		return $t->_finalize_token->_on_char( $t );
+	}
+
+	# This is a bar(...) style attribute.
+	# We are currently on the ( so scan in until the end.
+	# We finish on the character AFTER our end
+	my $string = $class->_scan_for_end( $t );
+	if ( ref $string ) {
+		# EOF
+		$t->{token}->{content} .= $$string;
+		$t->_finalize_token;
+		return '';
+	}
+
+	# Found the end of the attribute
+	$t->{token}->{content} .= $string;
+	$t->{token}->{_attribute} = 1;
+	$t->_finalize_token->_on_char( $t );
+}
+
+# Scan for a close braced, and take into account both escaping,
+# and open close bracket pairs in the string. When complete, the
+# method leaves the line cursor on the LAST character found.
+sub _scan_for_end {
+	my $t = $_[1];
+
+	# Loop as long as we can get new lines
+	my $string = '';
+	my $depth = 0;
+	while ( exists $t->{line} ) {
+		# Get the search area
+		$_ = $t->{line_cursor}
+			? substr( $t->{line}, $t->{line_cursor} )
+			: $t->{line};
+
+		# Look for a match
+		unless ( /^(.*?(?:\(|\)))/ ) {
+			# Load in the next line
+			$string .= $_;
+			return undef unless defined $t->_fill_line;
+			$t->{line_cursor} = 0;
+			next;
+		}
+
+		# Add to the string
+		$string .= $1;
+		$t->{line_cursor} += length $1;
+
+		# Alter the depth and continue if we arn't at the end
+		$depth += ($1 =~ /\($/) ? 1 : -1 and next;
+
+		# Found the end
+		return $string;
+	}
+
+	# Returning the string as a reference indicates EOF
+	\$string;
+}
+
+# Returns the attribute identifier
+sub identifier {
+	my $self = shift;
+	$self->{content} =~ /^(.+?)\(/ ? $1 : $self->{content};
+}
+
+# Returns the attribute parameters, or undef if it has none
+sub parameters {
+	my $self = shift;
+	$self->{content} =~ /\((.+)\)$/ ? $1 : undef;
+}
+	
 
 
 

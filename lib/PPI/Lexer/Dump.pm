@@ -7,6 +7,11 @@ use strict;
 use UNIVERSAL 'isa';
 use Scalar::Util ();
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.811';
+}
+
 
 
 

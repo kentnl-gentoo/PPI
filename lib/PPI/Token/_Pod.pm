@@ -11,6 +11,11 @@ use strict;
 use UNIVERSAL 'isa';
 use PPI::Token::Classes ();
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.811';
+}
+
 # Merges one or more Pod tokens.
 # Can be called as either a class or object method.
 # If called as a class method, returns a new Pod token object.

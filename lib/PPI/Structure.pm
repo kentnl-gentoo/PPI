@@ -8,13 +8,11 @@ use PPI ();
 
 use vars qw{$VERSION %round_classes %curly_classes};
 BEGIN {
-	$VERSION = '0.810';
+	$VERSION = '0.811';
 	@PPI::Structure::ISA = 'PPI::ParentElement';
 
 	# Keyword -> Structure class maps
 	%round_classes = (
-		'sub'    => 'PPI::Structure::Prototype',
-
 		'if'     => 'PPI::Structure::Condition',
 		'elsif'  => 'PPI::Structure::Condition',
 		'unless' => 'PPI::Structure::Condition',
@@ -208,6 +206,21 @@ sub _resolve_curly {
 
 	}
 
+	# More complicated upwards searching for subroutine context
+	if ( isa( $el, 'PPI::Token::Attribute' ) or isa( $el, 'PPI::Token::SubPrototype' ) ) {
+		my $i = -1;
+		while( $el = $parent->nth_significant_child( --$i ) ) {
+			next if isa( $el, 'PPI::Token::Attribute' );
+			next if isa( $el, 'PPI::Token::SubPrototype' );
+			if ( isa( $el, 'PPI::Token::Operator') and $el->content eq ':' ) {
+				next;
+			}
+			last unless isa( $el, 'PPI::Token::Bareword' );
+			last unless $el->content eq 'sub';
+			return PPI::Structure::AnonymousSub->rebless($self);
+		}
+	}
+
 	# Don't rebless
 	$self;
 }
@@ -261,20 +274,6 @@ sub DUMMY { 1 }
 
 
 #####################################################################
-package PPI::Structure::Prototype;
-
-# The round-braces condition structure from an if or elsif
-BEGIN {
-	@PPI::Structure::Prototype::ISA = 'PPI::Structure';
-}
-
-sub DUMMY { 1 }
-
-
-
-
-
-#####################################################################
 package PPI::Structure::AnonymousSub;
 
 # The round-braces condition structure from an if or elsif
@@ -291,9 +290,23 @@ sub DUMMY { 1 }
 #####################################################################
 package PPI::Structure::Block;
 
-# The round-braces condition structure from an if or elsif
+# The general block curly braces
 BEGIN {
 	@PPI::Structure::Block::ISA = 'PPI::Structure';
+}
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Structure::Block::Else;
+
+# The else block
+BEGIN {
+	@PPI::Structure::Block::Else::ISA = 'PPI::Structure::Block';
 }
 
 sub DUMMY { 1 }
