@@ -10,7 +10,7 @@ use PPI::Structure ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.802';
+	$VERSION = '0.803';
 	@PPI::Document::ISA = 'PPI::ParentElement'
 }
 
@@ -31,8 +31,7 @@ sub lex {
 	my $self = shift;
 
 	# Get the tokenizer
-	$self->{tokenizer} = isa( $_[0], 'PPI::Tokenizer' )
-		? shift : return undef;
+	$self->{tokenizer} = isa( $_[0], 'PPI::Tokenizer' ) ? shift : return undef;
 
 	# Start the processing loop
 	my $token;
@@ -86,7 +85,7 @@ sub lex {
 	return undef unless defined $token;
 
 	# No, it's the end of file
-	return $self->_clean( 1 );
+	$self->_clean( 1 );
 }
 
 1;

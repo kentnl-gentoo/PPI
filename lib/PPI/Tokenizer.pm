@@ -39,7 +39,7 @@ use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.802';
+	$VERSION = '0.803';
 	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 
@@ -283,6 +283,14 @@ sub _fill_line {
 		$self->{line_cursor} = -1;
 		$self->{line_length} = length $line;
 		$self->{line_count}++;
+
+		# Mainly to protect ourselves against the horror that is
+		# Crypt::GeneratePassword, don't allow lines longer than 
+		# 1000 characters.
+		if ( $self->{line_length} > 1000 ) {
+			return $self->_error( "Line longer than 1000 characters found ( $self->{line_length} characters )" );
+		}
+
 		return 1;
 	}
 
@@ -320,8 +328,9 @@ sub _process_next_line {
 	my $self = shift;
 
 	# Fill the line buffer
-	unless ( $_ = $self->_fill_line ) {
-		return undef unless defined $_;
+	my $rv;
+	unless ( $rv = $self->_fill_line ) {
+		return undef unless defined $rv;
 
 		# End of file, finalize last token
 		$self->_finalize_token;
@@ -329,15 +338,15 @@ sub _process_next_line {
 	}
 
 	# Run the _on_line_start
-	$_ = $self->{class}->_on_line_start( $self );
-	unless ( $_ ) {
+	$rv = $self->{class}->_on_line_start( $self );
+	unless ( $rv ) {
 		return defined $_ ? 1 # Defined but false signals "go to next line"
 			: $self->_error( "Error at line $self->{line_count}" );
 	}
 
 	# If we can't deal with the entire line, process char by char
-	while ( $_ = $self->_process_next_char ) {}
-	unless ( defined $_ ) {
+	while ( $rv = $self->_process_next_char ) {}
+	unless ( defined $rv ) {
 		return $self->_error( "Error at line $self->{line_count}, character $self->{line_cursor}" );
 	}
 

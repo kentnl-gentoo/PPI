@@ -1,5 +1,12 @@
 Revision history for Perl extension PPI
 
+0.803 Sat Sep 06 2003
+	- Added very long line protection support.
+	  Maximum line length is now 5000.
+	- Added bug fixes to the Lexer so that block tree building works
+	  mostly OK again, without adding broken duplicate tokens.
+	- Added the PPI::Lexer::Dump module, to do Lexer object dumps.
+
 0.802 Sat Aug 23 2003
 	- PPI::Format::HTML sends the correct content headers
 

@@ -11,7 +11,7 @@ use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.802';
+	$VERSION = '0.803';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
@@ -150,8 +150,13 @@ sub _serialize_syntax {
 			$current = $color;
 		}
 
-		# Add the current token
-		$html .= escape_html( $token->{content} );
+		# If the token has the hidden {_href} property, link it
+		my $content = escape_html( $token->{content} );
+		if ( exists $token->{_href} ) {
+			$content = "<a href=\"$token->{_href}\">$content</a>";
+		}
+
+		$html .= $content;
 		$current = $color;
 	}
 

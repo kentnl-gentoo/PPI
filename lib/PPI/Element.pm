@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.802';
+	$VERSION = '0.803';
 	
 	# Child -> Parent links
 	%_PARENT = ()
@@ -130,6 +130,8 @@ sub significant { 1 }
 package PPI::ParentElement;
 
 use strict;
+use UNIVERSAL 'isa';
+
 BEGIN {
 	@PPI::ParentElement::ISA = 'PPI::Element';
 }
@@ -150,23 +152,6 @@ sub _delay_element {
 		push @{$self->{delayed}}, $element;
 	} else {
 		$self->{delayed} = [ $element ];
-	}
-
-	1;
-}
-
-# Just add anything delayed to the elements
-### IS THIS USED?
-sub _add_delayed {
-	my $self = shift;
-
-	if ( exists $self->{delayed} ) {
-		foreach ( @{$self->{delayed}} ) {
-			push @{$self->{elements}}, $_;
-			$PPI::Element::_PARENT{ refaddr $_ } = $self;
-		}
-
-		delete $self->{delayed};
 	}
 
 	1;
@@ -216,15 +201,14 @@ sub position {
 # This also means we add anything that was before us, and delayed.
 sub add_element {
 	my $self = shift;
-	my $element = UNIVERSAL::isa( $_[0], 'PPI::Element' )
-		? shift : return undef;
+	my $element = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
 
 	# If there is anything delayed, move it to the elements
 	if ( exists $self->{delayed} ) {
-		while ( shift @{$self->{delayed}} ) {
-			push @{$self->{elements}}, $_;
+		foreach ( @{$self->{delayed}} ) {
 			$PPI::Element::_PARENT{ refaddr $_ } = $self;
 		}
+		push @{$self->{elements}}, @{$self->{delayed}};
 		delete $self->{delayed};
 	}
 
@@ -262,7 +246,7 @@ sub rollback_tokenizer {
 
 	# Handle anything passed
 	foreach ( @_ ) {
-		if ( UNIVERSAL::isa( $_, 'PPI::Token' ) ) {
+		if ( isa( $_, 'PPI::Token' ) ) {
 			$tokenizer->decrement_cursor;
 		}
 	}

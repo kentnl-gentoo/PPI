@@ -8,7 +8,7 @@ use PPI ();
 
 use vars qw{$VERSION %classes};
 BEGIN {
-	$VERSION = '0.802';
+	$VERSION = '0.803';
 	@PPI::Statement::ISA = 'PPI::ParentElement';
 
 	# The main keyword -> statement-class map

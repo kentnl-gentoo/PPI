@@ -12,7 +12,7 @@ use PPI::Format::HTML ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.802';
+	$VERSION = '0.803';
 }
 
 

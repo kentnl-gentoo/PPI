@@ -3,6 +3,7 @@ LICENSE
 MANIFEST			This list of files
 Makefile.PL
 README
+data/basic.pl
 data/test.dat
 data/test2.txt
 lib/PPI.pm
@@ -13,6 +14,7 @@ lib/PPI/Element.pm
 lib/PPI/Format/Apache.pm
 lib/PPI/Format/HTML.pm
 lib/PPI/Lexer.pm
+lib/PPI/Lexer/Dump.pm
 lib/PPI/Manual.pm
 lib/PPI/Statement.pm
 lib/PPI/Structure.pm
