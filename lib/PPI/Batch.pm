@@ -7,6 +7,11 @@ use UNIVERSAL 'isa';
 use base 'PPI::Common';
 use File::Spec;
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION   = '0.808';
+}
+
 sub new {
 	bless {
 		files              => {},

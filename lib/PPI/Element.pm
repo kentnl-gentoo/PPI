@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.807';
+	$VERSION = '0.808';
 	
 	# Child -> Parent links
 	%_PARENT = ()
