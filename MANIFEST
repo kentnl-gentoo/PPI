@@ -48,5 +48,4 @@ t/04_element.t
 t/05_lexer_practical.t
 t/06_round_trip.t
 t/07_token.t
-tmon.out
 META.yml                                Module meta-data (added by MakeMaker)

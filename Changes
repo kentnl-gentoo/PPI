@@ -1,5 +1,8 @@
 Revision history for Perl extension PPI
 
+0.824 Wed Jul 21 2004
+	- Removed a 6 meg tmon.out file I accidentally bundled
+
 0.823 Wed Jul 21 2004
 	- Added PPI::Document::Fragment class
 	- Added PPI::Node::schildren object method
