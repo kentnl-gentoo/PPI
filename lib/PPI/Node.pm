@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 

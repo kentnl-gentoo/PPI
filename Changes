@@ -1,6 +1,13 @@
 Revision history for Perl extension PPI
 
-0.828
+0.829
+	- BREAKS API COMPATIBILITY
+	- Changed PPI::Token::SubPrototype to PPI::Token::Prototype
+	- Added PPI::Token::Prototype::prototype object method
+	- Added PPI::Statement::Sub::prototype object method
+	- Added PPI::Statement::Sub::block object method
+
+0.828 Sun Aug  8 2004
 	- BREAKS API COMPATIBILITY
 	- Changed PPI::Token::DashedBareword to PPI::Token::Quote::Dashed
 	- Changed PPI::Token::Bareword to PPI::Token::Word

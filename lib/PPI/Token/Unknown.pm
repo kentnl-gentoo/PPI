@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 }
 
 
@@ -168,7 +168,7 @@ sub _is_an_attribute {
 	}
 
 	# If we just had a prototype, then we are an attribute
-	if ( $tokens->[0]->_isa('SubPrototype') ) {
+	if ( $tokens->[0]->_isa('Prototype') ) {
 		return 1;
 	}
 

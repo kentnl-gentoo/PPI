@@ -10,7 +10,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 }
 
 sub type {
@@ -33,8 +33,8 @@ sub pragma {
 
 sub version {
 	my $self = shift;
-	my $module = $self->module or return '';
-	$module =~ /^\d/ ? $module : '';
+	my $version = $self->schild(1) or return undef;
+	isa(ref $version, 'PPI::Token::Number') ? $version->content : '';
 }
 
 1;

@@ -23,7 +23,7 @@ use PPI::Lexer::Dump;
 use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 2082;
+use Test::More 'tests' => 2089;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -205,6 +205,8 @@ PPI::Token=isa
 PPI::Token=isa
 canonical=method
 symbol=method
+raw_type=method
+symbol_type=method
 
 [PPI::Token::ArrayIndex]
 PPI::Token=isa
@@ -219,8 +221,9 @@ PPI::Token::Symbol=isa
 [PPI::Token::Cast]
 PPI::Token=isa
 
-[PPI::Token::SubPrototype]
+[PPI::Token::Prototype]
 PPI::Token=isa
+prototype=method
 
 [PPI::Token::Attribute]
 PPI::Token=isa
@@ -317,6 +320,8 @@ version=method
 [PPI::Statement::Sub]
 PPI::Statement=isa
 name=method
+prototype=method
+block=method
 forward=method
 
 [PPI::Statement::Variable]

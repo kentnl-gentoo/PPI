@@ -112,7 +112,7 @@ However, there are going to be limits to this process. Because PPI cannot
 adapt to changing grammers, any code written using code filters should not
 be assumed to be parsable. At one extreme, this includes anything munged by
 L<Acme::Bleach|Acme::Bleach>, as well as (arguably) more common cases like
-L<Switch|Switch.pm>, L<Error|Error.pm> and L<Exception|Exception.pm>. We do
+L<Switch.pm|Switch>, L<Error.pm|Error> and L<Exception.pm|Exception>. We do
 not pretend to be able to parse code using these modules, although someone
 may be able to extend PPI to handle them.
 
@@ -137,18 +137,19 @@ regular DOM, but contains many diferences to handle perl-specific cases.
 
 On top of the Tokenizer and Lexer, and the classes of the PDOM, sit a number
 of classes intended to make life a little easier when dealing with PDOM
-objects trees.
+object trees.
 
-Both the major parsing components are implemented by using manual code, from
-scratch. There are no grammar rules, no YACC or LEX style tools, just code.
-This is primarily because of the sheer volume of accumulated cruft. Not even
-perl itself is capable of parsing perl documents (remember, it just parses
-code) so PPI needs to be even cruftier than perl itself. Yes, eewww...
+Both the major parsing components were implemented from scratch with just
+plain Perl code. There are no grammar rules, no YACC or LEX style tools, just
+code. This is primarily because of the sheer volume of accumulated cruft that
+exists in perl. Not even perl itself is capable of parsing perl documents
+(remember, it just parses and executes it as code) so PPI needs to be even
+cruftier than perl itself. Yes, eewww...
 
 =head2 The Tokenizer
 
-The Tokenizer is considered complete and of release quality. Not quite
-"stable", but close.
+The Tokenizer is considered complete and of release candidate quality.
+Not quite fully "stable", but close.
 
 The Tokenizer takes source code and converts it into a series of tokens. It
 does this using a slow but thorough character by character manual process,
@@ -156,9 +157,11 @@ rather than using complex regexs. Well, that's actually a lie, it has a lot
 of support regexs throughout, and it's not truly character by character. The
 Tokenizer is increasingly "skipping ahead" when it can find shortcuts, so
 the "current character" cursor tends to jump a bit wildly. Remember that
-cruft I was mentioning. Right, well the tokenizer is full of it.
+cruft I was mentioning. Right, well the tokenizer is full of it. In reality,
+the number of times the Tokenizer will ACTUALLY move the character cursor
+itself is only about 5% - 10% higher than the number of tokens in the file.
 
-Currently, this implementation means that PPI is not of use for highly
+Currently, these speed issues mean that PPI is not of great use for highly
 interactive tasks, such as an editor which checks and formats code on
 the fly. This situation is improving somewhat with multi-gigahertz
 processors, but can still be painful at times.
@@ -171,8 +174,9 @@ fair amount of scope left for speed improvements, but it is painstaking work,
 and fairly slow going.
 
 The target rate is about 5000 lines per gigacycle. Without moving bits to C,
-I just can't see any way to improve this. Any move of things to C would be
-B<hard> and is probably a 2.0 task.
+I just can't see any way to improve past this. Any move of things to C would
+be B<hard>, something I'd like to avoid for portability/bundling reasons,
+and is probably a 2.0 task.
 
 =head2 The Lexer
 
@@ -182,14 +186,15 @@ The Lexer takes a token stream, and converts it to a lexical tree. Again,
 remember we are parsing Perl B<documents> here, not code, so this includes
 whitespace, comments, and all number of weird things that have no relevance
 when code it actually executed. An instantiated L<PPI::Lexer|PPI::Lexer>
-object consumes streams of L<PPI::Token|PPI::Token> objects, and produces
-L<PPI::Document|PPI::Document> objects.
+object consumes L<PPI::Tokenizer|PPI::Tokenizer> objects, or things that can
+be converted into one, and produces L<PPI::Document|PPI::Document> objects.
 
-=head1 PDOM
+=head1 The Perl Document Object Model
 
 This section provides a basic overview of the Perl Document Object
-Model (the PDOM). Although this is a basic overview and doesn't cover the
-PDOM classes in order, the following is a rough layout of the main classes.
+Model (PDOM). Although this is a basic overview and doesn't cover the
+PDOM classes in order or details, the following is a rough inheritance
+layout of the main core classes.
 
   PPI::Element
       PPI::Token
@@ -201,19 +206,19 @@ PDOM classes in order, the following is a rough layout of the main classes.
               PPI::Structure::*
           PPI::Document
 
-To summarize the above layout, ALL PDOM objects inherit from the
-basic L<PPI::Element|Element> class. Inheriting from this are
-L<PPI::Token|Tokens> (which are just strings of content with a known
-meaning) and L<PPI::Node|Nodes> (which are containers to hold other Elements)
+To summarize the above layout, all PDOM objects inherit from the
+basic L<Element|PPI::Element> class. Under this are L<Tokens|PPI::Token>
+(which are just strings of content with a known meaning) and
+L<Nodes|PPI::NodeNodes> (which are containers to hold other Elements)
 
 Moving on, we'll start at the bottom of the inheritance tree with the
-first PDOM element you are likely to encounter, the Document object.
+first PDOM element you are likely to encounter, the B<Document> object.
 
 =head2 The Document
 
-At the top of all PDOM object trees is a L<PPI::Document|PPI::Document>
-object. Each Document can contain a number of Statements, Structures, and
-Tokens.
+At the top of all complete PDOM trees is a L<PPI::Document|PPI::Document>
+object. Each Document can contain a number of B<Statements>, B<Structures>,
+and B<Tokens>.
 
 A L<PPI::Structure|PPI::Structure> is any series of tokens contained within
 matching braces (with a few exceptions in special cases). This includes things
@@ -230,8 +235,8 @@ you, for example, which tokens are subroutine names, or arguments to a sub call,
 or what have you. It only knows that this series of elements represents a
 single Statement.
 
-This example shows how the PDOM tree created for the following chunk of simple
-perl code.
+To demonstrate, lets start with an example showing how the PDOM tree might look
+for the following chunk of simple Perl code.
 
   #!/usr/bin/perl
 
@@ -240,8 +245,7 @@ perl code.
   exit();
 
 This is not all that complicated. Very very simple in fact. Translated into
-a PDOM tree it would have the following structure. In this example, strings
-are only listed for the ACTUAL element that contains the string.
+a PDOM tree it would have the following structure.
 
   PPI::Document
     PPI::Token::Comment                '#!/usr/bin/perl\n'
@@ -262,12 +266,18 @@ are only listed for the ACTUAL element that contains the string.
       PPI::Token::Structure            ';'
     PPI::Token::Whitespace             '\n'
 
+Please note that in this this example, strings are only listed for the ACTUAL
+element that contains the string. Also, Structure are listed with the brace
+characters noted.
+
 Notice how PPI builds EVERYTHING into the model, including whitespace. This
 is needed in order to make the Document fully "round trip" capable. That is,
 if you stringify the Document you get the same file you started with.
+(Although, it the newlines for your file are wrong, PPI will probably have
+localised them)
 
-That is a little easier to read if we strip out all the whitespace. Here it
-is again, sans the distracting whitespace tokens.
+We can make that PDOM dump a little easier to read if we strip out all the
+whitespace. Here it is again, sans the distracting whitespace tokens.
 
   PPI::Document
     PPI::Token::Comment                '#!/usr/bin/perl\n'
@@ -288,16 +298,20 @@ allow anything inside the tree the ability to grow. It also makes the
 search and analysis algorithms simpler.
 
 Because of the depth and complexity of PDOM trees, a vast number of methods
-have been added wherever possible to help people working with tree do normal
-tasks relatively efficiently. It acts as a DWIM layer above the large trees.
+have been added wherever possible to help people working with PDOM trees do
+normal tasks relatively efficiently. These act like a DWIM layer above the
+large trees.
 
 =head1 CLASS INDEX
 
-The following provides a list of all classes contained in the core PPI
-distribution. The list is in alphabetical order. Anything with it's own POD
-documentation can be considered stable, as the POD is only written after the
-API is largely finalised and frozen. Still, don't rely on anything here until
-after PPI official becomes a beta, in the 0.9xx versions.
+The following provides a list of all the primary classes contained in the
+core PPI distribution. The list is in alphabetical order. Anything with it's
+own POD documentation can be considered stable, as the POD is only written
+after the API is largely finalised and frozen. Still, don't rely on anything
+here until after PPI official becomes a beta, in the 0.9xx versions.
+
+Please note that this does B<not> contain the 50 or so classes of the PDOM,
+but only the "main players" within it.
 
 =over 4
 

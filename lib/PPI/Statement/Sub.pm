@@ -5,10 +5,11 @@ package PPI::Statement::Sub;
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Statement';
+use List::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 }
 
 # Lexer clue
@@ -26,13 +27,24 @@ sub name {
 
 	# The second token should be the name, if we have one
 	my $Token = $self->schild(1) or return undef;
-	$Token->_isa('Word') ? $Token->content : undef;
+	isa($Token, 'PPI::Token::Word') ? $Token->content : '';
+}
+
+sub prototype {
+	my $self = shift;
+	my $Prototype = List::Util::first { isa($_, 'PPI::Token::Prototype') } $self->children;
+	defined($Prototype) ? $Prototype->prototype : '';
+}
+
+sub block {
+	my $self = shift;
+	my $lastchild = $self->schild(-1);
+	isa($lastchild, 'PPI::Structure::Block') and $lastchild;
 }
 
 # If we don't have a block at the end, this is a forward declaration
 sub forward {
-	my $self = shift;
-	! $self->schild(-1)->isa('PPI::Structure::Block');
+	! shift->block;
 }
 
 1;

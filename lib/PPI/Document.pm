@@ -4,7 +4,7 @@ package PPI::Document;
 
 =head1 NAME
 
-PPI::Document - A single cohesive Perl document
+PPI::Document - A single Perl document
 
 =head1 INHERITANCE
 
@@ -32,17 +32,22 @@ PPI::Document - A single cohesive Perl document
 
 =head1 DESCRIPTION
 
-The PPI::Document class represents a single Perl "document". A ::Document
-object acts as a normal PPI::Node, with some additions for loading/saving,
-and working with the line/column locations of tokens within a file.
+The PPI::Document class represents a single Perl "document". A Document
+object acts as a normal L<PPI::Node>, with some additional convenience
+methods for loading and saving, and working with the line/column locations
+of Elements within a file.
 
 The exemption to it's ::Node behaviour this is that a PPI::Document object
 can NEVER have a parent node, and is always the root node in a tree.
 
 =head1 METHODS
 
-This method should be generally acted upon using the L<PPI::Node|PPI::Node> API,
-of which it is a subclass.
+Most of the things you are likely to want to do with a Document are probably
+going to involve the methods of the L<PPI::Node|PPI::Node> class, of which
+this is a subclass.
+
+The methods listed here are the remaining few methods that are truly
+Document-specific.
 
 =cut
 
@@ -57,7 +62,7 @@ use PPI::Document::Fragment ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 }
 
 
@@ -77,8 +82,7 @@ returns a new PPI::Document object. Returns C<undef> on error.
 =cut
 
 sub load {
-	my $class = shift;
-	PPI::Lexer->lex_file( shift );
+	PPI::Lexer->lex_file( $_[1] );
 }
 
 =pod
@@ -104,10 +108,18 @@ sub save {
 
 index_locations
 
-Within a document, all PPI::Element objects can be considered to have a
-"location", a line/column position within the document, if it were to be
-printed to a file. This position is primarily useful for debugging type 
-activities.
+Within a document, all L<PPI::Element> objects can be considered to have a
+"location", a line/column position within the document when considered as a
+file. This position is primarily useful for debugging type activities.
+
+The method for finding the position of a single Element is a bit laborious,
+and very slow if you need to do it a lot. So the C<index_locations> method
+will index and save the locations of every Element within the Document in
+advance, making future calls to <PPI::Element::location> virtually free.
+
+Please note that this is index should always be cleared using
+C<flush_locations> once you are finished with the locations. If content is
+added to or removed from the file, these indexed locations will be B<wrong>.
 
 =cut
 
@@ -169,18 +181,21 @@ sub flush_locations {
 
 =head1 TO DO
 
-May need to overload some methods to forcefully prevent objects becoming
-children of another Node.
+May need to overload some methods to forcefully prevent Document objects
+becoming children of another Node.
 
 =head1 SUPPORT
 
-See L<PPI>
+See the L<support section|PPI::Manual/SUPPORT> in the main PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
+
+Thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution.
 
 Copyright (c) 2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute

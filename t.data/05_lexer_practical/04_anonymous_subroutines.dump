@@ -17,7 +17,7 @@ PPI::Document
     PPI::Token::Operator  	'='
     PPI::Token::Whitespace  	' '
     PPI::Token::Word  	'sub'
-    PPI::Token::SubPrototype  	'($)'
+    PPI::Token::Prototype  	'($)'
     PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
@@ -28,7 +28,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Word  	'sub'
     PPI::Token::Whitespace  	' '
-    PPI::Token::SubPrototype  	'(&$@)'
+    PPI::Token::Prototype  	'(&$@)'
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'

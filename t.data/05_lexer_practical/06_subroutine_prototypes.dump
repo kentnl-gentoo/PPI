@@ -3,7 +3,7 @@ PPI::Document
     PPI::Token::Word  	'sub'
     PPI::Token::Whitespace  	' '
     PPI::Token::Word  	'RE'
-    PPI::Token::SubPrototype  	'()'
+    PPI::Token::Prototype  	'()'
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
       PPI::Token::Whitespace  	' '
@@ -13,7 +13,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Word  	'foo'
     PPI::Token::Whitespace  	' '
-    PPI::Token::SubPrototype  	'($)'
+    PPI::Token::Prototype  	'($)'
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
   PPI::Token::Whitespace  	'\n'

@@ -8,7 +8,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 }
 
 sub _on_char {
@@ -70,6 +70,16 @@ sub symbol {
 	}
 
 	$symbol;
+}
+
+sub raw_type {
+	my $self = shift;
+	substr( $self->content, 0, 1 );
+}
+
+sub symbol_type {
+	my $self = shift;
+	substr( $self->symbol, 0, 1 );
 }
 
 1;

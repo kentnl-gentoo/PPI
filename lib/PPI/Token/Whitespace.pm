@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.828';
+	$VERSION = '0.829';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
@@ -99,12 +99,12 @@ sub _on_char {
 			     		)
 		     	) {
 				# This is a sub prototype
-				return 'SubPrototype';
+				return 'Prototype';
 			}
 
 			# An prototyped anonymous subroutine
 			if ( $tokens->[0]->_isa( 'Word', 'sub' ) ) {
-				return 'SubPrototype';
+				return 'Prototype';
 			}
 		}
 
@@ -120,7 +120,12 @@ sub _on_char {
 		# Hopefully the guess will be good enough.
 		my $previous = $t->_last_significant_token;
 
-		# Most times following an operator, we are a regex
+		# Most times following an operator, we are a regex.
+		# This includes cases such as:
+		# ,  - As an argument in a list 
+		# .. - The second condition in a flip flop
+		# =~ - A bound regex
+		# !~ - Ditto
 		return 'Regex::Match' if $previous->_isa( 'Operator' );
 
 		# After a symbol
@@ -143,9 +148,6 @@ sub _on_char {
 		return 'Regex::Match' if $previous->_isa( 'Word', 'if' );
 		return 'Regex::Match' if $previous->_isa( 'Word', 'unless' );
 		return 'Regex::Match' if $previous->_isa( 'Word', 'grep' );
-
-		# As an argument in a list
-		return 'Regex::Match' if $previous->_isa( 'Operator', ',' );
 
 		# What about the char after the slash? There's some things
 		# that would be highly illogical to see if it's an operator.
