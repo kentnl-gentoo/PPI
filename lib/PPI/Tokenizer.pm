@@ -38,7 +38,7 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.6";
+	$VERSION = "0.7";
 }
 
 
@@ -129,7 +129,6 @@ sub load {
 	my $source = <FILE>;
 	close FILE;
 
-	# Create and return the tokenizer
 	return $class->new( $source );
 }
 
@@ -465,7 +464,7 @@ sub _process_next_char {
 
 	# We will need the value of the current character
 	my $char = substr( $self->{line}, $self->{line_cursor}, 1 );
-	if ( $_ == 1 ) {
+	if ( $_ eq '1' ) {
 		# If _on_char returns 1, it is signalling that it thinks that
 		# the character is part of it.
 

@@ -17,7 +17,7 @@ use UNIVERSAL 'isa';
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.6";
+	$VERSION = "0.7";
 }
 
 
@@ -170,7 +170,7 @@ sub to_string {
 }
 
 # Get the Tokenizer object
-sub Tokenizer {
+sub tokenizer {
 	my $self = shift;
 	unless ( $self->{Tokenizer} ) {
 		$self->{Tokenizer} = PPI::Tokenizer->new( $self->{source} ) or return undef;

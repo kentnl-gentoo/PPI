@@ -11,7 +11,7 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.6";
+	$VERSION = "0.7";
 }
 
 
@@ -189,6 +189,7 @@ sub DESTROY {
 
 	# Delete our children
 	foreach ( @{$self->{elements}} ) {
+		next unless defined $_;
 		delete $PPI::Element::_PARENT{ /([^=]+)$/ };
 		$_->DESTROY;
 	}
@@ -337,7 +338,7 @@ sub _clean {
 
 	# Clean up everything
 	delete $self->{tokenizer} if exists $self->{tokenizer};
-	$self->rollback_delayed() if exists $self->{delayed};
+	$self->rollback_tokenizer() if exists $self->{delayed};
 
 	# Return with the argument passed
 	return @_ ? $_[0] : ();

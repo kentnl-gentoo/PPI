@@ -8,6 +8,7 @@ package PPI::Token::_Pod;
 # as needed.
 
 use strict;
+use UNIVERSAL 'isa';
 use PPI::Token::Classes ();
 
 # Merges one or more Pod tokens.

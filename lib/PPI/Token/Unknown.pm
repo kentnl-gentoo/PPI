@@ -10,12 +10,9 @@ package PPI::Token::Unknown;
 use strict;
 use base 'PPI::Token';
 
-# Import the regexs
-use PPI::RegexLib qw{%RE};
-
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.6";
+	$VERSION = "0.7";
 }
 
 

@@ -1,5 +1,7 @@
 Revision history for Perl extension PPI
 
+0.7 Fixed some minor bugs
+
 0.6 Fixed POD, fixed version number, included $'a as a symbol
 
 0.5  Missing

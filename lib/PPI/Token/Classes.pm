@@ -21,7 +21,7 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.6";
+	$VERSION = "0.7";
 }
 
 
@@ -267,7 +267,6 @@ sub _on_line_start {
 	my $t = $_[1];
 
 	# Can we classify the entire line in one go
-	# This is heavily dependant on PPI::RegexLib
 	$_ = $t->{line};
 	if ( /^=(\w+)/ ) {
 		# A Pod tag... change to pod mode
