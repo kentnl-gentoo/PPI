@@ -5,6 +5,12 @@ package PPI::Token::Quote::Simple;
 use strict;
 use base 'PPI::Token::Quote';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 sub new {
 	my $class = shift;
 	my $seperator = shift;

@@ -15,6 +15,11 @@ use PPI::Token::Quote::Simple ();
 use PPI::Token::Unknown ();
 use PPI::Token::Classes (); # This must be last
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
 
 
 
@@ -105,10 +110,6 @@ sub _closes_structure { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{conten
 
 #####################################################################
 # Miscellaneous Analysis and Utilities
-
-# Does the token form a usefull part of the code.
-# By default, yes
-sub significant { 1 }
 
 # Provide a more detailed test on a token
 sub is_a {

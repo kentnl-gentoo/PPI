@@ -9,6 +9,11 @@ BEGIN {
 	@PPI::Element::ISA = 'PPI::Common';
 }
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
 
 
 
@@ -23,9 +28,40 @@ BEGIN {
 
 # Find our parent
 sub parent {
-	my $self = ref $_[0] ? shift : return undef;
+	my $self = shift;
 	return $_PARENT{ $self =~ /([^=]+)$/ } || '';
 }
+
+sub previous_sibling {
+	my $self = shift;
+	my $parent = $self->parent or return '';
+
+	# Find our position
+	my $position = $parent->position( $self );
+	return undef unless defined $position;
+
+	# Is there a previous?
+	return $parent->{elements}->[$position - 1] || '';
+}
+
+sub next_sibling {
+	my $self = shift;
+	my $parent = $self->parent or return '';
+
+	# Find our position
+	my $position = $parent->position( $self );
+	return undef unless defined $position;
+
+	# Is there a next?
+	return $parent->{elements}->[$position + 1] || '';
+}
+
+
+
+
+
+#####################################################################
+# Manipulation
 
 # Remove us from our parent.
 # You should be reasonably carefull with this. If you remove something
@@ -88,6 +124,8 @@ sub content { $_[0]->{content} or '' }
 # Returns a flat list of tokens inside the element
 sub tokens { $_[0] }
 
+# Is an element significant, and form a useful part of the code
+sub significant { 1 }
 
 
 
@@ -170,6 +208,20 @@ sub DESTROY {
 #####################################################################
 # Public tree related methods
 
+# Find the position within us of a child element.
+sub position {
+	my $self = shift;
+	my $child = isa( $_[0], 'PPI::Element' ) or return undef;
+
+	my $elements = $self->{elements};
+	for ( 0 .. $#$elements ) {
+		return $_ if $elements->[$_] eq $child;
+	}
+
+	# Not found
+	return undef;
+}
+
 # Add an element.
 # This also means we add anything that was before us, and delayed.
 sub add_element {
@@ -199,22 +251,16 @@ sub remove_element {
 	my $child = isa( $_[0], 'PPI::Element' )
 		? shift : return undef;
 
-	# Find the child in our element list
-	my $elements = $self->{elements};
-	my $element_count = scalar @$elements;
-	for ( my $i = 0; $i < $element_count; $i++ ) {
-		if ( $elements->[$i] eq $child ) {
-			# Splice it out
-			splice( @$elements, $i, 1 );
+	# Where is the child
+	my $position = $self->position( $child );
+	return undef unless defined $position;
 
-			# Remove it's parent entry
-			delete $PPI::Element::_PARENT{ $self =~ /([^=]+)$/ };
-			return 1;
-		}
-	}
+	# Splice it out
+	splice( @{$self->{elements}}, $position, 1 );
 
-	# Not found
-	return undef;
+	# Remove it's parent entry
+	delete $PPI::Element::_PARENT{ $self =~ /([^=]+)$/ };
+	return 1;
 }
 
 # Remove a given element from our

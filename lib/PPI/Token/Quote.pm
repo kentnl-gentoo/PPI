@@ -23,6 +23,12 @@ use Class::Autouse;
 
 use base 'PPI::Token';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 # Hook for the _on_char token call
 sub _on_char {
 	my $class = shift;

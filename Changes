@@ -1,5 +1,9 @@
 Revision history for Perl extension PPI
 
+0.6 Fixed POD, fixed version number, included $'a as a symbol
+
+0.5  Missing
+
 0.4  Mon Dec 23 10:24:21
         - Some more minor parsing fixes in Tokenizer
         - Completely changed the API from doThis to do_this style

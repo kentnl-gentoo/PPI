@@ -36,6 +36,11 @@ BEGIN {
 	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
 
 
 

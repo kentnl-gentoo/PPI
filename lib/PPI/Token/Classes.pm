@@ -19,6 +19,12 @@ BEGIN {
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 }
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
@@ -178,6 +184,14 @@ sub _on_char {
 }
 
 sub _on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
+
+# Horozintal space before a newline is un-necesary.
+# The ->tidy method removes it.
+sub tidy {
+	my $self = shift;
+	$self->{content} =~ s/^\s+?(?>\n)//;
+	return 1;
+}
 
 
 
@@ -755,9 +769,9 @@ sub _on_char {
 	# tests if they are changed.
 	if ( /^\$.*[\w:]$/ ) {
 
-		if ( /^(\$(?:\_[\w:]|::))/ ) {
-			# It's actually a normal symbol ( $_foo ) in the
-			# style $_foo or $::foo. Overwrite the current token
+		if ( /^(\$(?:\_[\w:]|::))/ or /^\$\'[\w]/ ) {
+			# It's actually a normal symbol in the style
+			# $_foo or $::foo or $'foo. Overwrite the current token
 			$t->{token} = PPI::Token::Symbol->new( $1 );
 			return 0;
 		}

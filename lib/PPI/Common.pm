@@ -5,6 +5,12 @@ package PPI::Common;
 use strict;
 use PPI ();
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 #####################################################################
 # Error handling
 

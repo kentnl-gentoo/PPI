@@ -4,6 +4,8 @@ LICENSE
 MANIFEST
 Makefile.PL
 README
+data/test.dat
+data/test2.txt
 lib/PPI.pm
 lib/PPI/Batch.pm
 lib/PPI/Common.pm

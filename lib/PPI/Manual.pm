@@ -1,8 +1,15 @@
 package PPI::Manual;
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
 =pod
 
-=head1 NAME PPI Manual
+=head1 NAME
+
+PPI Manual - The ( unfinished ) manual for PPI
 
 =head1 DESCRIPTION
 
@@ -32,7 +39,7 @@ An example of these are function signatures, as demonstrated by the following.
 This code can be interpreted in two different ways, depending on whether the
 C<&dothis> function is expecting one argument, or two, or several.
 
-To restate thie, a parser would need context information that could not be
+To restate this, a parser would need context information that could not be
 found in the immediate vicinity. In fact, this information might not even
 be in the same file. It might also not be able to determine this without
 the prior execution of a BEGIN {} block. In other words, to parse perl, you
@@ -45,13 +52,17 @@ code that had a dependency on the C<Win32::*> modules from a Unix machine, or
 trying to parse some code with a dependency on another module that had not
 even been written yet...
 
+For more information on why it isn't possible to parse perl, see:
+
+http://www.perlmonks.org/index.pl?node_id=44722
+
 =head2 Why "Isolated"?
 
 In aknowledgement that someone may some day come up with a valid solution for
-this problem, this module leaves the C<Parse::Perl> namespace free. The
-namespace of Parse::Perl::Isolated ( shortened to PPI ), has been chosen
-because our purpose here is only to "parse" perl code that is isolated from
-other resources. That is, we assume that there is no possiblity of accessing
+this problem, we leave the C<Parse::Perl> namespace free. The namespace of 
+Parse::Perl::Isolated ( shortened to PPI ), has been chosen because our 
+purpose here is only to "parse" perl code that is isolated from other 
+resources. That is, we assume that there is no possiblity of accessing 
 other code on which we have a dependency, or of running an instance of perl
 alongside the parser ( a possible solution for Parse::Perl that is
 investigated from time to time ).

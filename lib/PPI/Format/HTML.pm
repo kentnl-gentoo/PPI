@@ -8,6 +8,12 @@ use PPI::Tokenizer ();
 use base qw{Exporter PPI::Common};
 # use Class::Autouse;
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 # Keyword lists
 use vars qw{@keywords @functions $colormap};
 BEGIN {

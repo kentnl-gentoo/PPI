@@ -9,6 +9,11 @@ use PPI::Token ();
 use PPI::Document ();
 use base 'PPI::Common';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
 
 
 

@@ -9,6 +9,11 @@ BEGIN {
 	@PPI::Statement::ISA = 'PPI::ParentElement';
 }
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
 
 
 

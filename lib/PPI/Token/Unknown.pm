@@ -13,6 +13,12 @@ use base 'PPI::Token';
 # Import the regexs
 use PPI::RegexLib qw{%RE};
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 sub _on_char {
 	my $t = $_[1];                              # Tokenizer object
 	my $c = $t->{token}->{content};             # Current token contents

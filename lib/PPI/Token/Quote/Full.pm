@@ -5,6 +5,12 @@ package PPI::Token::Quote::Full;
 use strict;
 use base 'PPI::Token::Quote';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.6";
+}
+
+
 use vars qw{%quotes};
 BEGIN {
 	# For each quote type, the extra fields that should be set.

@@ -17,8 +17,9 @@ use UNIVERSAL 'isa';
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 0.5;
+	$VERSION = "0.6";
 }
+
 
 
 
@@ -375,7 +376,7 @@ To help contribute, contact the author.
 
 =head1 COPYRIGHT
 
-opyright (c) 2002-2003 Adam Kennedy. All rights reserved.
+Copyright (c) 2002-2003 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
