@@ -53,6 +53,8 @@ t.data/05_lexer_practical/06_subroutine_prototypes.code
 t.data/05_lexer_practical/06_subroutine_prototypes.dump
 t.data/05_lexer_practical/07_unmatched_braces.code
 t.data/05_lexer_practical/07_unmatched_braces.dump
+t.data/05_lexer_practical/08_subroutines.code
+t.data/05_lexer_practical/08_subroutines.dump
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t

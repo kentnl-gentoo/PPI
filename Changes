@@ -1,11 +1,26 @@
 Revision history for Perl extension PPI
 
-0.829
+0.830 Mon Sep 27 2004
+	- Added PPI::Statement::Package::file_scoped object method
+	- Handle potentially dangerous C< sub foo ($$ > safer
+	- Resolve C< sub BEGIN { } > to PPI::Statement::Scheduled correctly
+	- Resolve C< sub () { 1 }; > to PPI::Statement correctly
+	- API Freeze PPI::Statement::Package
+	- API Freeze PPI::Statement::Scheduled
+	- API Freeze PPI::Statement::Sub
+	- Documented PPI::Statement
+	- Documented PPI::Statement::Package
+	- Documented PPI::Statement::Scheduled
+	- Documented PPI::Statement::Sub
+	- Documented PPI::Document::Fragment
+
+0.829 Sat Sep 25 2004
 	- BREAKS API COMPATIBILITY
 	- Changed PPI::Token::SubPrototype to PPI::Token::Prototype
 	- Added PPI::Token::Prototype::prototype object method
 	- Added PPI::Statement::Sub::prototype object method
 	- Added PPI::Statement::Sub::block object method
+	- Fixed PPI::Statement::Include::version
 
 0.828 Sun Aug  8 2004
 	- BREAKS API COMPATIBILITY

@@ -230,10 +230,10 @@ Structure subclasses)
 A L<PPI::Statement|PPI::Statement> is any series of Tokens and Structures
 that are treated as a single contigious statement by perl itself. You should
 note that a Statement is as close as PPI can get to "parsing" the code in the
-sense that perl itself parses Perl code to build the op-tree. PPI cannot tell
-you, for example, which tokens are subroutine names, or arguments to a sub call,
-or what have you. It only knows that this series of elements represents a
-single Statement.
+sense that perl-itself parses Perl code when it is building the op-tree. PPI
+cannot tell you, for example, which tokens are subroutine names, or arguments
+to a sub call, or what have you. It only knows that this series of elements
+represents a single Statement.
 
 To demonstrate, lets start with an example showing how the PDOM tree might look
 for the following chunk of simple Perl code.
@@ -267,13 +267,13 @@ a PDOM tree it would have the following structure.
     PPI::Token::Whitespace             '\n'
 
 Please note that in this this example, strings are only listed for the ACTUAL
-element that contains the string. Also, Structure are listed with the brace
+element that contains the string. Also, Structures are listed with the brace
 characters noted.
 
 Notice how PPI builds EVERYTHING into the model, including whitespace. This
-is needed in order to make the Document fully "round trip" capable. That is,
+is needed in order to make the Document fully "round trip" compliant. That is,
 if you stringify the Document you get the same file you started with.
-(Although, it the newlines for your file are wrong, PPI will probably have
+(Although, if the newlines for your file are wrong, PPI will probably have
 localised them)
 
 We can make that PDOM dump a little easier to read if we strip out all the
@@ -323,7 +323,7 @@ The base class for all PPI classes. This may be removed before Beta
 
 The Document object, the top of the PDOM
 
-=item PPI::Document::Fragment
+=item L<PPI::Document::Fragment|PPI::Document::Fragment>
 
 A cohesive fragment of a larger Document. Incomplete. Will be used later
 on for cut/paste/insert etc. Very similar to PPI::Document, but has some
@@ -354,14 +354,14 @@ The Node object, the abstract base class for all PDOM object that can
 contain other Elements, such as the Document, Statement and Strucure
 objects.
 
-=item PPI::Statement
+=item L<PPI::Statement|PPI::Statement>
 
 The base class for all Perl statements. Generic "evaluate for side-effects"
 statements are of this actual type. Other more interesting statement types
 belong to one of it's children.
 
-See the PPI::Statement documentation (not yet written) for a description and
-list of all of the different statement types/classes.
+See the L<PPI::Statement|PPI::Statement> documentation for a longer description
+and list of all of the different statement types and subclasses.
 
 =item PPI::Structure
 

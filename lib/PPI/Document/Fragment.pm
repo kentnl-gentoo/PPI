@@ -1,9 +1,22 @@
 package PPI::Document::Fragment;
 
-# A document fragment is a part of a document. While it behaves in a similar
-# way to a normal document, it does not have it's own scope, and thus can be
-# inserted into another document directly, without the use of lexical scoping
-# otherwise needed to maintain lexical integrity.
+=pod
+
+=head1 NAME
+
+PPI::Document::Fragment - A fragment of a Perl Document
+
+=head1 DESCRIPTION
+
+In some situations you might want to work with a fragment of a larger
+document. PPI::Document::Fragment is a class intended for this purpose. It
+is functionaly almost identical to a normal L<PPI::Document|PPI::Document>,
+except that it is not possible to get line/column positions for the elements
+within it, and it does not represent a scope.
+
+=head1 METHODS
+
+=cut
 
 use strict;
 use base 'PPI::Document';
@@ -11,16 +24,56 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.829';
+	$VERSION = '0.830';
 }
 
 # Identical, except for not having it's own scope
 # sub scope { '' }
+
+=pod
+
+=head2 index_locations
+
+Unlike when called on a PPI::Document object, you should not be attempting
+to find locations of things within a PPI::Document::Fragment, and thus any
+call to the C<index_locations> will print a warning and return C<undef>
+instead of attempting to index the locations of the Elements.
+
+=cut
 
 # There's no point indexing a fragment
 sub index_locations {
 	warn "Useless attempt to index the locations of a document fragment";
 	undef;
 }
-	
+
 1;
+
+=pod
+
+=head1 TO DO
+
+Integrate this into the rest of PPI so it has actual practical uses. The most
+obvious would be to implement arbitrary cut/copy/paste more easily.
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main PPI Manual
+
+=head1 AUTHOR
+
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+
+Thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

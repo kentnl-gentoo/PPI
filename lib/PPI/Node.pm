@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.829';
+	$VERSION = '0.830';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -533,16 +533,16 @@ Most additional methods are being added on-demand.
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the main PPI Manual
+See the L<support section|PPI/SUPPORT> in the main PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-=head1 COPYRIGHT
-
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
+
+=head1 COPYRIGHT
 
 Copyright (c) 2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute

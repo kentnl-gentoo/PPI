@@ -1,7 +1,52 @@
 package PPI::Statement::Scheduled;
 
-# Code that is scheduled to run at a particular time/phase.
-# BEGIN/INIT/LAST/END blocks
+=pod
+
+=head1 NAME
+
+PPI::Statement::Scheduled - A scheduled code block
+
+=head1 INHERITANCE
+
+  PPI::Statement::Scheduled
+  is a PPI::Statement
+  is a PPI::Node
+  is a PPI::Element
+  is a PPI::Base
+
+=head1 DESCRIPTION
+
+A scheduled code block is one that is intended to be run at a specific
+time during the loading process.
+
+There are four types of scheduled block:
+
+  BEGIN {
+  	# Executes as soon as this block is fully defined
+  	...
+  }
+  
+  CHECK {
+  	# Executes after compile-phase in reverse order
+  	...
+  }
+  
+  INIT {
+  	# Executes just before run-time
+  	...
+  }
+  
+  END {
+  	# Executes as late as possible in reverse order
+  	...
+  }
+
+Technically these scheduled blocks are actually subroutines, and in fact
+may have 'sub' in front of them.
+
+=head1 METHODS
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -9,8 +54,19 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.829';
+	$VERSION = '0.830';
 }
+
+sub __LEXER__normal { '' }
+
+=pod
+
+=head2 type
+
+The C<type> method returns the type of scheduled block, which should always be
+one of 'BEGIN', 'CHECK', 'INIT' or 'END'.
+
+=cut
 
 sub type {
 	my $self = shift;
@@ -20,6 +76,47 @@ sub type {
 		: $children[0]->content;
 }
 
-sub __LEXER__normal { '' }
+=head2 block
+
+With it's name and implementation shared with
+L<PPI::Statement::Sub|PPI::Statement::Sub>, the C<block> method finds and
+returns the actual Structure object of the block for this scheduled block.
+
+Returns false if it cannot find a block (although why this might happen
+I'm not sure).
+
+=cut
+
+sub block {
+	my $self = shift;
+	my $lastchild = $self->schild(-1);
+	isa($lastchild, 'PPI::Structure::Block') and $lastchild;
+}
 
 1;
+
+=head1 TO DO
+
+- Write unit tests for this package
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main PPI Manual
+
+=head1 AUTHOR
+
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+
+Thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

@@ -28,7 +28,7 @@ use PPI::Lexer::Dump;
 #####################################################################
 # Prepare
 
-use Test::More tests => 51;
+use Test::More tests => 58;
 use File::Slurp ();
 
 use vars qw{$testdir};

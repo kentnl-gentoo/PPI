@@ -1,6 +1,32 @@
 package PPI::Statement::Sub;
 
-# Subroutine declaration for forward declaration
+=pod
+
+=head1 NAME
+
+PPI::Statement::Sub - Subroutine declaration
+
+=head1 INHERITANCE
+
+  PPI::Statement::Sub
+  is a PPI::Statement
+  is a PPI::Node
+  is a PPI::Element
+  is a PPI::Base
+
+=head1 DESCRIPTION
+
+Except for the special BEGIN, CHECK, INIT, and END subroutines (which are
+part of L<PPI::Statement::Scheduled>) all subroutine declarations are lexed
+as a PPI::Statement::Sub object.
+
+Primarily, this means all of the various C<sub foo {}> statements, but also
+forward declarations such as C<sub foo;> or C<sub foo($);>. It B<does not>
+include anonymous subroutines, as these are merely part of a normal statement.
+
+=head1 METHODS
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -9,7 +35,7 @@ use List::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.829';
+	$VERSION = '0.830';
 }
 
 # Lexer clue
@@ -20,7 +46,18 @@ sub __LEXER__normal { '' }
 
 
 #####################################################################
-# PPI::Statement::Sub analysis methods
+# PPI::Statement::Sub Methods
+
+=pod
+
+=head2 name
+
+The C<name> method returns the name of the subroutine being declared.
+
+In some rare cases such as a naked C<sub> at the end of the file, this may return
+false.
+
+=cut
 
 sub name {
 	my $self = shift;
@@ -30,11 +67,37 @@ sub name {
 	isa($Token, 'PPI::Token::Word') ? $Token->content : '';
 }
 
+=pod
+
+=head2 prototype
+
+If it has one, the C<prototype> method returns the subroutine's prototype.
+It is returned in the same format as L<PPI::Token::Prototype/prototype>,
+cleaned and removed from it's brackets.
+
+Returns false if the subroutine does not define a prototype
+
+=cut
+
 sub prototype {
 	my $self = shift;
 	my $Prototype = List::Util::first { isa($_, 'PPI::Token::Prototype') } $self->children;
 	defined($Prototype) ? $Prototype->prototype : '';
 }
+
+=pod
+
+=head2 block
+
+With it's name and implementation shared with
+L<PPI::Statement::Scheduled|PPI::Statement::Scheduled>, the C<block> method
+finds and returns the actual Structure object of the code block for this
+subroutine.
+
+Returns false if this is a forward declaration, or otherwise does not have a
+code block.
+
+=cut
 
 sub block {
 	my $self = shift;
@@ -42,9 +105,68 @@ sub block {
 	isa($lastchild, 'PPI::Structure::Block') and $lastchild;
 }
 
-# If we don't have a block at the end, this is a forward declaration
+=pod
+
+=head2 forward
+
+The C<forward> method returns true if the subroutine declaration is a
+forward declaration.
+
+That is, it returns false if the subroutine has a code block, or true
+if it does not.
+
+=cut
+
 sub forward {
 	! shift->block;
 }
 
+=pod
+
+=head2 reserved
+
+The C<reserved> method provides a convenience method for checking to see
+if this is a special reserved subroutine. It does not check against any
+particular list of reserved sub names, but just returns true if the name
+is all uppercase, as defined in L<perlsub>.
+
+Note that in the case of BEGIN, CHECK, INIT and END, these will be defined
+as L<PPI::Statement::Scheduled> objects, not subroutines.
+
+Returns true if it is a special reserved subroutine, or false if not.
+
+=cut
+
+sub reserved {
+	my $self = shift;
+	my $name = $self->name or return '';
+	$name eq uc $name;
+}
+
 1;
+
+=head1 TO DO
+
+- Write unit tests for this package
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main PPI Manual
+
+=head1 AUTHOR
+
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+
+Thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

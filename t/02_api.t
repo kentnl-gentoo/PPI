@@ -7,7 +7,7 @@ use lib ();
 use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$|++;
+	$| = 1;
 	unless ( $ENV{HARNESS_ACTIVE} ) {
 		require FindBin;
 		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
@@ -23,7 +23,7 @@ use PPI::Lexer::Dump;
 use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 2089;
+use Test::More 'tests' => 2092;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -305,10 +305,12 @@ PPI::Statement=isa
 [PPI::Statement::Scheduled]
 PPI::Statement=isa
 type=method
+block=method
 
 [PPI::Statement::Package]
 PPI::Statement=isa
 namespace=method
+file_scoped=method
 
 [PPI::Statement::Include]
 PPI::Statement=isa
@@ -323,6 +325,7 @@ name=method
 prototype=method
 block=method
 forward=method
+reserved=method
 
 [PPI::Statement::Variable]
 PPI::Statement=isa

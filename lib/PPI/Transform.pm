@@ -10,7 +10,7 @@ use PPI ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.829';
+	$VERSION = '0.830';
 }
 
 

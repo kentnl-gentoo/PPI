@@ -50,7 +50,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.829';
+	$VERSION = '0.830';
 }
 
 
@@ -152,8 +152,6 @@ sub lex_tokenizer {
 	my $rv = $self->_lex_document( $Document );
 	$self->{Tokenizer} = undef;
 	return $Document if $rv;
-
-	$DB::single = 1;
 
 	# If an error occurs, DESTROY the partially built document.
 	$Document->DESTROY;
@@ -263,11 +261,14 @@ BEGIN {
 		'no'       => 'PPI::Statement::Include',
 		'require'  => 'PPI::Statement::Include',
 
-		# Various declerations
-		'sub'      => 'PPI::Statement::Sub',
+		# Various declarations
 		'my'       => 'PPI::Statement::Variable',
 		'local'    => 'PPI::Statement::Variable',
 		'our'      => 'PPI::Statement::Variable',
+		# Statements starting with 'sub' could be any one of...
+		# 'sub'    => 'PPI::Statement::Sub',
+		# 'sub'    => 'PPI::Statement::Scheduled',
+		# 'sub'    => 'PPI::Statement',
 
 		# Compound statement
 		'if'       => 'PPI::Statement::Compound',
@@ -296,6 +297,48 @@ sub _resolve_new_statement {
 	# If it's a token in our list, use that class
 	if ( $STATEMENT_CLASSES{$Token->content} ) {
 		return $STATEMENT_CLASSES{$Token->content};
+	}
+
+	# Handle the more in-depth sub detection
+	if ( $Token->content eq 'sub' ) {
+		# Read ahead to the next significant token
+		my $Next;
+		while ( $Next = $self->_get_token ) {
+			unless ( $Next->significant ) {
+				$self->_delay_element( $Next ) or return undef;
+				next;
+			}
+
+			# Got the next significant token
+			my $_class = $STATEMENT_CLASSES{$Next->content};
+			if ( $_class and $_class eq 'PPI::Statement::Scheduled' ) {
+				$self->_rollback( $Next );
+				return 'PPI::Statement::Scheduled';
+			}
+			if ( $Next->isa('PPI::Token::Word') ) {
+				$self->_rollback( $Next );
+				return 'PPI::Statement::Sub';
+			}
+
+			### Comment out these two, as they would return PPI::Statement anyway
+			# if ( $content eq '{' ) {
+			#	Anonymous sub at start of statement
+			#	return 'PPI::Statement';
+			# }
+			#
+			# if ( $Next->isa('PPI::Token::Prototype') ) {
+			#	Anonymous sub at start of statement
+			#	return 'PPI::Statement';
+			# }
+
+			# PPI::Statement is the safest fall-through
+			$self->_rollback( $Next );
+			return 'PPI::Statement';
+		}
+
+		# End of file... PPI::Statement::Sub is the most likely
+		$self->_rollback( $Next );
+		return 'PPI::Statement::Sub';
 	}
 
 	# If our parent is a Condition, we are an Expression
