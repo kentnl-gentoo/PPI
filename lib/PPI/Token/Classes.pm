@@ -22,12 +22,12 @@ use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 
 	# Build the class map
         @classmap = ();
-        foreach ( 'a' .. 'z', 'A' .. 'Z' ) { $commitmap[ord $_] = 'PPI::Token::Bareword' }
+        foreach ( 'a' .. 'z', 'A' .. 'Z', '_' ) { $commitmap[ord $_] = 'PPI::Token::Bareword' }
 	foreach ( qw!; [ ] { } )! )        { $commitmap[ord $_] = 'PPI::Token::Structure' }
         foreach ( 0 .. 9 )                 { $classmap[ord $_]  = 'Number' }
 	foreach ( qw{= ? | + < > . ! ~} )  { $classmap[ord $_]  = 'Operator' }
@@ -76,21 +76,21 @@ sub _on_line_start {
 		}
 		return 0;
 
-	} elsif ( /^\s*__(END|DATA)__\s*$/ ) {
-		# Preprocessor end of file signal
-		if ( $1 eq 'END' ) {
-			# Something off the end of the file
-			$t->_new_token( 'End', $t->{line} );
-			$t->{class} = 'PPI::Token::End';
-			$t->{class} = 'PPI::Token::End';
-			return 0;
-		} else {
-			# Data at the end of the file
-			$t->_new_token( 'Data', $t->{line} );
-			$t->{class} = 'PPI::Token::Data';
-			$t->{class} = 'PPI::Token::Data';
-			return 0;
-		}
+#	} elsif ( /^\s*__(END|DATA)__\s*$/ ) {
+#		# Preprocessor end of file signal
+#		if ( $1 eq 'END' ) {
+#			# Something off the end of the file
+#			$t->_new_token( 'End', $t->{line} );
+#			$t->{class} = 'PPI::Token::End';
+#			$t->{class} = 'PPI::Token::End';
+#			return 0;
+#		} else {
+#			# Data at the end of the file
+#			$t->_new_token( 'Data', $t->{line} );
+#			$t->{class} = 'PPI::Token::Data';
+#			$t->{class} = 'PPI::Token::Data';
+#			return 0;
+#		}
 	}
 
 	1;
@@ -100,15 +100,11 @@ sub _on_char {
 	my $t = $_[1];
 	$_ = ord substr( $t->{line}, $t->{line_cursor}, 1 );
 
-	if ( $commitmap[$_] ) {
-		# We definately know what this is
-		return $commitmap[$_]->_commit( $t );
-	}
+	# Do we definately know what something is?
+	return $commitmap[$_]->_commit( $t ) if $commitmap[$_];
 
-	if ( $classmap[$_] ) {
-		# Handle the simple option first
-		return $classmap[$_];
-	}
+	# Handle the simple option first
+	return $classmap[$_] if $classmap[$_];
 
 	if ( $_ == 40 ) {  # $_ eq '('
 		# Finalise any whitespace token...
@@ -177,7 +173,7 @@ sub _on_char {
 	}
 
 	# This SHOULD BE is just normal base stuff
-	return 'Whitespace';
+	'Whitespace';
 }
 
 sub _on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
@@ -187,7 +183,7 @@ sub _on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
 sub tidy {
 	my $self = shift;
 	$self->{content} =~ s/^\s+?(?>\n)//;
-	return 1;
+	1;
 }
 
 
@@ -217,7 +213,7 @@ sub _on_line_start {
 		$t->_finalize_token if lc $1 eq 'cut';
 	}
 
-	return 0;
+	0;
 }
 
 # Breaks the pod into lines, returned as a reference to an array
@@ -225,7 +221,7 @@ sub lines { [ split /(?:\015\012|\015|\012)/, $_[0]->{content} ] }
 
 # Extended methods.
 # See PPI::Token::_Pod for details
-sub merge { require PPI::Token::_Pod; return shift->merge( @_ ) }
+sub merge { require PPI::Token::_Pod; shift->merge( @_ ) }
 
 
 
@@ -283,7 +279,7 @@ sub _on_line_start {
 		}
 	}
 
-	return 0;
+	0;
 }
 
 
@@ -311,7 +307,7 @@ sub _on_char {
 		return $t->_finalize_token->_on_char( $t );
 	}
 
-	return 1;
+	1;
 }
 
 sub _commit {
@@ -331,19 +327,19 @@ sub _commit {
 	# Advance the line cursor to the end
 	$t->{line_cursor} = $t->{line_length} - 1;
 
-	return 0;
+	0;
 }
 
 # Comments end at the end of the line
 sub _on_line_end {
 	$_[1]->_finalize_token if $_[1]->{token};
-	return 1;
+	1;
 }
 
 # Is this comment an entire line?
 sub line {
 	# Entire line comments have a newline at the end
-	return $_[0]->{content} =~ /\n$/ ? 1 : 0;
+	$_[0]->{content} =~ /\n$/ ? 1 : 0;
 }
 
 
@@ -380,7 +376,7 @@ sub _on_char {
 
 	# Suck in till the end of the bareword
 	my $line = substr( $t->{line}, $t->{line_cursor} );
-	if ( $line =~ /^([\w:]+)/ ) {
+	if ( $line =~ /^(\w+(?:::\w+)?)/ ) {
 		$t->{token}->{content} .= $1;
 		$t->{line_cursor} += length $1;
 	}
@@ -403,7 +399,7 @@ sub _on_char {
 	}
 
 	# Finalise and process the character again
-	return $t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->_on_char( $t );
 }
 
 # We are committed to being a bareword
@@ -413,7 +409,7 @@ sub _commit {
 	# Our current position is the first character of the bareword.
 	# Capture the bareword.
 	my $line = substr( $t->{line}, $t->{line_cursor} );
-	unless ( $line =~ /^([\w:]+)/ ) {
+	unless ( $line =~ /^(\w+(?:::\w+)?)/ ) {
 		# Programmer error
 		$DB::single = 1;
 		die "Fatal error... regex failed to match when expected";
@@ -429,6 +425,38 @@ sub _commit {
 
 		# And hand off to the quotelike _on_char
 		return $t->{class}->_on_char( $t );
+	}
+
+	# Check for the end of the file
+	if ( $word eq '__END__' ) { 
+		# Create the token for the __END__ itself
+		$t->_new_token( 'Bareword', $1 );
+		$t->_finalize_token;
+
+		# Change into the End zone
+		$t->{zone} = 'PPI::Token::End';
+
+		# Add the rest of the line as the End token
+		$line = substr( $t->{line}, $t->{line_cursor} );
+		$t->_new_token( 'End', $line );
+
+		return 0;
+	}
+
+	# Check for the data section
+	if ( $word eq '__DATA__' ) {
+		# Create the token for the __DATA__ itself
+		$t->_new_token( 'Bareword', $1 );
+		$t->_finalize_token;
+
+		# Change into the Data zone
+		$t->{zone} = 'PPI::Token::Data';
+
+		# Add the rest of the line as the Data token
+		$line = substr( $t->{line}, $t->{line_cursor} );
+		$t->_new_token( 'Data', $line );
+
+		return 0;
 	}
 
 	# Normal case
@@ -454,8 +482,6 @@ BEGIN {
 	@PPI::Token::Label::ISA = 'PPI::Token';
 }
 
-sub DUMMY { 1 }
-
 
 
 
@@ -472,14 +498,14 @@ BEGIN {
 sub _on_char {
 	# Structures are one character long, always.
 	# Finalize and process again.
-	return $_[1]->_finalize_token->_on_char( $_[1] );
+	$_[1]->_finalize_token->_on_char( $_[1] );
 }
 
 sub _commit {
 	my $t = $_[1];
 	$t->_new_token( 'Structure', substr( $t->{line}, $t->{line_cursor}, 1 ) );
 	$t->_finalize_token;
-	return 0;
+	0;
 }
 
 use vars qw{@match};
@@ -727,7 +753,7 @@ sub _on_char {
 
 	# Now deal with what should ( hopefully ) be either a
 	# normal single quoted string, or a bareword, normally.
-	return $t->{class}->_on_char( $t );
+	$t->{class}->_on_char( $t );
 }
 
 
@@ -755,9 +781,9 @@ BEGIN {
 		$( $0 $[ $]
 
 		$^L $^A $^E $^C $^D $^F $^H
-		$^I $^M $^O $^P $^R $^S $^T
-		$^V $^W $^X
-	}, '$,', '$#', '$#+', '$#-' ) {
+		$^I $^M $^N $^O $^P $^R $^S
+		$^T $^V $^W $^X
+	}, '$}', '$,', '$#', '$#+', '$#-' ) {
 		$magic{$_} = 1;
 	}
 }
@@ -892,63 +918,51 @@ sub _on_char {
 # Single Quote
 package PPI::Token::Quote::Single;
 BEGIN { @PPI::Token::Quote::Single::ISA = 'PPI::Token::Quote::Simple' }
-sub DUMMY { 1 }
 
 # Double Quote
 package PPI::Token::Quote::Double;
 BEGIN { @PPI::Token::Quote::Double::ISA = 'PPI::Token::Quote::Simple' }
-sub DUMMY { 1 }
 
 # Back Ticks
 package PPI::Token::Quote::Execute;
 BEGIN { @PPI::Token::Quote::Execute::ISA = 'PPI::Token::Quote::Simple' }
-sub DUMMY { 1 }
 
 # Single Quote
 package PPI::Token::Quote::OperatorSingle;
 BEGIN { @PPI::Token::Quote::OperatorSingle::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Double Quote
 package PPI::Token::Quote::OperatorDouble;
 BEGIN { @PPI::Token::Quote::OperatorDouble::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Back Ticks
 package PPI::Token::Quote::OperatorExecute;
 BEGIN { @PPI::Token::Quote::OperatorExecute::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Quote Words
 package PPI::Token::Quote::Words;
 BEGIN { @PPI::Token::Quote::Words::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Quote Regex Expression
 package PPI::Token::Quote::Regex;
 BEGIN { @PPI::Token::Quote::Regex::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Operator or Non-Operator Match Regex
 package PPI::Token::Regex::Match;
 BEGIN { @PPI::Token::Regex::Match::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Operator Pattern Regex
 ### Either this of PPI::Token::Quote::Regex is probably a duplicate
 package PPI::Token::Regex::Pattern;
 BEGIN { @PPI::Token::Regex::Pattern::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Replace Regex
 package PPI::Token::Regex::Replace;
 BEGIN { @PPI::Token::Regex::Replace::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 # Transform regex
 package PPI::Token::Regex::Transform;
 BEGIN { @PPI::Token::Regex::Transform::ISA = 'PPI::Token::Quote::Full' }
-sub DUMMY { 1 }
 
 
 
@@ -959,14 +973,11 @@ sub DUMMY { 1 }
 
 package PPI::Token::RawInput::Operator;
 BEGIN { @PPI::Token::RawInput::Operator::ISA = 'PPI::Token' }
-sub DUMMY { 1 }
 
 package PPI::Token::RawInput::Terminator;
 BEGIN { @PPI::Token::RawInput::Terminator::ISA = 'PPI::Token' }
-sub DUMMY { 1 }
 
 package PPI::Token::RawInput::String;
 BEGIN { @PPI::Token::RawInput::String::ISA = 'PPI::Token' }
-sub DUMMY { 1 }
 
 1;

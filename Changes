@@ -1,5 +1,9 @@
 Revision history for Perl extension PPI
 
+0.806 Mon Mar 22 2004
+	- The $} magic variable is now supported
+	- Fixed a "tight sub property" bug ( sub foo:lvalue )
+
 0.805 Sun Sep 28 2003
 	- The maximum line length regressed, reseting it to 5000.
 	- In PPI::Format::HTML, not any parsing error causing a

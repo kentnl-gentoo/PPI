@@ -23,7 +23,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 }
 
 
@@ -89,7 +89,7 @@ sub _scan_for_character {
 	}
 
 	# Returning the string as a reference indicates EOF
-	return \$string;
+	\$string;
 }
 
 # Scan for a character, but not if it is escaped
@@ -123,7 +123,7 @@ sub _scan_for_unescaped_character {
 	}
 
 	# Returning the string as a reference indicates EOF
-	return \$string;
+	\$string;
 }
 
 # Scan for a close braced, and take into account both escaping,
@@ -172,7 +172,7 @@ sub _scan_for_brace_character {
 	}
 
 	# Returning the string as a reference indicates EOF
-	return \$string;
+	\$string;
 }
 
 # Find all spaces and comments, up to, but not including
@@ -215,7 +215,7 @@ sub _scan_quote_like_operator_gap {
 	}
 
 	# Returning the string as a reference indicates EOF
-	return \$string;
+	\$string;
 }
 
 1;

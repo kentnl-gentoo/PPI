@@ -7,7 +7,7 @@ use base 'PPI::Token::Quote';
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
@@ -117,7 +117,7 @@ sub fill {
 		}
 	}
 
-	return 1;
+	1;
 }
 
 # Handle the content parsing path for normally seperated
@@ -165,7 +165,7 @@ sub _fill_normal {
 		size => length($string) - 1
 		};
 
-	return 1;
+	1;
 }
 
 # Handle content parsing for matching crace seperated
@@ -239,7 +239,7 @@ sub _fill_braced {
 	$section->{size} = length($_) - 1;
 	delete $section->{_close};
 
-	return 1;
+	1;
 }
 
 

@@ -18,7 +18,7 @@ use Class::Autouse;
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 
 	# If we are in a mod_perl environment, always fully load
 	# modules, in case Apache::Reload is present.

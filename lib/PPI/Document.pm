@@ -10,7 +10,7 @@ use PPI::Structure ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 	@PPI::Document::ISA = 'PPI::ParentElement'
 }
 

@@ -8,10 +8,9 @@ use PPI::Tokenizer ();
 use base qw{Exporter PPI::Common};
 
 use vars qw{$VERSION @EXPORT_OK};
-use vars qw{@EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
@@ -249,7 +248,7 @@ sub _serialize_debug {
 			. "<td valign=top>" . escape_debug_html( $token->{content} ) . "</td></tr>\n";
 	}
 
-	return qq~
+	qq~
 		<table border="0" cellspacing="0" cellpadding="1"><tr><td bgcolor="#000000">
       		<table border=0 cellspacing=1 cellpadding=2>
         	<tr bgcolor="#CCCCCC"><th>Token</th><th>Class</th><th>Content</th></tr>
@@ -323,7 +322,7 @@ sub wrap_page {
 	my $style = shift;
 	my $content = shift;
 
-	return <<END if $style eq 'syntax';
+	return <<"END_HTML" if $style eq 'syntax';
 <html>
 <head>
   <title>Formatted Perl Source Code</title>
@@ -334,9 +333,9 @@ $content
 </font>
 </body>
 </html>
-END
+END_HTML
 
-	return <<END if $style eq 'debug';
+	return <<"END_HTML" if $style eq 'debug';
 <html>
 <head>
   <title>Debug Perl Source Code</title>
@@ -352,9 +351,9 @@ END
 $content
 </body>
 </html>
-END
+END_HTML
 
-	return <<END;
+	return <<"END_HTML";
 <head>
   <title>Perl Source Code</title>
 </head>
@@ -364,8 +363,7 @@ $content
 </font>
 </body>
 </html>
-END
-
+END_HTML
 }
 
 sub line_label {
@@ -389,26 +387,26 @@ sub line_label {
 sub syntax_string {
 	shift if isa($_[0], __PACKAGE__);
 	my $Tokenizer = PPI::Tokenizer->new( shift ) or return undef;
-	my $options = isa( $_[0], 'HASH' ) ? shift : {};
+	my $options = ref $_[0] eq 'HASH' ? shift : {};
 	return __PACKAGE__->serialize( $Tokenizer, 'syntax', $options );
 }
 
 sub syntax_page {
 	shift if isa($_[0], __PACKAGE__);
-	my $html = __PACKAGE__->syntax_string( shift ) or return undef;
+	my $html = __PACKAGE__->syntax_string( @_ ) or return undef;
 	PPI::Format::HTML->wrap_page( 'syntax', $html );
 }
 
 sub debug_string {
 	shift if isa($_[0], __PACKAGE__);
 	my $Tokenizer = PPI::Tokenizer->new( shift ) or return undef;
-	my $options = isa( $_[0], 'HASH' ) ? shift : {};
+	my $options = ref $_[0] eq 'HASH' ? shift : {};
 	__PACKAGE__->serialize( $Tokenizer, 'debug', $options );
 }
 
 sub debug_page {
 	shift if isa($_[0], __PACKAGE__);
-	my $html = __PACKAGE__->debug_string( shift ) or return undef;
+	my $html = __PACKAGE__->debug_string( @_ ) or return undef;
 	PPI::Format::HTML->wrap_page( 'debug', $html );
 }
 

@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 	
 	# Child -> Parent links
 	%_PARENT = ()
@@ -355,8 +355,8 @@ sub _clean {
 	my $self = shift;
 
 	# Clean up everything
-	delete $self->{tokenizer} if exists $self->{tokenizer};
 	$self->rollback_tokenizer if exists $self->{delayed};
+	delete $self->{tokenizer} if exists $self->{tokenizer};
 
 	# Return with the argument passed
 	@_ and $_[0];

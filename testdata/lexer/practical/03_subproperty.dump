@@ -1,0 +1,14 @@
+PPI::Document
+  PPI::Statement::Sub
+    PPI::Token::Bareword  	'sub'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Bareword  	'foo'
+    PPI::Token::Operator  	':'
+    PPI::Token::Bareword  	'lvalue'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure  	{ ... }
+      PPI::Token::Whitespace  	' '
+      PPI::Statement
+        PPI::Token::Number  	'1'
+      PPI::Token::Whitespace  	' '
+  PPI::Token::Whitespace  	'\n'

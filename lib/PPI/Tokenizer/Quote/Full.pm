@@ -45,7 +45,7 @@ sub new {
 	my $options = $quoteTypes{$init} or return $self->_error( "Unknown quote like operator '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
 
-	return $self;
+	$self;
 }
 
 use vars qw{%sectionPrototypes};
@@ -122,9 +122,8 @@ sub fill {
 		# Correct the state
 		$t->{char} = substr( $t->{line}, $t->{line_cursor}, 1 );
 	}
-	
-	# Done
-	return 1;
+
+	1;
 }
 
 # Handle the content parsing path for normally seperated
@@ -172,9 +171,8 @@ sub _fill_normal {
 		position => length $self->{content},
 		size => length($string) - 1
 		};
-	
-	# Done
-	return 1;
+
+	1;
 }
 
 # Handle content parsing for matching crace seperated
@@ -248,8 +246,7 @@ sub _fill_braced {
 	$section->{size} = length($string) - 1;
 	delete $section->{_close};
 
-	# Path done
-	return 1;
+	1;
 }
 
 
@@ -262,7 +259,7 @@ sub _fill_braced {
 # In an array context, get the section information
 sub sections {
 	my $self = shift;
-	return wantarray
+	wantarray
 		? @{ $self->{sections} }
 		: scalar @{ $self->{sections} };
 }

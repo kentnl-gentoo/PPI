@@ -14,7 +14,8 @@ sub new {
 	# Create a new token containing the seperator
 	my $self = $class->SUPER::new( $zone, $seperator ) or return undef;
 	$self->{seperator} = $seperator;
-	return $self;
+
+	$self;
 }
 
 sub fill {
@@ -38,7 +39,7 @@ sub fill {
 
 sub get_string {
 	my $self = shift;
-	return substr( $self->{content}, 1, length($self->{content}) - 2 );
+	substr( $self->{content}, 1, length($self->{content}) - 2 );
 }
 
 1;

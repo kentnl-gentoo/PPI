@@ -8,7 +8,7 @@ use PPI ();
 
 use vars qw{$VERSION %round_classes %curly_classes};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 	@PPI::Structure::ISA = 'PPI::ParentElement';
 
 	# Keyword -> Structure class maps
@@ -160,15 +160,10 @@ sub resolve {
 
 	# Split based on type
 	my $type = $self->_brace_type or return undef;
-	if ( $type eq '()' ) {
-		return $self->_resolve_round( @_ );
-	} elsif ( $type eq '[]' ) {
-		return $self->_resolve_square( @_ );
-	} elsif ( $type eq '{}' ) {
-		return $self->_resolve_curly( @_ );
-	} else {
-		return undef;
-	}
+	return $self->_resolve_round( @_ )  if $type eq '()';
+	return $self->_resolve_square( @_ ) if $type eq '[]';
+	return $self->_resolve_curly( @_ )  if $type eq '{}';
+	undef;
 }
 
 sub _resolve_round {

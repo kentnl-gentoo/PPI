@@ -45,4 +45,8 @@ t/03_empiric.t
 t/05_lexer_practical.t
 testdata/lexer/practical/01_simpleassign.code
 testdata/lexer/practical/01_simpleassign.dump
+testdata/lexer/practical/02_END.code
+testdata/lexer/practical/02_END.dump
+testdata/lexer/practical/03_subproperty.code
+testdata/lexer/practical/03_subproperty.dump
 META.yml                                Module meta-data (added by MakeMaker)

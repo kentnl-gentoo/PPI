@@ -39,7 +39,7 @@ use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 
@@ -202,7 +202,7 @@ sub all_tokens {
 	}
 
 	# End of file, return a copy of the token array.
-	return @{ $self->{tokens} } ? [ @{$self->{tokens}} ] : 0;
+	@{ $self->{tokens} } ? [ @{$self->{tokens}} ] : 0;
 }
 
 # Manually increment the cursor
@@ -266,7 +266,7 @@ sub _get_line {
 
 	# End of file
 	$self->{source} = undef;
-	return '';
+	'';
 }
 
 # Fetches the next line, ready to process
@@ -448,7 +448,8 @@ sub _handle_raw_input {
 
 	# Clean up and return true
 	delete $self->{rawinput_queue};
-	return 1;
+
+	1;
 }
 
 

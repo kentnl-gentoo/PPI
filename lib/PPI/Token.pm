@@ -17,7 +17,7 @@ use PPI::Token::Classes       (); # This must be last
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.805';
+	$VERSION = '0.806';
 }
 
 
@@ -38,10 +38,10 @@ sub new {
 		return bless {
 			content => (defined $_[2] ? "$_[2]" : '')
 			},  $class;
-	} else {
-		# Invalid argument count
-		return undef;
 	}
+	
+	# Invalid argument count
+	undef;
 }
 
 sub set_class {
@@ -120,7 +120,7 @@ sub is_a {
 	return '' unless isa( $self, $class );
 
 	# Test the content if needed
-	return ! (@_ and $self->{content} ne shift);
+	! (@_ and $self->{content} ne shift);
 }
 
 1;

@@ -8,17 +8,12 @@ use base 'PPI::Common';
 use File::Spec;
 
 sub new {
-	my $class = shift;
-
-	my $self = {
-		files => {},
-		transforms => [],
+	bless {
+		files              => {},
+		transforms         => [],
 		transforms_applied => 0,
-		callback => undef,
-		};
-	bless $self, $class;
-
-	return $self;
+		callback           => undef,
+		}, shift;
 }
 
 sub load {
@@ -37,7 +32,7 @@ sub load {
 	# Add the PSP to the batch
 	$self->{files}->{$filename} = $PSP;
 
-	return 1;
+	1;
 }
 
 sub load_directory {
@@ -61,8 +56,7 @@ sub load_directory {
 		  or return $self->_error( "Error loading file '$file'" );
 	}
 
-	# Done
-	return 1;
+	1;
 }
 
 # Specify a transform to apply
@@ -88,18 +82,15 @@ sub add_transform {
 		$self->{files}->{$_}->add_transform( $_ );
 	}
 
-	return 1;
+	1;
 }
 
 sub set_callback {
 	my $self = shift;
-	my $code = shift;
-	unless ( isa( $code, 'CODE' ) ) {
-		return $self->_error( "Callback must be a CODE reference" );
-	}
-
+	my $code = ref $_[0] eq 'CODE' ? shift
+		: return $self->_error( "Callback must be a CODE reference" );
 	$self->{callback} = $code;
-	return 1;
+	1;
 }
 
 
@@ -141,7 +132,7 @@ sub _multicommand {
 		$hash{$_} = $self->{files}->{$_}->$command();
 	}
 
-	return \%hash;
+	\%hash;
 }
 
 # Pass through some commands
@@ -201,8 +192,7 @@ sub save {
 		return $self->_error( "Error saving output for file '$key'" ) unless defined $rv;
 	}
 
-	# Done
-	return 1;
+	1;
 }
 
 sub generate_index_page {
@@ -227,7 +217,7 @@ sub generate_index_page {
 </html>
 ~;
 
-	return $html;
+	$html;
 }
 
 1;
