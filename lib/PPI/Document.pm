@@ -8,10 +8,10 @@ PPI::Document - A single Perl document
 
 =head1 INHERITANCE
 
-  PPI::Base
-  isa PPI::Element
-      isa PPI::Node
-          isa PPI::Document
+  PPI::Document
+  isa PPI::Node
+      isa PPI::Element
+          isa PPI::Base
 
 =head1 SYNOPSIS
 
@@ -65,7 +65,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 }
 
 
@@ -74,6 +74,37 @@ BEGIN {
 
 #####################################################################
 # Load a PPI::Document object from a file
+
+=pod
+
+=head2 new $source
+
+The C<new> constructor is slightly different for PPI::Document that for
+the base L<PPI::Node>.
+
+Although it behaves the same when called with no arguments, if you pass
+it a defined string as the only argument, as a convenience the string
+will be parsed, and the Document object returned will be for the source
+code in the string.
+
+Returns a PPI::Document object, or C<undef> if parsing fails.
+
+=cut
+
+sub new {
+	my $class = ref $_[0] ? ref shift : shift;
+	return $class->SUPER::new unless @_;
+
+	# Check the source code
+	my $source = shift;
+	unless ( defined $source and length $source ) {
+		return undef;
+	}
+
+	# Hand off to the lexer to build
+	# and return the Document object.
+	PPI::Lexer->lex_source( $source );
+}
 
 =pod
 

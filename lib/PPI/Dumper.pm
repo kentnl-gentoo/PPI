@@ -37,7 +37,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 }
 
 
@@ -150,7 +150,7 @@ Returns as for the internal print function.
 =cut
 
 sub print {
-	main::print(shift->string);
+	CORE::print(shift->string);
 }
 
 =pod

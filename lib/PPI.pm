@@ -34,7 +34,7 @@ use PPI::Structure ();
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 }
 
 
@@ -68,7 +68,7 @@ use Class::Autouse 'PPI::Document',
 
 1;
 
-=cut
+=pod
 
 =head1 SUPPORT
 

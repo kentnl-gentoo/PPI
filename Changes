@@ -1,5 +1,21 @@
 Revision history for Perl extension PPI
 
+0.841 Sat Jan  8 2005
+	General:
+	- Completed much more documentation on the core classes
+	- PPI::Tester back in sync again (seperate distribution)
+	- PPI::Processor and PPI::Tinderbox completed (seperate distribution)
+
+	Details:
+	- Documented PPI::Tokenizer
+	- PPI::Document->new( $source ) added as a convenience
+	- PPI::Lexer::lex_file can now be called statically
+	- PPI::Lexer::lex_source can now be called statically
+	- PPI::Lexer::lex_tokenizer can now be called statically
+	- Fixed a small bug in PPI::Dumper::print
+	- Fixed CPAN #9582 Tokenizer Bug: C< sub y { } # Comment >
+	- Fixed similar case with C< foo->y() >
+
 0.840 Thu Dec 21 2004
 	General:
 	- Changed the PPI summary to no longer use the devisive word "parse"

@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %quotelike};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 
 	%quotelike = (
 		'q'  => 'Quote::Literal',
@@ -38,18 +38,29 @@ sub _on_char {
 		return $t->{class}->_commit( $t );
 	}
 
-	# Check for a quote like operator
+	# Check for the special 'forced word' case.
+	# Special Case: sub y { } etc is NOT an quote
+	# Special Case: foo->y is NOT a quote
 	my $word = $t->{token}->{content};
-	if ( $quotelike{$word} ) {
-		# Turn it into the appropriate class
+	my $forced_word = '';
+	if ( $quotelike{$word} or $PPI::Token::Operator::OPERATOR{$word} ) {
+		if ( $tokens ) {
+			if ( $tokens->[0]->_isa('Word', 'sub') or $tokens->[0]->_isa('Operator', '->') ) {
+				$forced_word = 1;
+			}
+		}
+	}
+
+	# Check for a quote like operator
+	if ( $quotelike{$word} and ! $forced_word ) {
 		$t->_set_token_class( $quotelike{$word} );
 		return $t->{class}->_on_char( $t );
 	}
 
 	# Or one of the word operators
-	if ( $PPI::Token::Operator::operator{$word} ) {
+	if ( $PPI::Token::Operator::OPERATOR{$word} and ! $forced_word ) {
 	 	$t->_set_token_class( 'Operator' );
-	 	return $t->_finalize_token->_on_char( $t );
+ 		return $t->_finalize_token->_on_char( $t );
 	}
 
 	# Unless this is a simple identifier, at this point
@@ -102,13 +113,6 @@ sub _commit {
 			: $t->{class}->_on_char($t);
 	}
 
-	# Check for the special case of the quote-like operator
-	if ( $quotelike{$word} ) {
-		$t->_new_token( $quotelike{$word}, $word );
-		return ($t->{line_cursor} >= $t->{line_length}) ? 0
-			: $t->{class}->_on_char( $t );
-	}
-
 	# Check for the end of the file
 	if ( $word eq '__END__' ) {
 		# Create the token for the __END__ itself
@@ -159,8 +163,30 @@ sub _commit {
 		return 0;
 	}
 
+	# Check for the special 'forced word' case.
+	# Special Case: sub y { } etc is NOT an quote
+	# Special Case: foo->y is NOT a quote
+	my $forced_word = '';
+	if ( $quotelike{$word} or $PPI::Token::Operator::OPERATOR{$word} ) {
+		if ( $tokens ) {
+			if ( $tokens->[0]->_isa('Word', 'sub') or $tokens->[0]->_isa('Operator', '->') ) {
+				$forced_word = 1;
+			}
+		}
+	}
+
+	# Check for the special case of the quote-like operator
+	if ( $quotelike{$word} and ! $forced_word) {
+		$t->_new_token( $quotelike{$word}, $word );
+		return ($t->{line_cursor} >= $t->{line_length}) ? 0
+			: $t->{class}->_on_char( $t );
+	}
+
 	my $token_class;
-	if ( $PPI::Token::Operator::operator{$word} ) {
+	if ( $forced_word ) {
+		$token_class = 'Word';
+
+	} elsif ( $PPI::Token::Operator::OPERATOR{$word} ) {
 		# Word operator
 		$token_class = 'Operator';
 

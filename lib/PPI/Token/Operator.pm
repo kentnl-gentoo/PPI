@@ -6,9 +6,12 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 
 	# Build the operator index
+	### NOTE - This is accessed several times explicitly
+	###        in PPI::Token::Word. Do not rename this
+	###        without also correcting them.
 	%OPERATOR = map { $_ => 1 } (
 		qw{
 		-> ++ -- ** ! ~ + -

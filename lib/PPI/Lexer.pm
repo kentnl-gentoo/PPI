@@ -27,12 +27,12 @@ PPI::Lexer - The PPI Lexer
 =head1 DESCRIPTION
 
 The is the PPI Lexer. In the larger scheme of things, its job is to take
-token streams, in a variety of forms, and "lex" them into nested structures,
+token streams, in a variety of forms, and "lex" them into nested structures.
 
 Pretty much everything in this module happens behind the scenes at this
-point. In fact, the only reason you need to instantiate the lexer is so that
-it doesn't need to use any global variables to hold state data during the
-lexing process.
+point. In fact, at the moment you don't really need to instantiate the lexer
+at all, the three main methods will auto-instantiate themselves a PPI::Lexer
+object as needed.
 
 All methods do a one-shot "lex this and give me a PPI::Document object".
 
@@ -50,7 +50,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 }
 
 
@@ -970,11 +970,11 @@ Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 SEE ALSO
 
-L<PPI|PPI>, L<PPI::Manual|PPI::Manual>
+L<PPI>, L<PPI::Manual>
 
 =head1 COPYRIGHT
 
-Copyright 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2005 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

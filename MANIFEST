@@ -44,6 +44,8 @@ lib/PPI/Structure/ForLoop.pm
 lib/PPI/Structure/List.pm
 lib/PPI/Structure/Subscript.pm
 lib/PPI/Structure/Unknown.pm
+lib/PPI/Tinderbox.pm
+lib/PPI/Tinderbox/Task.pm
 lib/PPI/Token.pm
 lib/PPI/Token/_QuoteEngine.pm
 lib/PPI/Token/_QuoteEngine/Full.pm
@@ -111,6 +113,8 @@ t.data/05_lexer_practical/09_heredoc.code
 t.data/05_lexer_practical/09_heredoc.dump
 t.data/08_regression/01_rt_cpan_8752.code
 t.data/08_regression/01_rt_cpan_8752.dump
+t.data/08_regression/02_rt_cpan_9582.code
+t.data/08_regression/02_rt_cpan_9582.dump
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t

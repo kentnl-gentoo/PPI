@@ -9,7 +9,7 @@ PPI::Element - The abstract Element class, a base for all source objects
 =head1 INHERITANCE
 
   PPI::Base
-  \--> PPI::Element
+  isa PPI::Element
 
 =head1 DESCRIPTION
 
@@ -37,7 +37,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.840';
+	$VERSION = '0.841';
 
 	# Master Child -> Parent index
 	%_PARENT = ();
