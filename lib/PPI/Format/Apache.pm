@@ -12,7 +12,7 @@ use PPI::Format::HTML ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.801';
+	$VERSION = '0.802';
 }
 
 
@@ -35,7 +35,7 @@ sub handler ($$) {
 	my $filename = $Apache->filename;
 	return NOT_FOUND unless -f $filename;
 	return FORBIDDEN unless -r $filename;
-	
+
 	# Slurp in the file
 	my $content;
 	{ local $/ = undef;
@@ -65,12 +65,16 @@ sub handler ($$) {
 	$colour = $colour ? 'On' : 'Off';
 	$line_numbers = $line_numbers ? 'On' : 'Off';
 
-	# Print a quick summary so far
+	# Send the page header
+	$Apache->send_http_header( "text/html; charset=iso-8859-1" );
+
+	# Wrap the code in a page and send
 	local $| = 1;
 	print <<END;
 <html>
 <head>
-<meta name="robots" content="noarchive">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="robots" content="noarchive">
 </head>
 <body bgcolor="#FFFFFF" text="#000000" link="#DDDDDD" vlink="#DDDDDD" alink="#DDDDDD">
 <table width="0%" border="0" align="right" cellpadding="3" cellspacing="0">

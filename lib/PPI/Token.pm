@@ -17,7 +17,7 @@ use PPI::Token::Classes       (); # This must be last
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.801';
+	$VERSION = '0.802';
 }
 
 

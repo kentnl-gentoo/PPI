@@ -11,7 +11,7 @@ use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.801';
+	$VERSION = '0.802';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
