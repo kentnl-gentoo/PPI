@@ -9,7 +9,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 0.1;
+	$VERSION = 0.2;
 }
 
 use UNIVERSAL 'isa';
@@ -233,4 +233,45 @@ sub _applyTransforms {
 }
 
 1;
-	
+
+__END__
+
+=pod
+
+=head1 NAME
+
+PPI ( Parse::Perl::Isolated ) - Parsing an manipulating Perl code
+
+=head1 DESCRIPTION
+
+Most of this is really broken, and put in CPAN for the benefit of the interested.
+
+The API is going to compltely change, the Lexer replaced. After that, we get docs.
+
+For now, look at the syntax highlighter in the samples directory.
+
+=head1 TODO
+
+Shitloads
+
+=head1 SUPPRT
+
+None
+
+=head1 AUTHOR
+
+    Adam Kennedy
+    cpan@ali.as
+    http//ali.as/
+
+=head1 COPYRIGHT
+
+opyright (c) 2002 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
+

@@ -103,6 +103,7 @@ BEGIN {
 		'.' => 'Operator',
 		'!' => 'Operator',
 		'_' => 'Bareword',
+		'~' => 'Operator',
 		);
 	
 	# Add the alphanumericals to cut down on regexs,

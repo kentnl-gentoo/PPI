@@ -1,0 +1,31 @@
+NAME
+    PPI ( Parse::Perl::Isolated ) - Parsing an manipulating Perl code
+
+DESCRIPTION
+    Most of this is really broken, and put in CPAN for the benefit of the
+    interested.
+
+    The API is going to compltely change, the Lexer replaced. After that, we
+    get docs.
+
+    For now, look at the syntax highlighter in the samples directory.
+
+TODO
+    Shitloads
+
+SUPPRT
+    None
+
+AUTHOR
+        Adam Kennedy
+        cpan@ali.as
+        http//ali.as/
+
+COPYRIGHT
+    opyright (c) 2002 Adam Kennedy. All rights reserved. This program is
+    free software; you can redistribute it and/or modify it under the same
+    terms as Perl itself.
+
+    The full text of the license can be found in the LICENSE file included
+    with this module.
+

@@ -24,4 +24,9 @@ lib/PPI/Tokenizer/Quote/Simple.pm
 lib/PPI/Tokenizer/Token.pm
 lib/PPI/Transform/Obfuscate.pm
 lib/PPI/Transform/Tidy.pm
+samples/syntax/README
+samples/syntax/batch.pl
+samples/syntax/cgi.pl
+samples/syntax/html/Error.html
+samples/syntax/html/Front.html
 t/01_compile.t

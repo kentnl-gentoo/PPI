@@ -16,7 +16,7 @@ BEGIN {
 		-b -c -d -e -f -g -k -l -o -p -r -s -t -u -w -x -z
 		__DATA__ __END__ __FILE__ __LINE__ __PACKAGE__ __WARN__ __DIE__
 		bootstrap continue do else elsif for foreach goto if last local
-		my next no package redo return require sub until unless use
+		my next no our package redo return require sub until unless use
 		while BEGIN INIT END
 		};
 	@functions = qw{
@@ -192,7 +192,7 @@ sub _getTokenColor {
 		return '#FF00FF' if $content =~ /\S/;
 		return ''; # Transparent
 	} elsif ( $class eq 'Magic' ) {
-		return '#000099';
+		return '#0099FF';
 	} elsif ( $class =~ /^Regex::/ ) {
 		return '#9900AA';
 	} elsif ( $class eq 'Operator' ) {
