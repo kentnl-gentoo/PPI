@@ -24,7 +24,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 # Identical, except for not having its own scope
@@ -58,18 +58,16 @@ obvious would be to implement arbitrary cut/copy/paste more easily.
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
-
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

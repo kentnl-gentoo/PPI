@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -36,8 +36,13 @@ sub _on_char {
 		# Special Case: If we accidentally treat eq'foo' like the word "eq'foo",
 		# then unwind it and just make it 'eq' (or the other stringy comparitors)
 		if ( $t->{token}->{content} =~ /^(?:eq|ne|q|qq|qx|qw|qr|m|s|tr|y)\'/ ) {
-			$t->{line_cursor} -= ($t->{token}->{content} - 2);
-			$t->{token}->{content} = substr($t->{token}->{content}, 0, 2);
+			if ( substr($t->{token}->{content}, 1, 1) eq "'" ) {
+				$t->{line_cursor} -= (length($t->{token}->{content}) - 1);
+				$t->{token}->{content} = substr($t->{token}->{content}, 0, 1);
+			} else {
+				$t->{line_cursor} -= (length($t->{token}->{content}) - 2);
+				$t->{token}->{content} = substr($t->{token}->{content}, 0, 2);
+			}
 		}
 	}
 
@@ -103,7 +108,11 @@ sub _commit {
 	# then unwind it and just make it 'eq' (or the other stringy comparitors)
 	my $word = $1;
 	if ( $word =~ /^(?:eq|ne|q|qq|qx|qw|qr|m|s|tr|y)\'/ ) {
-		$word = substr($word, 0, 2);
+		if ( substr($word, 1, 1) eq "'" ) {
+			$word = substr($word, 0, 1);
+		} else {
+			$word = substr($word, 0, 2);
+		}
 	}
 
 	# Advance the position one after the end of the bareword

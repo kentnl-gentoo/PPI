@@ -289,7 +289,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 	$errstr  = '';
 }
 
@@ -1027,32 +1027,22 @@ sub errstr {
 
 =head1 TO DO
 
-- Add an option to reset or seek the token stream... (maybe)
+- Add an option to reset or seek the token stream...
 
-- Implement PPI::XS to improve the speed of the Tokenizer
-
-- Debug using the results of the PPI CPAN Tinderbox
+- Implement more Tokenizer functions in L<PPI::XS>
 
 =head1 SUPPORT
 
-Bugs should be reported via the CPAN bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
-
-For other issues, or commercial enhancement or support,
-contact the author.
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-=head1 SEE ALSO
-
-L<PPI>, L<PPI::Manual>
-
 =head1 COPYRIGHT
 
-Copyright 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

@@ -1,5 +1,27 @@
 Revision history for Perl extension PPI
 
+0.847 Mon Jan 17 2005
+	General:
+	- Final removal of PPI::Base
+	- Completed majority of crash bugs in the Tokenizer
+
+	Details:
+	- Fixed Tokenizer Bug C< @foo = <<EOF; > seen as ::Readline
+	- Fixed Tokenizer Bug C< (<<EOF) > seen as ::Readline
+	- Fixed Tokenizer Bug C< q'foo bar' > parsed incorrectly
+	- Fixed bug in PPI::Token::_QuoteEngine::_scan_quote_like_operator_gap
+	- Fixed Tokenizer Bug C< $foo:'<undef>' > sees symbol $foo:'
+	- Fixed Tokenizer Bug C< $#arrayindex > was seen as a Symbol
+	- Fixed Tokenizer Bug C< %2 > was seen as a Symbol
+	- Fixed Tokenizer Bug C< &64 > was seen as a Symbol
+	- Fixed Tokenizer Bug C< $::| > is actually a Magic
+	- Fixed Tokenizer Bug C< @0 > is a Magic
+	- Deleted PPI::Base
+	- Added $PPI::Element::errstr
+	- Added basic private error methods to PPI::Element
+	- PPI::Element::significant now returns '' as false
+	- PPI::XS - Added all C<significant> methods
+
 0.846 Mon Jan 17 2005
 	General:
 	- Added proper support for <FILE>

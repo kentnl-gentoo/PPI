@@ -22,6 +22,8 @@ BEGIN {
 		$^L $^A $^E $^C $^D $^F $^H
 		$^I $^M $^N $^O $^P $^R $^S
 		$^T $^V $^W $^X
+
+		$::|
 	}, '$}', '$,', '$#', '$#+', '$#-' ) {
 		$magic{$_} = 1;
 	}
@@ -64,8 +66,8 @@ sub _on_char {
 
 		if ( /^(\$\#)\w/ ) {
 			# This is really an array index thingy ( $#array )
-			$t->{token} = PPI::Token::Symbol->new( $1 );
-			return PPI::Token::Symbol->_on_char( $t );
+			$t->{token} = PPI::Token::ArrayIndex->new( $1 );
+			return PPI::Token::ArrayIndex->_on_char( $t );
 		}
 
 		if ( /^\$\^\w/o ) {

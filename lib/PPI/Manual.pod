@@ -1,6 +1,75 @@
 =head1 NAME
 
-PPI Manual - The (still incomplete) manual for PPI
+PPI - BETA: Analyze and manipulate Perl code without using perl itself
+
+=head1 SYNOPSIS
+
+  use PPI;
+  
+  # Load a Document from a file
+  my $Document = PPI::Document->load('Module.pm');
+  
+  # Does it contain any POD?
+  if ( $Document->find_any('PPI::Token::Pod') ) {
+      print "Module contains POD\n";
+  }
+  
+  # Get the name of the main package
+  $pkg = $Document->find_first('PPI::Statement::Package')->namespace;
+  
+  # Remove all that nasty documentation
+  $Document->prune('PPI::Token::Pod');
+  $Document->prune('PPI::Token::Comment');
+  
+  # Save the file
+  $Document->save('Module.pm.stripped');
+
+=head1 STATUS
+
+As of version 0.900, PPI is officially feature-frozen and in beta.
+
+The core PPI feature-set is now implemented, and the API now supports all
+of the major language structures, and should be able to handle the entire
+perl syntax.
+
+Source filters are not and will not (and can not) be supported.
+
+The class structure of the PDOM (Perl Document Object Model) is complete
+and frozen. All of the analysis methods within the PDOM that are documented
+can also be considered frozen.
+
+Most of the non-core distributions have also been brought up to date.
+
+The following packages are all also considered up to date.
+
+=over
+
+=item L<PPI::Tester> - Wx-based Interactive Testing Application
+
+=item L<PPI::HTML> - HTML Syntax Highlighting
+
+=item L<PPI::XS> - XS Acceleration for PPI (negligable speed up at this
+point, but should improve over time)
+
+=item L<PPI::Processor> - Framework for bulk-analysis of Perl documents
+
+=back
+
+The following packages are stale and currently being updated or killed
+
+=over
+
+=item L<PPI::Format::Apache> - This module is redundant and will be replaced
+with an alternative module.
+
+=item L<Perl::Compare> - This module is currently being updated
+
+=item L<Perl::Signature> - This module is currently being updated
+
+=item L<Perl::SAX> - This module was a proof of concept only, and requires
+re-implementation.
+
+=back
 
 =head1 DESCRIPTION
 
@@ -48,7 +117,7 @@ L<http://www.perlmonks.org/index.pl?node_id=44722>
 
 =head2 Why "Isolated"?
 
-Technically, PPI is short for Parse::Perl::Isolated. In aknowledgement that
+Originally, PPI was short for Parse::Perl::Isolated. In aknowledgement that
 someone may some day come up with a valid solution for the grammar problem,
 it was decided to leave the C<Parse::Perl> namespace free.
 
@@ -64,13 +133,13 @@ time).
 
 Once we accept that we will probably never be able to parse perl well enough
 to execute it, it is worth re-examining C<WHY> we wanted to "parse" perl in
-the first place. What are the uses we would put such a parser.
+the first place. What are the uses we would put such a parser to.
 
 =over 4
 
 =item Documentation
 
-Analyze the contents of of a Perl document to automatically generate
+Analyze the contents of a Perl document to automatically generate
 documentation, in parallel to, or as a replacement for, POD documentation.
 
 =item Structural and Quality Analysis
@@ -112,9 +181,9 @@ However, there are going to be limits to this process. Because PPI cannot
 adapt to changing grammars, any code written using code filters should not
 be assumed to be parsable. At one extreme, this includes anything munged by
 L<Acme::Bleach|Acme::Bleach>, as well as (arguably) more common cases like
-L<Switch.pm|Switch>, L<Error.pm|Error> and L<Exception.pm|Exception>. We do
-not pretend to be able to parse code using these modules, although someone
-may be able to extend PPI to handle them.
+L<Switch.pm|Switch> and L<Exception.pm|Exception>. We do not pretend to be
+able to parse code using these modules, although someone may be able to
+extend PPI to handle them.
 
 UPDATE: The ability to extend PPI to handle lexical additions to the
 language, which means handling filters that LOOK like they should be perl,
@@ -173,28 +242,35 @@ gigacycle. The code gets tweaked and improved all the time, and there is a
 fair amount of scope left for speed improvements, but it is painstaking work,
 and fairly slow going.
 
-The target rate is about 5000 lines per gigacycle. Without moving bits to C,
-I just can't see any way to improve past this. Any move of things to C would
-be B<hard>, something I'd like to avoid for portability/bundling reasons,
-and is probably a 2.0 task.
+The target rate is about 5000 lines per gigacycle.
+
+The main avenue for making it to this speed has now become L<PPI::XS>, a
+drop-in XS accelerator for miscellaneous parts of PPI.
+
+Since PPI::XS has only just gotten off the ground and is currently only at
+proof-of-concept stage, this may take a little while.
 
 =head2 The Lexer
 
-The Lexer is considered complete, but subject to change. Early beta quality.
+The Lexer is considered complete, but subject to minor. Early beta quality.
 
 The Lexer takes a token stream, and converts it to a lexical tree. Again,
 remember we are parsing Perl B<documents> here, not code, so this includes
 whitespace, comments, and all number of weird things that have no relevance
-when code it actually executed. An instantiated L<PPI::Lexer|PPI::Lexer>
-object consumes L<PPI::Tokenizer|PPI::Tokenizer> objects, or things that can
-be converted into one, and produces L<PPI::Document|PPI::Document> objects.
+when code is actually executed.
 
-=head1 The Perl Document Object Model
+An instantiated L<PPI::Lexer> object consumes L<PPI::Tokenizer> objects, or
+things that can be converted into one, and produces L<PPI::Document> objects.
 
-This section provides a basic overview of the Perl Document Object
-Model (PDOM). Although this is a basic overview and doesn't cover the
-PDOM classes in order or details, the following is a rough inheritance
-layout of the main core classes.
+=head1 Overview of the Perl Document Object Model
+
+The PDOM is a structured collection of data classes that together provide
+a correct and scalable model for documents that follow the standard Perl
+syntax.
+
+Although this is a basic overview and doesn't cover the PDOM classes in
+order or details, the following is a rough inheritance layout of the
+main core classes.
 
   PPI::Element
       PPI::Token
@@ -207,33 +283,38 @@ layout of the main core classes.
           PPI::Document
 
 To summarize the above layout, all PDOM objects inherit from the
-basic L<Element|PPI::Element> class. Under this are L<Tokens|PPI::Token>
-(which are just strings of content with a known meaning) and
-L<Nodes|PPI::NodeNodes> (which are containers to hold other Elements)
+L<PPI::Element> class.
 
-Moving on, we'll start at the bottom of the inheritance tree with the
-first PDOM element you are likely to encounter, the B<Document> object.
+Under this are L<PPI::Token>, strings of content with a known type,
+and L<PPI::Node>, contains to hold other Elements.
+
+The first PDOM element you are likely to encounter is the B<PPI::Document>
+object.
 
 =head2 The Document
 
-At the top of all complete PDOM trees is a L<PPI::Document|PPI::Document>
-object. Each Document can contain a number of B<Statements>, B<Structures>,
-and B<Tokens>.
+At the top of all complete PDOM trees is a L<PPI::Document> object. Each
+Document will contain a number of B<Statements>, B<Structures> and
+B<Tokens>.
 
-A L<PPI::Structure|PPI::Structure> is any series of tokens contained within
-matching braces (with a few exceptions in special cases). This includes things
-like code blocks, conditions, function argument braces, anonymous array
-constructors, lists, scoping braces et al. Each Structure contains none,
-one, or many Tokens and Structures (the rules for which vary for the different
-Structure subclasses)
+A L<PPI::Statement> is any series of Tokens and Structures that are treated
+as a single contiguous statement by perl itself. You should note that a
+Statement is as close as PPI can get to "parsing" the code in the sense that
+perl-itself parses Perl code when it is building the op-tree. PPI cannot tell
+you, for example, which tokens are subroutine names, or arguments to a sub
+call, or what have you.
 
-A L<PPI::Statement|PPI::Statement> is any series of Tokens and Structures
-that are treated as a single contiguous statement by perl itself. You should
-note that a Statement is as close as PPI can get to "parsing" the code in the
-sense that perl-itself parses Perl code when it is building the op-tree. PPI
-cannot tell you, for example, which tokens are subroutine names, or arguments
-to a sub call, or what have you. It only knows that this series of elements
-represents a single Statement.
+At a fundamental level, it only knows that this series of elements represents
+a single Statement. For specific Statement types however, the PDOM is able
+to derive additional useful information.
+
+A L<PPI::Structure> is any series of tokens contained within matching braces.
+This includes things like code blocks, conditions, function argument braces,
+anonymous array constructors, lists, scoping braces et al. Each Structure
+contains none, one, or many Tokens and Structures (the rules for which vary
+for the different Structure subclasses)
+
+=head2 The PDOM at Work
 
 To demonstrate, lets start with an example showing how the PDOM tree might look
 for the following chunk of simple Perl code.
@@ -270,11 +351,14 @@ Please note that in this this example, strings are only listed for the ACTUAL
 element that contains the string. Also, Structures are listed with the brace
 characters noted.
 
+The L<PPI::Dumper> module can be used to generate similar trees yourself.
+
 Notice how PPI builds EVERYTHING into the model, including whitespace. This
-is needed in order to make the Document fully "round trip" compliant. That is,
-if you stringify the Document you get the same file you started with.
-(Although, if the newlines for your file are wrong, PPI will probably have
-localised them)
+is needed in order to make the Document fully "round trip" compliant. That
+is, if you stringify the Document you get the same file you started with.
+
+The one exception is that if the newlines for your file are wrong, PPI
+will probably have localised them for you.
 
 We can make that PDOM dump a little easier to read if we strip out all the
 whitespace. Here it is again, sans the distracting whitespace tokens.
@@ -295,12 +379,11 @@ whitespace. Here it is again, sans the distracting whitespace tokens.
 As you can see, the tree can get fairly deep at time, especially when every
 isolated token in a bracket becomes its own statement. This is needed to
 allow anything inside the tree the ability to grow. It also makes the
-search and analysis algorithms simpler.
+search and analysis algorithms much more flexible.
 
-Because of the depth and complexity of PDOM trees, a vast number of methods
-have been added wherever possible to help people working with PDOM trees do
-normal tasks relatively efficiently. These act like a DWIM layer above the
-large trees.
+Because of the depth and complexity of PDOM trees, a vast number of very easy
+to use methods have been added wherever possible to help people working with
+PDOM trees do normal tasks relatively quickly and efficiently.
 
 =head1 CLASSES
 
@@ -315,120 +398,137 @@ own POD documentation can be considered stable, as the POD is only written
 after the API is largely finalised and frozen. Still, don't rely on anything
 here until after PPI official becomes a beta, in the 0.9xx versions.
 
-=head2 PPI Data Class Full Listing
+=head2 Perl Document Object Model Classes
 
-  PPI::Base
-     PPI::Element
-        PPI::Node
-           PPI::Document
-              PPI::Document::Fragment
-           PPI::Statement
-              PPI::Statement::Scheduled
-              PPI::Statement::Package
-              PPI::Statement::Include
-              PPI::Statement::Sub
-              PPI::Statement::Variable
-              PPI::Statement::Compound
-              PPI::Statement::Break
-              PPI::Statement::Data
-              PPI::Statement::End
-              PPI::Statement::Expression
-              PPI::Statement::Null
-              PPI::Statement::UnmatchedBrace
-              PPI::Statement::Unknown
-           PPI::Structure
-              PPI::Structure::Block
-              PPI::Structure::Subscript
-              PPI::Structure::Constructor
-              PPI::Structure::Condition
-              PPI::Structure::List
-              PPI::Structure::ForLoop
-              PPI::Structure::Unknown
-        PPI::Token
-           PPI::Token::Whitespace
-           PPI::Token::Comment
-           PPI::Token::Pod
-           PPI::Token::Number
-           PPI::Token::Word
-           PPI::Token::DashedWord
-           PPI::Token::Symbol
-              PPI::Token::Magic
-           PPI::Token::ArrayIndex
-           PPI::Token::Quote
-              PPI::Token::Quote::Single
-              PPI::Token::Quote::Double
-              PPI::Token::Quote::Literal
-              PPI::Token::Quote::Interpolate
-           PPI::Token::QuoteLike
-              PPI::Token::QuoteLike::Backtick
-              PPI::Token::QuoteLike::Command
-              PPI::Token::QuoteLike::Regexp
-              PPI::Token::QuoteLike::Words
-           PPI::Token::Regexp
-              PPI::Token::Regexp::Match
-              PPI::Token::Regexp::Substitute
-              PPI::Token::Regexp::Transliterate
-           PPI::Token::Operator
-           PPI::Token::Cast
-           PPI::Token::Structure
-           PPI::Token::Label
-           PPI::Token::Separator
-           PPI::Token::Data
-           PPI::Token::End
-           PPI::Token::Prototype
-           PPI::Token::Attribute
-           PPI::Token::Unknown
+   PPI::Element
+      PPI::Node
+         PPI::Document
+            PPI::Document::Fragment
+         PPI::Statement
+            PPI::Statement::Scheduled
+            PPI::Statement::Package
+            PPI::Statement::Include
+            PPI::Statement::Sub
+            PPI::Statement::Variable
+            PPI::Statement::Compound
+            PPI::Statement::Break
+            PPI::Statement::Data
+            PPI::Statement::End
+            PPI::Statement::Expression
+            PPI::Statement::Null
+            PPI::Statement::UnmatchedBrace
+            PPI::Statement::Unknown
+         PPI::Structure
+            PPI::Structure::Block
+            PPI::Structure::Subscript
+            PPI::Structure::Constructor
+            PPI::Structure::Condition
+            PPI::Structure::List
+            PPI::Structure::ForLoop
+            PPI::Structure::Unknown
+      PPI::Token
+         PPI::Token::Whitespace
+         PPI::Token::Comment
+         PPI::Token::Pod
+         PPI::Token::Number
+         PPI::Token::Word
+         PPI::Token::DashedWord
+         PPI::Token::Symbol
+            PPI::Token::Magic
+         PPI::Token::ArrayIndex
+         PPI::Token::Operator
+         PPI::Token::Quote
+            PPI::Token::Quote::Single
+            PPI::Token::Quote::Double
+            PPI::Token::Quote::Literal
+            PPI::Token::Quote::Interpolate
+         PPI::Token::QuoteLike
+            PPI::Token::QuoteLike::Backtick
+            PPI::Token::QuoteLike::Command
+            PPI::Token::QuoteLike::Regexp
+            PPI::Token::QuoteLike::Words
+            PPI::Token::QuoteLike::Readline
+         PPI::Token::Regexp
+            PPI::Token::Regexp::Match
+            PPI::Token::Regexp::Substitute
+            PPI::Token::Regexp::Transliterate
+         PPI::Token::HereDoc
+         PPI::Token::Cast
+         PPI::Token::Structure
+         PPI::Token::Label
+         PPI::Token::Separator
+         PPI::Token::Data
+         PPI::Token::End
+         PPI::Token::Prototype
+         PPI::Token::Attribute
+         PPI::Token::Unknown
 
 =head2 Class Summary
 
 =over 4
 
-=item PPI::Base
+=item L<PPI::Tokenizer>
 
-The base class for all PPI classes. This may be removed before Beta
+The PPI Tokenizer consumes chunks of text and provides access to a stream
+of PPI::Token objects. The Tokenizer is really nastily complicated, to the
+point where even the author treads a bit carefully when working with it.
 
-=item L<PPI::Document|PPI::Document>
+Most of the complication is the result of optimizations which have tripled
+the tokenization speed, at the expense of maintainability. Yeah, I know...
 
-The Document object, the top of the PDOM
+Because the Tokenizer holds the array of Tokens internally, providing
+cursor-based access to it, an instantiate Tokenizer object can only be used
+B<once>, unlike the Lexer which just spits out a single L<PPI::Document>
+object and can be reused as needed.
 
-=item L<PPI::Document::Fragment|PPI::Document::Fragment>
-
-A cohesive fragment of a larger Document. Incomplete. Will be used later
-on for cut/paste/insert etc. Very similar to PPI::Document, but has some
-additional methods, and does not represent a lexical scope boundary.
-
-=item L<PPI::Element|PPI::Element>
-
-The Element class is the abstract base class for all objects within the PDOM
-
-=item Format::HTML
-
-Converts Document object to a syntax-highlighted HTML form. The current
-version is redundant, using only Token streams and not taking advantage
-of the additional information provided by the PDOM. Will be rewritten.
-May also be removed from the core.
-
-=item L<PPI::Lexer|PPI::Lexer>
+=item L<PPI::Lexer>
 
 The PPI Lexer. Converts Token streams into PDOM trees.
 
-=item L<PPI::Dumper|PPI::Dumper>
+=item L<PPI::Dumper>
 
 A simple class for dumping readable debugging version of PDOM structures
 
-=item L<PPI::Node|PPI::Node>
+=item PPI::Token::_QuoteEngine
+
+The L<PPI::Token::Quote> and L<PPI::Token::QuoteLike> classes provide
+abstract base classes for the many and varied types of quote and quote-like
+things in perl. However, much of the actual quote login is implemented in
+a separate quote engine, based at L<PPI::Token::_QuoteEngine>.
+
+Classes that inherit from PPI::Token::Quote, PPI::Token::QuoteLike and the
+base Regexp class L<PPI::Token::Regexp> are generally parsed only by the
+Quote Engine.
+
+=item L<PPI::Document>
+
+The Document object, the top of the PDOM
+
+=item L<PPI::Document::Fragment>
+
+A cohesive fragment of a larger Document. Currently Incomplete.
+
+Will be used later on for cut/paste/insert etc. Very similar to
+PPI::Document, but has some additional methods, and does not represent a
+lexical scope boundary.
+
+=item L<PPI::Element>
+
+The Element class is the abstract base class for all objects within the PDOM
+
+=item L<PPI::Node>
 
 The Node object, the abstract base class for all PDOM object that can
 contain other Elements, such as the Document, Statement and Structure
 objects.
 
-=item L<PPI::Statement|PPI::Statement>
+=item L<PPI::Statement>
 
 The base class for all Perl statements. Generic "evaluate for side-effects"
 statements are of this actual type. Other more interesting statement types
 belong to one of its children.
 
-See the L<PPI::Statement|PPI::Statement> documentation for a longer description
+See the L<PPI::Statement> documentation for a longer description
 and list of all of the different statement types and subclasses.
 
 =item PPI::Structure
@@ -448,72 +548,68 @@ cases).
 See the PPI::Token documentation (not yet written) for a description and
 list of all of the different Token types/classes
 
-=item PPI::Token::_QuoteEngine
+=back
 
-The PPI::Token::Quote class provides an abstract base class for the many and
-varied types of quote and quote-like things in perl. Classes that inherit
-from PPI::Token::Quote, or one of its other abstract subclasses
-PPI::Token::Quote::Simple or PPI::Token::Quote::Full, are mostly handled by
-the Tokenizer quote engine.
+=head1 INSTALLING
 
-=item PPI::Tokenizer
+The core PPI distribution is pure perl and has been kept as tight as
+possible and with as few dependencies as possible.
 
-The PPI Tokenizer consumes chunks of text and provides access to a stream of
-PPI::Token objects. The Tokenizer is really nastily complicated, to the point
-where even the author treads a bit carefully when working with it. Most of
-the complication is the result of optimizations which have tripled the
-tokenization speed, at the expense of maintainability. Yeah, I know...
+It should download and install normally on any platform from within
+the CPAN and CPANPLUS applications, or directly using the distribution
+tarball.
 
-Because the Tokenizer holds the array of Tokens internally, providing
-cursor-based access to it, an instantiate Tokenizer object can only be used
-B<once>, unlike the Lexer, which just spits out a single PPI::Document object
-and can be reused as needed.
+There are no special install instructions for PPI.
 
-=item PPI::Transform
+=head1 EXTENDING
 
-A Transform is a chunk of logic that takes a PDOM element of some sort and
-manipulates it. Most things that do blanket manipulation of some sort are
-likely to be implemented using a Transform class.
+For the time being, the PPI namespace is to be reserved for the sole
+use of the Parse::Perl project and its modules.
 
-=item PPI::Transform::Object
+L<http://sf.net/parseperl>
 
-To allow for Transforms to be assembled from random parts, a Transform object
-allows for the creation of much more ad-hoc transforms compared to fixed
-Transform classes.
+You are recommended to use the PPIx:: namespace for PPI-specific
+modifications, or Perl:: for modules which provide a general Perl
+language-related functions.
 
 =head1 TO DO
 
-PPI is slowly approaching feature freeze and API freeze. In general, anything
-that has got proper class documentation can be considered to be frozen, and
-be relatively reliably used in your code. Otherwise, be prepared for changes,
-as there are still some issues to be resolved, in particular Token class
-names, the Transform API, the (non-existent) Plugin system, and what (if
-anything) the base PPI class will actually do.
+- Complete documentation for the remaining PPI classes
 
-Also needed are more Manual sections, probably including basic tutorials for
-common tasks and stuff...
+- More analysis methods for PDOM classes
+
+- Creation of a PPI tutorial
+
+- Expansion of the unit test suite
+
+- More Manual sections
 
 =head1 SUPPORT
 
-Although this is pre-beta, what code is there should actually work. So if you
-find any bugs, they should be submitted via the CPAN bug tracker, located at
+Anything documented is considered to be frozen, and bugs should always
+be reported at:
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
-For other issues, contact the author. In particular, if you want to make a
-CPAN or private module that uses PPI, it would be best to stay in direct
-contact with the author until PPI goes beta.
+For other issues, or commercial enhancement or support, contact the
+author.
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
+=head1 ACKNOWLEDGMENTS
+
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
+the original open sourcing and release of this distribution.
+
+Completion funding provided by The Perl Foundation
+(L<http://www.perlfoundation.org/>)
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

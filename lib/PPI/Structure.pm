@@ -5,7 +5,7 @@ package PPI::Structure;
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
-use Scalar::Util ();
+use Scalar::Util 'refaddr';
 use PPI::Structure::Block       ();
 use PPI::Structure::Condition   ();
 use PPI::Structure::Constructor ();
@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -39,7 +39,7 @@ sub new {
 		}, $class;
 
 	# Set the start braces parent link
-	$_PARENT{Scalar::Util::refaddr($Token)} = $self;
+	$_PARENT{refaddr $Token} = $self;
 
 	$self;
 }
@@ -56,7 +56,7 @@ sub _set_finish {
 
 	# Set the token
 	$self->{finish} = $Token;
-	$_PARENT{Scalar::Util::refaddr($Token)} = $self;
+	$_PARENT{refaddr $Token} = $self;
 
 	1;
 }
@@ -130,6 +130,7 @@ sub tokens {
 
 # Like the token method ->content, get our merged contents.
 # This will recurse downwards through everything
+### Reimplement this using List::Utils stuff
 sub content {
 	my $self = shift;
 	join '', map { $_->content }

@@ -4,14 +4,13 @@ package PPI::Document;
 
 =head1 NAME
 
-PPI::Document - A single Perl document
+PPI::Document - Object representation of a Perl document
 
 =head1 INHERITANCE
 
   PPI::Document
   isa PPI::Node
       isa PPI::Element
-          isa PPI::Base
 
 =head1 SYNOPSIS
 
@@ -37,14 +36,14 @@ object acts as a normal L<PPI::Node>, with some additional convenience
 methods for loading and saving, and working with the line/column locations
 of Elements within a file.
 
-The exemption to its ::Node behavior this is that a PPI::Document object
-can NEVER have a parent node, and is always the root node in a tree.
+The exemption to its ::Node-like behavior this is that a PPI::Document
+object can NEVER have a parent node, and is always the root node in a tree.
 
 =head1 METHODS
 
 Most of the things you are likely to want to do with a Document are probably
-going to involve the methods of the L<PPI::Node|PPI::Node> class, of which
-this is a subclass.
+going to involve the methods from L<PPI::Node> class, of which this is
+a subclass.
 
 The methods listed here are the remaining few methods that are truly
 Document-specific.
@@ -57,15 +56,13 @@ use base 'PPI::Node';
 use List::MoreUtils ();
 use File::Slurp     ();
 use PPI             ();
-use PPI::Statement  ();
-use PPI::Structure  ();
 use PPI::Document::Fragment ();
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -363,6 +360,8 @@ sub flush_locations {
 
 1;
 
+=pod
+
 =head1 TO DO
 
 - Write proper unit and regression tests
@@ -375,18 +374,16 @@ recognise the normalisation work going on in L<Perl::Compare> and the like.
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
-
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

@@ -1,5 +1,6 @@
 NAME
-    PPI - Analyze and manipulate Perl code without using perl itself
+    PPI - BETA: Analyze and manipulate Perl code without using perl itself
+    (Beta 1)
 
 DESCRIPTION
     This is PPI, originally short for Parse::Perl::Isolated, a package for
@@ -7,31 +8,26 @@ DESCRIPTION
 
     For more information, see the PPI Manual
 
-    The PPI itself provides the primary mechanism for loading the PPI
-    library, as the full library contains over 50 classes.
+    PPI.pm itself provides the primary mechanism for loading the PPI API, a
+    family of around 50 classes.
 
 SUPPORT
-    Although this is pre-beta, what code is there should actually work. So
-    if you find any bugs, they should be submitted via the CPAN bug tracker,
-    located at
+    Anything documented is considered to be frozen, and bugs should always
+    be reported at:
 
     <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
     For other issues, or commercial enhancement or support, contact the
-    author.. In particular, if you want to make a CPAN or private module
-    that uses PPI, it would be best to stay in direct contact with the
-    author until PPI goes beta.
+    author.
 
 AUTHOR
     Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
 
 COPYRIGHT
-    Thank you to Phase N (<http://phase-n.com/>) for permitting the open
-    sourcing and release of this distribution.
+    Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
 
-    Copyright (c) 2004 Adam Kennedy. All rights reserved. This program is
-    free software; you can redistribute it and/or modify it under the same
-    terms as Perl itself.
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 
     The full text of the license can be found in the LICENSE file included
     with this module.

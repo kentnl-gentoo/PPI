@@ -6,3 +6,4 @@ foo->y();
 foo->or();
 y => 1;
 $foo->{q};
+foo => q'not bar';

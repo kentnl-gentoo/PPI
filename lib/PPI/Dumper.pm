@@ -37,7 +37,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -271,23 +271,16 @@ sub _element_string {
 
 =head1 SUPPORT
 
-Bugs should be reported via the CPAN bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
-
-For other issues, or commercial enhancement or support, contact the author.
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-=head1 SEE ALSO
-
-L<PPI|PPI>, L<PPI::Manual|PPI::Manual>
-
 =head1 COPYRIGHT
 
-Copyright 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

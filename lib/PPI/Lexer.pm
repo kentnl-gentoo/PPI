@@ -42,15 +42,15 @@ All methods do a one-shot "lex this and give me a PPI::Document object".
 
 use strict;
 use UNIVERSAL 'isa';
-use base 'PPI::Base';
 use File::Slurp   ();
 use PPI           ();
 use PPI::Token    ();
 use PPI::Document ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
+	$errstr  = '';
 }
 
 
@@ -291,7 +291,7 @@ BEGIN {
 
 sub _resolve_new_statement {
 	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node')  ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token') ? shift : return undef;
 
 	# If it's a token in our list, use that class
@@ -361,7 +361,7 @@ sub _resolve_new_statement {
 }
 
 sub _lex_statement {
-	my $self = shift;
+	my $self      = shift;
 	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
 
 	# Handle some special statements
@@ -429,7 +429,7 @@ sub _lex_statement {
 }
 
 sub _lex_statement_end {
-	my $self = shift;
+	my $self      = shift;
 	my $Statement = isa($_[0], 'PPI::Statement::End') ? shift : return undef;
 	
 	# End of the file, EVERYTHING is ours
@@ -451,7 +451,7 @@ sub _lex_statement_end {
 # to determine if the there is a statement boundary between the two, or if
 # the statement can continue with the token.
 sub _statement_continues {
-	my $self = shift;
+	my $self      = shift;
 	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
 	my $Token     = isa($_[0], 'PPI::Token')     ? shift : return undef;
 
@@ -664,7 +664,7 @@ BEGIN {
 # the class that the structure should be.
 sub _resolve_new_structure {
 	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my $Parent = isa($_[0], 'PPI::Node')             ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token::Structure') ? shift : return undef;
 
 	return $self->_resolve_new_structure_round ($Parent) if $Token->content eq '(';
@@ -735,7 +735,7 @@ sub _resolve_new_structure_square {
 # Given a parent element, and a { token to open a structure, determine
 # the class that the structure should be.
 sub _resolve_new_structure_curly {
-	my $self = shift;
+	my $self   = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
@@ -771,7 +771,7 @@ sub _resolve_new_structure_curly {
 }
 
 sub _lex_structure {
-	my $self = shift;
+	my $self      = shift;
 	my $Structure = isa($_[0], 'PPI::Structure') ? shift : return undef;
 
 	# Start the processing loop
@@ -878,7 +878,7 @@ sub _get_token {
 
 # Delay the addition of a insignificant elements
 sub _delay_element {
-	my $self = shift;
+	my $self    = shift;
 	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 
 	# Take from the front, add to the end
@@ -887,8 +887,8 @@ sub _delay_element {
 
 # Add an Element to a Node, including any delayed Elements
 sub _add_element {
-	my $self = shift;
-	my $Parent  = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my $self    = shift;
+	my $Parent  = isa($_[0], 'PPI::Node')    ? shift : return undef;
 	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 
 	# Handle a special case, where a statement is not fully resolved
@@ -916,7 +916,7 @@ sub _add_element {
 
 # Specifically just add any delayed tokens, if any.
 sub _add_delayed {
-	my $self = shift;
+	my $self   = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Add any delayed
@@ -947,34 +947,65 @@ sub _rollback {
 
 	1;
 }
-	
+
+
+
+
+
+#####################################################################
+# Error Handling
+
+# Set the error message
+sub _error {
+	$errstr = $_[1];
+	undef;
+}
+
+# Clear the error message.
+# Returns the object as a convenience.
+sub _clear {
+	$errstr = '';
+	$_[0];
+}
+
+=pod
+
+=head2 errstr
+
+For any error that occurs, you can use the C<errstr>, as either
+a static or object method, to access the error message.
+
+If no error occurs for any particular action, C<errstr> will return false.
+
+=cut
+
+sub errstr {
+	$errstr;
+}
+
 1;
 
 =pod
 
 =head1 TO DO
 
-- Add optional support for some of the more common soure filters
+- Add optional support for some of the more common source filters
+
+- Some additional checks for blessing things into various Statement
+and Structure subclasses.
 
 =head1 SUPPORT
 
-Bugs should be reported via the CPAN bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
-
-For other issues, or commercial enhancement or support, contact the author.
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-=head1 SEE ALSO
-
-L<PPI>, L<PPI::Manual>
-
 =head1 COPYRIGHT
 
-Copyright 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

@@ -8,8 +8,7 @@ PPI::Element - The abstract Element class, a base for all source objects
 
 =head1 INHERITANCE
 
-  PPI::Base
-  isa PPI::Element
+  PPI::Element is the root of the PDOM tree
 
 =head1 DESCRIPTION
 
@@ -25,7 +24,6 @@ implementations.
 use strict;
 use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
-use base 'PPI::Base';
 use PPI::Node       ();
 use Clone           ();
 use List::MoreUtils ();
@@ -34,9 +32,10 @@ use overload 'bool' => sub () { 1 },
              '=='   => '__equals',
              'eq'   => '__eq';
 
-use vars qw{$VERSION %_PARENT};
+use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
+	$errstr  = '';
 
 	# Master Child -> Parent index
 	%_PARENT = ();
@@ -58,6 +57,8 @@ be able to "round trip" the PPI::Document back to a file) the C<significant>
 method allows us to distinguish between tokens that form a part of the code,
 and tokens that arn't significant, such as whitespace, POD, or the portion
 of a file after (and including) the __END__ token.
+
+Returns true if the Element is significant, or false it not.
 
 =cut
 
@@ -83,16 +84,25 @@ sub tokens { $_[0] }
 
 =head2 content
 
-For B<any> PPI::Element, the C<content> method will reconstitute the raw source
+For B<any> PPI::Element, the C<content> method will reconstitute the base
 code for it as a single string. This method is also the method used for
 overloading stringification. When an Element is used in a double-quoted string
 for example, this is the method that is called.
 
-Returns the code as a string, or C<undef> on error.
+B<WARNING:>
+
+You should be aware that because of the way that here-docs are handled, any
+here-doc content is not included in C<content>, and as such you should NOT
+eval or execute the result if it contains any L<PPI::Token::HereDoc>.
+
+The L<PPI::Document> method C<serialize> should be used to stringify a PDOM
+document into something that can be executed as expected.
+
+Returns the basic code as a string (excluding here-doc content).
 
 =cut
 
-sub content { defined $_[0]->{content} ? $_[0]->{content} : '' }
+sub content { '' }
 
 
 
@@ -113,7 +123,7 @@ If an Element is within a parent Node, the C<parent> method returns the Node.
 
 =cut
 
-sub parent { $_PARENT{refaddr shift} }
+sub parent { $_PARENT{refaddr $_[0]} }
 
 =pod
 
@@ -608,6 +618,18 @@ sub _col  { undef }
 #####################################################################
 # Internals
 
+# Set the error string
+sub _error {
+	$errstr = $_[1];
+	undef;
+}
+
+# Clear the error string
+sub _clear {
+	$errstr = '';
+	$_[0];
+}
+
 # Being DESTROYed in this manner, rather than by an explicit
 # ->delete means our reference count has probably fallen to zero.
 # Therefore we don't need to remove ourselves from our parent,
@@ -624,6 +646,8 @@ sub __eq {
 
 1;
 
+=pod
+
 =head1 TO DO
 
 It would be nice if C<location> could be used in an ad-hoc manner. That is,
@@ -635,18 +659,16 @@ as error handlers.
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
-
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

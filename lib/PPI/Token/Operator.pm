@@ -6,7 +6,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly
@@ -20,7 +20,7 @@ BEGIN {
 		== != <=> eq ne cmp
 		& | ^ && || // .. ...
 		? : = += -= *= .=
-		=>
+		=> <>
 		and or dor not
 		}, ',' 	# Avoids "comma in qw{}" warning
 		);
@@ -42,6 +42,11 @@ sub _on_char {
 			$t->_set_token_class('HereDoc');
 			return $t->{class}->_on_char( $t );
 		}
+	}
+
+	# Handle the special case of the null Readline
+	if ( $t->{token}->{content} eq '<>' ) {
+		$t->_set_token_class('QuoteLike::Readline');
 	}
 
 	# Finalize normally

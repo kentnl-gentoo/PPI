@@ -8,7 +8,7 @@ use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -25,15 +25,15 @@ BEGIN {
 		'qq'  => { operator => 'qq',  braced => undef, seperator => undef, _sections => 1 },
 		'qx'  => { operator => 'qx',  braced => undef, seperator => undef, _sections => 1 },
 		'qw'  => { operator => 'qw',  braced => undef, seperator => undef, _sections => 1 },
-		'qr'  => { operator => 'qr',  braced => undef, seperator => undef, _sections => 1, modifiers => {} },
-		'm'   => { operator => 'm',   braced => undef, seperator => undef, _sections => 1, modifiers => {} },
-		's'   => { operator => 's',   braced => undef, seperator => undef, _sections => 2, modifiers => {} },
-		'tr'  => { operator => 'tr',  braced => undef, seperator => undef, _sections => 2, modifiers => {} },
+		'qr'  => { operator => 'qr',  braced => undef, seperator => undef, _sections => 1, modifiers => 1 },
+		'm'   => { operator => 'm',   braced => undef, seperator => undef, _sections => 1, modifiers => 1 },
+		's'   => { operator => 's',   braced => undef, seperator => undef, _sections => 2, modifiers => 1 },
+		'tr'  => { operator => 'tr',  braced => undef, seperator => undef, _sections => 2, modifiers => 1 },
 
 		# Y is the little used varient of tr
-		'y'   => { operator => 'y',   braced => undef, seperator => undef, _sections => 2, modifiers => {} },
+		'y'   => { operator => 'y',   braced => undef, seperator => undef, _sections => 2, modifiers => 1 },
 
-		'/'   => { operator => undef, braced => 0,     seperator => '/',   _sections => 1, modifiers => {} },
+		'/'   => { operator => undef, braced => 0,     seperator => '/',   _sections => 1, modifiers => 1 },
 
 		# Angle brackets quotes mean "readline(*FILEHANDLE)"
 		'<'   => { operator => undef, braced => 1,     seperator => undef, _sections => 1, },
@@ -41,7 +41,7 @@ BEGIN {
 		# The final ( and kind of depreciated ) "first match only" one is not
 		# used yet, since I'm not sure on the context differences between
 		# this and the trinary operator, but its here for completeness.
-		'?'   => { operator => undef, braced => 0,     seperator => '?',   _sections => 1, modifieds => {} },
+		'?'   => { operator => undef, braced => 0,     seperator => '?',   _sections => 1, modifieds => 1 },
 		);
 }
 
@@ -61,6 +61,9 @@ sub new {
 	# Do we have a prototype for the intializer? If so, add the extra fields
 	my $options = $quotes{$init} or return $self->_error( "Unknown quote type '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
+
+	# Set up the modifiers hash if needed
+	$self->{modifiers} = {} if $self->{modifiers};
 
 	# Handle the special < base
 	if ( $init eq '<' ) {
@@ -143,13 +146,13 @@ sub _fill_normal {
 		$self->{content} .= $$string;
 		return 0;
 	}
-	$self->{content} .= $string;
 
 	# Complete the properties of the first section
 	$self->{sections}->[0] = {
 		position => length $self->{content},
 		size     => length($string) - 1
 		};
+	$self->{content} .= $string;
 
 	# We are done if there is only one section
 	return 1 if $self->{_sections} == 1;
@@ -167,13 +170,13 @@ sub _fill_normal {
 		$self->{content} .= $$string;
 		return 0;
 	}
-	$self->{content} .= $string;
 
 	# Complete the properties of the second section
 	$self->{sections}->[1] = {
 		position => length $self->{content},
 		size     => length($string) - 1
 		};
+	$self->{content} .= $string;
 
 	1;
 }

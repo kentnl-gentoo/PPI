@@ -9,7 +9,7 @@ use base 'PPI::Element';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 # We don't load the abstracts, they are loaded
@@ -116,9 +116,12 @@ sub _col        { $_[0]->{_col}  }
 #####################################################################
 # Content related
 
-sub content     { $_[0]->{content}                }
-sub set_content { $_[0]->{content} = $_[1]        }
-sub add_content { $_[0]->{content} .= $_[1]       }
+sub content     { $_[0]->{content} }
+
+sub set_content { $_[0]->{content} = $_[1] }
+
+sub add_content { $_[0]->{content} .= $_[1] }
+
 sub length      { &CORE::length($_[0]->{content}) }
 
 

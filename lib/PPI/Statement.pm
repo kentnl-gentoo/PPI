@@ -4,109 +4,21 @@ package PPI::Statement;
 
 =head1 NAME
 
-PPI::Statement - The base class for perl statements
+PPI::Statement - The base class for Perl statements
 
 =head1 INHERITANCE
 
-  PPI::Base
-  \--> PPI::Element
-       \--> PPI::Node
-            \--> PPI::Statement
+  PPI::Statement
+  isa PPI::Node
+      isa PPI::Element
 
 =head1 DESCRIPTION
 
 PPI::Statement is the root class for all Perl statements. This includes (from
-L<perlsyn|perlsyn>) "Declarations", "Simple Statements" and "Compound
-Statements".
+L<perlsyn>) "Declarations", "Simple Statements" and "Compound Statements".
 
 The class PPI::Statement itself represents a "Simple Statement" as defined
-in the L<perlyn|perlsyn> manpage.
-
-=head1 METHODS
-
-PPI::Statement itself has very few methods. Most of the time, you will be
-working with the more generic L<PPI::Element|PPI::Element> or
-L<PPI::Node|PPI::Node> methods, or one of the methods that are
-subclass-specific.
-
-=cut
-
-use strict;
-use UNIVERSAL 'isa';
-use base 'PPI::Node';
-use PPI ();
-use PPI::Statement::Break          ();
-use PPI::Statement::Compound       ();
-use PPI::Statement::Data           ();
-use PPI::Statement::End            ();
-use PPI::Statement::Expression     ();
-use PPI::Statement::Include        ();
-use PPI::Statement::Null           ();
-use PPI::Statement::Package        ();
-use PPI::Statement::Scheduled      ();
-use PPI::Statement::Sub            ();
-use PPI::Statement::UnmatchedBrace ();
-use PPI::Statement::Unknown        ();
-use PPI::Statement::Variable       ();
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.846';
-}
-
-# "Normal" statements end at a statement terminator ;
-# Some are not, and need the more rigorous _statement_continues to see
-# if we are at an implicit statement boundary.
-sub __LEXER__normal { 1 }
-
-
-
-
-
-#####################################################################
-# Constructor
-
-sub new {
-	my $class = ref $_[0] ? ref shift : shift;
-	
-	# Create the object
-	my $self = bless { 
-		children => [],
-		}, $class;
-
-	# If we have been passed an initial token, add it
-	if ( isa(ref $_[0], 'PPI::Token') ) {
-		$self->__add_element(shift);
-	}
-
-	$self;
-}
-
-=pod
-
-=head2 label
-
-One factor common to most (all?) statements is their ability to be labelled.
-
-The C<label> method returns the label for a statement, if one has been
-defined, but without the trailing colon. Take the following example
-
-  MYLABEL: while ( 1 .. 10 ) { last MYLABEL if $_ > 5 }
-
-For the above statement, the C<label> method would return 'MYLABEL'.
-
-Returns false if the statement does not have a label.
-
-=cut
-
-sub label {
-	my $first = shift->schild(1);
-	isa($first, 'PPI::Token::Label')
-		? substr($first, 0, length($first) - 1)
-		: '';
-}
-
-=pod
+in the L<perlsyn> manpage.
 
 =head1 STATEMENT CLASSES
 
@@ -216,7 +128,87 @@ insufficient clues, or it might be more than one thing.
 
 You should never encounter these in a fully parsed PDOM tree.
 
+=head1 METHODS
+
+PPI::Statement itself has very few methods. Most of the time, you will be
+working with the more generic L<PPI::Element> or L<PPI::Node> methods, or one
+of the methods that are subclass-specific.
+
 =cut
+
+use strict;
+use UNIVERSAL 'isa';
+use base 'PPI::Node';
+use PPI::Statement::Break          ();
+use PPI::Statement::Compound       ();
+use PPI::Statement::Data           ();
+use PPI::Statement::End            ();
+use PPI::Statement::Expression     ();
+use PPI::Statement::Include        ();
+use PPI::Statement::Null           ();
+use PPI::Statement::Package        ();
+use PPI::Statement::Scheduled      ();
+use PPI::Statement::Sub            ();
+use PPI::Statement::UnmatchedBrace ();
+use PPI::Statement::Unknown        ();
+use PPI::Statement::Variable       ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.900';
+}
+
+# "Normal" statements end at a statement terminator ;
+# Some are not, and need the more rigorous _statement_continues to see
+# if we are at an implicit statement boundary.
+sub __LEXER__normal { 1 }
+
+
+
+
+
+#####################################################################
+# Constructor
+
+sub new {
+	my $class = ref $_[0] ? ref shift : shift;
+	
+	# Create the object
+	my $self = bless { 
+		children => [],
+		}, $class;
+
+	# If we have been passed an initial token, add it
+	if ( isa(ref $_[0], 'PPI::Token') ) {
+		$self->__add_element(shift);
+	}
+
+	$self;
+}
+
+=pod
+
+=head2 label
+
+One factor common to most statements is their ability to be labelled.
+
+The C<label> method returns the label for a statement, if one has been
+defined, but without the trailing colon. Take the following example
+
+  MYLABEL: while ( 1 .. 10 ) { last MYLABEL if $_ > 5 }
+
+For the above statement, the C<label> method would return 'MYLABEL'.
+
+Returns false if the statement does not have a label.
+
+=cut
+
+sub label {
+	my $first = shift->schild(1);
+	isa($first, 'PPI::Token::Label')
+		? substr($first, 0, length($first) - 1)
+		: '';
+}
 
 1;
 
@@ -226,22 +218,18 @@ You should never encounter these in a fully parsed PDOM tree.
 
 - Complete, freeze and document the remaining classes
 
-- Complete support for lexing of labels for all statement types
-
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
-
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

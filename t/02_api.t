@@ -25,7 +25,7 @@ use PPI::Find;
 # use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2267;
+use Test::More 'tests' => 2055;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -48,7 +48,6 @@ PPI::Find=class
 # PPI::Transform=abstract
 
 # The abstract PDOM classes
-PPI::Base=abstract
 PPI::Element=abstract
 PPI::Node=abstract
 PPI::Token=abstract
@@ -71,12 +70,6 @@ PPI::Statement=abstract
 
 #####################################################################
 # PDOM Classes
-
-[PPI::Base]
-err_stack=method
-errclear=method
-errstr=method
-errstr_console=method
 
 [PPI::Element]
 new=method
@@ -375,6 +368,7 @@ new=method
 lex_file=method
 lex_source=method
 lex_tokenizer=method
+errstr=method
 
 [PPI::Dumper]
 new=method

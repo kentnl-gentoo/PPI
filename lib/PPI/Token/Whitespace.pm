@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
@@ -33,7 +33,8 @@ BEGIN {
 # Create a null whitespace token
 sub null { $_[0]->new('') }
 
-sub significant { 0 }
+### XS -> PPI/XS.xs:_PPI_Token_Whitespace__significant 0.900+
+sub significant { '' }
 
 sub _on_line_start {
 	my $t = $_[1];
@@ -119,15 +120,6 @@ sub _on_char {
 		# Do some context stuff to guess which.
 		my $previous = $t->_last_significant_token;
 
-		# The most common group of readlines are used like
-		# @foo = <...>
-		# while ( <...> )
-		# grep { } <...>
-		return 'QuoteLike::Readline' if $previous->_isa( 'Structure', '('     );
-		return 'QuoteLike::Readline' if $previous->_isa( 'Operator',  '='     );
-		return 'QuoteLike::Readline' if $previous->_isa( 'Structure', '}'     );
-		return 'QuoteLike::Readline' if $previous->_isa( 'Word',      'while' );
-
 		# The most common group of less-thans are used like
 		# $foo < $bar
 		# 1 < $bar
@@ -136,6 +128,30 @@ sub _on_char {
 		return 'Operator' if $previous->_isa( 'Magic'      );
 		return 'Operator' if $previous->_isa( 'Number'     );
 		return 'Operator' if $previous->_isa( 'ArrayIndex' );
+
+		# If it is <<... it's a here-doc instead
+		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
+		if ( $next_char eq '<' ) {
+			return 'Operator';
+		}
+
+		# The most common group of readlines are used like
+		# while ( <...> )
+		# while <>;
+		return 'QuoteLike::Readline' if $previous->_isa( 'Structure', '('     );
+		return 'QuoteLike::Readline' if $previous->_isa( 'Word',      'while' );
+		return 'QuoteLike::Readline' if $previous->_isa( 'Operator',  '='     );
+
+		if ( $previous->_isa( 'Structure', '}' ) ) {
+			# Could go either way... do a regex check
+			# $foo->{bar} < 2;
+			# grep { .. } <foo>;
+			my $line = substr( $t->{line}, $t->{line_cursor} );
+			if ( $line =~ /^<[^\W\d]\w*>/ ) {
+				# Almost definitely readline
+				return 'QuoteLike::Readline';
+			}
+		}
 
 		# Otherwise, we guess operator, which has been the default up
 		# until this more comprehensive section was created.
@@ -161,7 +177,6 @@ sub _on_char {
 		# After a symbol
 		return 'Operator' if $previous->_isa( 'Symbol' );
 		return 'Operator' if $previous->_isa( 'Structure', ']' );
-		return 'Operator' if $previous->_isa( 'Structure', '}' );
 
 		# After another number
 		return 'Operator' if $previous->_isa( 'Number' );

@@ -119,13 +119,13 @@ is( scalar($Braces->tokens),    6,  "Token token count is correct" );
 isa_ok( $Token7->tokens, 'PPI::Token',  "Token token count is correct" );
 
 # Testing the ->significant method
-is( $Document->significant,  1, 'Document is significant' );
-is( $Statement->significant, 1, 'Statement is significant' );
-is( $Token1->significant,    1, 'Token is significant' );
-is( $Token2->significant,    1, 'Token is significant' );
-is( $Token3->significant,    0, 'Token is significant' );
-is( $Braces->significant,    1, 'Token is significant' );
-is( $Token7->significant,    1, 'Token is significant' );
+is( $Document->significant,  1,  'Document is significant' );
+is( $Statement->significant, 1,  'Statement is significant' );
+is( $Token1->significant,    1,  'Token is significant' );
+is( $Token2->significant,    1,  'Token is significant' );
+is( $Token3->significant,    '', 'Token is significant' );
+is( $Braces->significant,    1,  'Token is significant' );
+is( $Token7->significant,    1,  'Token is significant' );
 
 
 

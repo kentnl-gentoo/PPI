@@ -11,7 +11,6 @@ PPI::Token::HereDoc - Token class for the here-doc
   PPI::Token::HereDoc
   isa PPI::Token
       isa PPI::Element
-          isa PPI::Base
 
 =head1 DESCRIPTION
 
@@ -90,7 +89,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -254,15 +253,16 @@ sub _on_char {
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
-See the L<author section|PPI/AUTHOR> in the main PPI Manual
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

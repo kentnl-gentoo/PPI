@@ -27,7 +27,7 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 23;
+use Test::More tests => 30;
 use File::Slurp ();
 
 use vars qw{$testdir};

@@ -5,3 +5,7 @@ $foo << $bar;
 << foo;
 <<foo;
 foo
+@foo = <<EOF;
+EOF
+@foo = (<<EOF);
+EOF

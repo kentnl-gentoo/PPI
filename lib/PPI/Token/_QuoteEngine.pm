@@ -23,7 +23,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -191,11 +191,11 @@ sub _scan_quote_like_operator_gap {
 			: $t->{line};
 
 		# Since this regex can match zero characters, it should always match
-		/^(\s*(?:\#.*)?)/ or return undef;
-		
+		/^(\s*(?:\#.*)?)/s or return undef;
+
 		# Add the chars found to the string
 		$string .= $1;
-		
+
 		# Did we match the entire line?
 		unless ( length $1 == length $_ ) {
 			# Partial line match, which means we are at
@@ -204,12 +204,12 @@ sub _scan_quote_like_operator_gap {
 			$t->{line_cursor} += length $1;
 			return $string;
 		}
-		
+
 		# Load in the next line.
 		# If we reach the EOF, $t->{line} gets deleted,
 		# which is caught by the while.
 		return undef unless defined $t->_fill_line;
-			
+	
 		# Set the cursor to the first character
 		$t->{line_cursor} = 0;
 	}

@@ -41,31 +41,30 @@ it is by no means thorough. PPI::Find attempts to resolve this problem.
 
 =head2 Structure and Style
 
-PPI::Find provides a similar execution API to the popular L<File::Find::Rule>
+PPI::Find provides a similar API to the popular L<File::Find::Rule>
 module for file searching, but without the ability to assemble queries.
 
 The implementation of a separate PPI::Find::Rule sub-class that does
-provide this ability is left as an exercise for some other enterprising
-developer.
+provide this ability is left as an exercise for the reader.
 
-=head2 The wanted function
+=head2 The &wanted function
 
 At the core of each PPI::Find object is a "wanted" function that is
-passed a number of arguments and returns a number of alternative values
-which will control the flow of the search.
+passed a number of arguments and returns a value which controls the
+flow of the search.
 
-As it executes, each Element will be passed to the wanted function in
-depth-first order.
+As the search executes, each Element will be passed to the wanted function
+in depth-first order.
 
 It will be provided with two arguments. The current Element to test as $_[0],
 and the top-level Element of the search as $_[1].
 
-The wanted function is expected to return 1 (positive) if the Element
+The &wanted function is expected to return 1 (positive) if the Element
 matches the condition, 0 (false) if it does not, and undef (undefined) if
 the condition does not match, and the Find search should not descend to
 any of the current Element's children.
 
-Errors should be reported from the wanted function via die, which will be
+Errors should be reported from the &wanted function via die, which will be
 caught by the Find object and returned as an error.
 
 =head1 METHODS
@@ -77,7 +76,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -94,7 +93,7 @@ BEGIN {
 The C<new> constructor takes a single argument of the &wanted function,
 as described above and creates a new search.
 
-Returns a new PPI::Find object, or undef if not passed a CODE reference.
+Returns a new PPI::Find object, or C<undef> if not passed a CODE reference.
 
 =cut
 
@@ -380,21 +379,20 @@ sub _error {
 
 =head1 TO DO
 
-- Implement the PPI::Find::Rule class
+- Implement the L<PPI::Find::Rule> class
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-Created with funding from The Perl Foundation.
-
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

@@ -9,8 +9,7 @@ PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
 =head1 INHERITANCE
 
   PPI::Node
-  is a PPI::Element
-  is a PPI::Base
+  isa PPI::Element
 
 =head1 SYNOPSIS
 
@@ -58,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -656,24 +655,20 @@ sub DESTROY {
 
 =head1 TO DO
 
-Not much left to do here, by and large this can be considered stable.
-
-Most additional methods are being added on-demand.
+- Move as much as possible to L<PPI::XS>
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main PPI Manual
+See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
 
 =head1 AUTHOR
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
-
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

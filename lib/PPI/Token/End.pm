@@ -8,7 +8,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -18,7 +18,8 @@ BEGIN {
 #####################################################################
 # Tokenizer Methods
 
-sub significant { 0 }
+### XS -> PPI/XS.xs:_PPI_Token_End__significant 0.900+
+sub significant { '' }
 
 sub _on_char { 1 }
 

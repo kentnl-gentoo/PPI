@@ -14,7 +14,6 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Test/ClassAPI.pm
 lib/PPI.pm
-lib/PPI/Base.pm
 lib/PPI/Document.pm
 lib/PPI/Document/Fragment.pm
 lib/PPI/Document/Normalized.pm
@@ -118,6 +117,8 @@ t.data/08_regression/02_rt_cpan_9582.code
 t.data/08_regression/02_rt_cpan_9582.dump
 t.data/08_regression/03_rt_cpan_9614.code
 t.data/08_regression/03_rt_cpan_9614.dump
+t.data/08_regression/04_tinderbox.code
+t.data/08_regression/04_tinderbox.dump
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t

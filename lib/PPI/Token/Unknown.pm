@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.846';
+	$VERSION = '0.900';
 }
 
 
@@ -80,6 +80,13 @@ sub _on_char {
 
 
 	} elsif ( $c eq '%' ) {
+		# Is it a number?
+		if ( /\d/ ) {
+			# This is %2 (modulus number)
+			$t->_set_token_class( 'Operator' ) or return undef;
+			return $t->_finalize_token->_on_char( $t );
+		}
+
 		# Is it a symbol?
 		if ( /[\w:]/ ) {
 			return $t->_set_token_class( 'Symbol' ) ? 1 : undef;
@@ -99,6 +106,13 @@ sub _on_char {
 
 
 	} elsif ( $c eq '&' ) {
+		# Is it a number?
+		if ( /\d/ ) {
+			# This is &2 (bitwise-and number)
+			$t->_set_token_class( 'Operator' ) or return undef;
+			return $t->_finalize_token->_on_char( $t );
+		}
+
 		# Is it a symbol
 		if ( /[\w:]/ ) {
 			return $t->_set_token_class( 'Symbol' ) ? 1 : undef;
