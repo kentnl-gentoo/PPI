@@ -1,6 +1,21 @@
 Revision history for Perl extension PPI
 
-0.841 Sat Jan  8 2005
+0.842 Tue Jan 11 2005
+	General:
+	- Lots of debugging based on Tinderbox results
+
+	Details:
+	- Fixed MANIFEST.SKIP to removed PPI::Transform and PPI::Tinderbox
+	  from the core PPI distribution (like they should be)
+	- Optimised the previous #9582 to not have to run for EVERY word,
+	  only those where it might be needed.
+	- Corrected a use of QuoteLike::Execute to QuoteLike::Backtick
+	- Fixed CPAN #9598 Tokenizer Bug: C< qx( $command ) >
+	- Fixed CPAN #9614 Tokenizer Bug: C< $foo << 16 >
+	- Set the properly includive regex for << '...' here-doc
+	- Added an very early filter to prevent non-basic chars going in
+
+0.841 Mon Jan 10 2005
 	General:
 	- Completed much more documentation on the core classes
 	- PPI::Tester back in sync again (seperate distribution)

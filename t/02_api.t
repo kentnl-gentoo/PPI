@@ -25,7 +25,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2228;
+use Test::More 'tests' => 2231;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -228,15 +228,19 @@ PPI::Token=isa
 
 [PPI::Token::QuoteLike::Backtick]
 PPI::Token=isa
+PPI::Token::_QuoteEngine::Simple=isa
 
 [PPI::Token::QuoteLike::Command]
 PPI::Token=isa
+PPI::Token::_QuoteEngine::Full=isa
 
 [PPI::Token::QuoteLike::Words]
 PPI::Token=isa
+PPI::Token::_QuoteEngine::Full=isa
 
 [PPI::Token::QuoteLike::Regexp]
 PPI::Token=isa
+PPI::Token::_QuoteEngine::Full=isa
 
 [PPI::Token::Regexp]
 PPI::Token=isa

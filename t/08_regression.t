@@ -27,7 +27,7 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 16;
+use Test::More tests => 23;
 use File::Slurp ();
 
 use vars qw{$testdir};
@@ -82,7 +82,7 @@ foreach my $codefile ( @code ) {
 	my $source = File::Slurp::read_file( $codefile );
 	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
-	is( $Document->content, $source, "$codefile: Round-trip back to source was ok" );
+	is( $Document->serialize, $source, "$codefile: Round-trip back to source was ok" );
 }
 
 exit();

@@ -90,7 +90,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.841';
+	$VERSION = '0.842';
 }
 
 
@@ -153,7 +153,7 @@ sub _on_char {
 	### FIXME - This regex, and this method in general, do not yet allow
 	### for the null here-doc, which terminates at the first
 	### empty line.
-	/^(\s*(?:"\w+"|'\w+'|`\w+\`|\w+))/ or return undef;
+	/^(\s*(?:"[^"]+"|'[^']+'|`[^`]+`|\w+))/ or return undef;
 
 	# Add the rest of the token, work out what type it is,
 	# and suck in the content until the end.

@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.841';
+	$VERSION = '0.842';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
@@ -24,7 +24,7 @@ BEGIN {
         $CLASSMAP[ord ',']  = 'PPI::Token::Operator';
 	$CLASSMAP[ord "'"]  = 'Quote::Single';
 	$CLASSMAP[ord '"']  = 'Quote::Double';
-	$CLASSMAP[ord '`']  = 'QuoteLike::Execute';
+	$CLASSMAP[ord '`']  = 'QuoteLike::Backtick';
 	$CLASSMAP[ord '\\'] = 'Cast';
 	$CLASSMAP[ord '_']  = 'Word';
 	$CLASSMAP[32]       = 'Whitespace'; # A normal space

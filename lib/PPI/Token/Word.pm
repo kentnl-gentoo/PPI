@@ -3,11 +3,11 @@ package PPI::Token::Word;
 use strict;
 use base 'PPI::Token';
 
-use vars qw{$VERSION %quotelike};
+use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.841';
+	$VERSION = '0.842';
 
-	%quotelike = (
+	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
 		'qq' => 'Quote::Interpolate',
 		'qx' => 'QuoteLike::Command',
@@ -18,6 +18,9 @@ BEGIN {
 		'tr' => 'Regexp::Transliterate',
 		'y'  => 'Regexp::Transliterate',
 		);
+
+	# Copy in OPERATOR from PPI::Token::Operator
+	*OPERATOR = *PPI::Token::Operator::OPERATOR;
 }
 
 sub _on_char {
@@ -38,27 +41,15 @@ sub _on_char {
 		return $t->{class}->_commit( $t );
 	}
 
-	# Check for the special 'forced word' case.
-	# Special Case: sub y { } etc is NOT an quote
-	# Special Case: foo->y is NOT a quote
-	my $word = $t->{token}->{content};
-	my $forced_word = '';
-	if ( $quotelike{$word} or $PPI::Token::Operator::OPERATOR{$word} ) {
-		if ( $tokens ) {
-			if ( $tokens->[0]->_isa('Word', 'sub') or $tokens->[0]->_isa('Operator', '->') ) {
-				$forced_word = 1;
-			}
-		}
-	}
-
 	# Check for a quote like operator
-	if ( $quotelike{$word} and ! $forced_word ) {
-		$t->_set_token_class( $quotelike{$word} );
+	my $word = $t->{token}->{content};
+	if ( $QUOTELIKE{$word} and ! $class->_forced_word($word, $tokens) ) {
+		$t->_set_token_class( $QUOTELIKE{$word} );
 		return $t->{class}->_on_char( $t );
 	}
 
 	# Or one of the word operators
-	if ( $PPI::Token::Operator::OPERATOR{$word} and ! $forced_word ) {
+	if ( $OPERATOR{$word} and ! $class->_forced_word($word, $tokens) ) {
 	 	$t->_set_token_class( 'Operator' );
  		return $t->_finalize_token->_on_char( $t );
 	}
@@ -90,7 +81,7 @@ sub _on_char {
 # We are committed to being a bareword.
 # Or so we would like to believe.
 sub _commit {
-	my $t = $_[1];
+	my ($class, $t) = @_;
 
 	# Our current position is the first character of the bareword.
 	# Capture the bareword.
@@ -163,36 +154,23 @@ sub _commit {
 		return 0;
 	}
 
-	# Check for the special 'forced word' case.
-	# Special Case: sub y { } etc is NOT an quote
-	# Special Case: foo->y is NOT a quote
-	my $forced_word = '';
-	if ( $quotelike{$word} or $PPI::Token::Operator::OPERATOR{$word} ) {
-		if ( $tokens ) {
-			if ( $tokens->[0]->_isa('Word', 'sub') or $tokens->[0]->_isa('Operator', '->') ) {
-				$forced_word = 1;
-			}
-		}
-	}
-
-	# Check for the special case of the quote-like operator
-	if ( $quotelike{$word} and ! $forced_word) {
-		$t->_new_token( $quotelike{$word}, $word );
-		return ($t->{line_cursor} >= $t->{line_length}) ? 0
-			: $t->{class}->_on_char( $t );
-	}
-
 	my $token_class;
-	if ( $forced_word ) {
-		$token_class = 'Word';
-
-	} elsif ( $PPI::Token::Operator::OPERATOR{$word} ) {
-		# Word operator
-		$token_class = 'Operator';
-
-	} elsif ( $word =~ /\:/ ) {
+	if ( $word =~ /\:/ ) {
 		# Since its not a simple identifier...
 		$token_class = 'Word';
+
+	} elsif ( $class->_forced_word($word, $tokens) ) {
+		$token_class = 'Word';
+
+	} elsif ( $QUOTELIKE{$word} ) {
+		# Special Case: A Quote-like operator
+		$t->_new_token( $QUOTELIKE{$word}, $word );
+		return ($t->{line_cursor} >= $t->{line_length}) ? 0
+			: $t->{class}->_on_char( $t );
+
+	} elsif ( $OPERATOR{$word} ) {
+		# Word operator
+		$token_class = 'Operator';
 
 	} else {
 		# Now, if the next character is a :, its a label
@@ -216,6 +194,31 @@ sub _commit {
 		return 0;
 	}
 	$t->_finalize_token->_on_char($t);
+}
+
+# Is the word in a "forced" context, and thus cannot be either an
+# operator or a quote-like thing.
+sub _forced_word {
+	my ($class, $word, $tokens) = @_;
+
+	# Is this a forced-word context?
+	# i.e. Would normally be seen as an operator.
+	unless ( $QUOTELIKE{$word} or $PPI::Token::Operator::OPERATOR{$word} ) {
+		return '';
+	}
+
+	# We need to have a previous significant token
+	return '' unless $tokens;
+	my $token = $tokens->[0] or return '';
+
+	# We are forced if we are a method name
+	return 1 if $token->{content} eq '->';
+
+	# We are forced if we are a sub name
+	return 1 if $token->_isa('Word', 'sub');
+
+	# Otherwise we arn't forced
+	'';
 }
 
 1;

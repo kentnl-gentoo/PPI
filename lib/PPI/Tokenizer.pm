@@ -289,7 +289,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.841';
+	$VERSION = '0.842';
 }
 
 
@@ -364,6 +364,11 @@ sub new {
 	$self->{source_bytes} = length $self->{source};
 	unless ( $self->{source_bytes} ) {
 		return $self->_error( "Empty source argument provided to constructor" );
+	}
+
+	# Check for unusual characters
+	if ( $self->{source} =~ /([^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789;\[\]{}()=?|+<>.!~^*\$\@&:\%#,'"`\\\/_ \n\t-])/ ) {
+		return $self->_error( "Source code contains unsupported characters (first one encountered was '$1')" );
 	}
 
 	# Split into the line array
