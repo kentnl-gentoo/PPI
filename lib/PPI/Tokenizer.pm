@@ -1,12 +1,5 @@
 package PPI::Tokenizer;
 
-# Second attempt at a Perl tokenizer
-# Improvements for this second attempt include
-# - Pod support
-# - More overloads
-# - Better quote support
-# - Support for precompiler tags
-#
 # Process
 # The tokenizer works through a series of buffers.
 #
@@ -33,14 +26,14 @@ use strict;
 
 # Make sure everything we need is loaded, without 
 # resorting to loading all of PPI if possible.
-use PPI::Base  ();
+use base 'PPI::Base';
 use PPI::Element ();
 use PPI::Token   ();
+use File::Slurp  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.818';
-	@PPI::Tokenizer::ISA = 'PPI::Base';
+	$VERSION = '0.819';
 }
 
 
@@ -80,15 +73,6 @@ sub new {
 	# Do we have source
 	return $self->_error( "No source passed to constructor" ) unless defined $_[0];
 
-	# Handle the IO case
-	if ( ref $_[0] and UNIVERSAL::isa( $_[0], 'IO::Handle' ) ) {
-		# Check the handle
-		$self->{source} = shift;
-		return $self->_error( "IO handle is not valid and/or open" ) unless $self->{source}->opened;
-		return $self->_error( "IO handle is empty, or already at EOF" )	if $self->{source}->eof;
-		return $self;
-	}
-
 	# Is it straight text
 	if ( ! ref $_[0] ) {
 		$self->{source} = shift;
@@ -99,12 +83,13 @@ sub new {
 	} elsif ( UNIVERSAL::isa( $_[0], 'ARRAY' ) ) {
 		$self->{source} = join "\n", @{shift()};
 
-	} elsif ( UNIVERSAL::isa( $_[0], 'IO::Handle' ) ) {
-
 	} else {
 		# We don't support this
 		return $self->_error( "Object of type " . ref($_[0]) . " is not supported as a source" );
 	}
+
+	# Localise the newlines for the file
+	$self->{source} =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
 	# Check the size of the source
 	$self->{source_bytes} = length $self->{source};
@@ -112,10 +97,8 @@ sub new {
 		return $self->_error( "Empty source argument provided to constructor" );
 	}
 
-	# Clean up it's newlines and split into an array
-	$self->{source} =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
-	my @source = split /(?<=\n)/, $self->{source};
-	$self->{source} = \@source;
+	# Split into the line array
+	$self->{source} = [ split /(?<=\n)/, $self->{source} ];
 
 	# OK, listen up, I'm explaining this earlier than I should so you
 	# can understand why I'm about to do something that looks very
@@ -129,9 +112,9 @@ sub new {
 	# big strings.
 	# So, what we do is add a space to the end of the source. This
 	# triggers "end of token" functionality for all cases. Then, once
-	# the tokenizer hits end of line, it examines the last token to
-	# manually either remove the ' ' token, or chip it off the end of
-	# a longer one.
+	# the tokenizer hits end of file, it examines the last token to
+	# manually either remove the ' ' token, or chop it off the end of
+	# a longer one in which the space would be valid.
 	$self->{source}->[-1] .= ' ';
 
 	$self;
@@ -140,17 +123,9 @@ sub new {
 # Creates a new tokenizer from a file
 sub load {
 	my $class = shift;
-	my $filename = (-f $_[0] and -r $_[0]) ? shift : return undef;
-
-	# Load the file
-	local $/;
-	open( FILE, $filename ) or return undef;
-	my $source = <FILE>;
-	close FILE;
-
+	my $source = File::Slurp->read_file(shift, reference => 1) or return undef;
 	$class->new( $source );
 }
-
 
 
 
@@ -264,30 +239,16 @@ sub decrement_cursor {
 # Returns undef on error.
 sub _get_line {
 	my $self = shift;
-	return '' unless defined $self->{source};
+	return '' unless $self->{source}; # End of file
 
-	# The most likely case is it's an array
-	if ( ref $self->{source} eq 'ARRAY' ) {
-		# Normal line
-		$_ = shift @{ $self->{source} };
-		return $_ if defined $_;
-
-		# End of file
+	# Check for end of file
+	unless ( @{$self->{source}} ) {
 		$self->{source} = undef;
 		return '';
 	}
 
-	# It's a filehandle
-	unless ( $self->{source}->eof ) {
-		$_ = $self->{source}->getline;
-		$self->{source_bytes} += length $_;
-		s/[\015\012]*$/\n/g;
-		return $_;
-	}
-
-	# End of file
-	$self->{source} = undef;
-	'';
+	# Normal line
+	shift @{$self->{source}};
 }
 
 # Fetches the next line, ready to process
@@ -320,7 +281,6 @@ sub _fill_line {
 		delete $self->{line};
 		delete $self->{line_cursor};
 		delete $self->{line_length};
-
 		return 0;
 	}
 
@@ -366,7 +326,7 @@ sub _process_next_line {
 		if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
 			$self->_clean_eof;
 		}
-		return defined $_ ? 1 # Defined but false signals "go to next line"
+		return defined $rv ? 1 # Defined but false signals "go to next line"
 			: $self->_error( "Error at line $self->{line_count}" );
 	}
 
@@ -517,15 +477,15 @@ sub _process_next_char {
 	}
 
 	# We have been provided with the name of a class
-	if ( $self->{class} eq "PPI::Token::$_" ) {
-		# Same class as current
-		if ( defined $self->{token} ) {
-			$self->{token}->{content} .= $char;
-		} else {
-			$self->{token} = $self->{class}->new( $char ) or return undef;
-		}
-	} else {
+	if ( $self->{class} ne "PPI::Token::$_" ) {
+		# New class
 		$self->_new_token( $_, $char );
+	} elsif ( defined $self->{token} ) {
+		# Same class as current
+		$self->{token}->{content} .= $char;
+	} else {
+		# Same class, but no current
+		$self->{token} = $self->{class}->new( $char ) or return undef;
 	}
 
 	1;
@@ -563,7 +523,7 @@ sub _new_token {
 	$self->_finalize_token if $self->{token};
 
 	# Create the new token and update the parse class
-	$self->{token} = $class->new( $_[0] ) or return undef;
+	$self->{token} = $class->new($_[0]) or return undef;
 	$self->{class} = $class;
 
 	1;
@@ -580,6 +540,7 @@ sub _set_token_class {
 
 	# Update our parse class
 	$self->{class} = ref $self->{token};
+
 	1;
 }
 

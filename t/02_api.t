@@ -16,11 +16,11 @@ BEGIN {
 }
 
 # Load the API we will be testing
-use Class::Autouse qw{:devel};
+use Class::Autouse ':devel';
 use PPI;
 
 # Execute the tests
-use Test::More 'tests' => 792;
+use Test::More 'tests' => 888;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -78,38 +78,37 @@ errclear=method
 errstr=method
 errstr_console=method
 
-[PPI::Tokenizer]
-new=method
-load=method
-get_token=method
-all_tokens=method
-increment_cursor=method
-decrement_cursor=method
-
 [PPI::Element]
 new=method
+clone=method
 parent=method
+top=method
+document=method
 previous_sibling=method
 next_sibling=method
-extract=method
+remove=method
 delete=method
-class=method
 content=method
 tokens=method
 significant=method
+location=method
 
 [PPI::Node]
 PPI::Element=isa
 find=method
 prune=method
-elements=method
 add_element=method
-remove_element=method
-position=method
-nth_significant_child=method
+children=method
+child=method
+schild=method
+remove_child=method
 
 [PPI::Document]
 PPI::Node=isa
+load=method
+save=method
+index_locations=method
+flush_locations=method
 
 [PPI::Token]
 PPI::Element=isa
@@ -197,6 +196,8 @@ PPI::Token::Quote::Simple=isa
 PPI::Token=isa
 PPI::Token::Quote=isa
 PPI::Token::Quote::Simple=isa
+interpolations=method
+simplify=method
 
 [PPI::Token::Quote::Execute]
 PPI::Token=isa
@@ -233,3 +234,12 @@ PPI::Token=isa
 
 [PPI::Token::Regex::Pattern]
 PPI::Token=isa
+
+[PPI::Tokenizer]
+new=method
+load=method
+get_token=method
+all_tokens=method
+increment_cursor=method
+decrement_cursor=method
+

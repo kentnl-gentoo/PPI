@@ -1,13 +1,64 @@
 package PPI::Node;
 
+=pod
+
+=head1 NAME
+
+PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
+
+=head1 INHERITANCE
+
+  PPI::Base
+  \--> PPI::Element
+       \--> PPI::Node
+
+=head1 SYNOPSIS
+
+  # Create a typical node (a Document in this case)
+  my $Node = PPI::Document->new;
+  
+  # Add an element to the node( in this case, a token )
+  my $Token = PPI::Token::Bareword->new('my');
+  $Node->add_element( $Token );
+  
+  # Get the elements for the Node
+  my @elements = $Node->children;
+  
+  # Find all the barewords within a Node
+  my @barewords = $Node->find( 'PPI::Token::Bareword' );
+  
+  # Find by more complex criteria
+  my @my_tokens = $Node->find( sub { $_[1]->content eq 'my' } );
+  
+  # Remove all the whitespace
+  $Node->prune( 'PPI::Token::Whitespace' );
+  
+  # Remove by more complex criteria
+  $Node->prune( sub { $_[1]->content eq 'my' } );
+
+=head1 DESCRIPTION
+
+The PPI::Node class privides an abstract base class for the Element classes
+that are able to contain other elements, L<PPI::Document|PPI::Document>,
+L<PPI::Statement|PPI::Statement>, and L<PPI::Structure|PPI::Structure>.
+
+As well as those listed below, all of the methods that apply to
+L<PPI::Element|PPI::Element> objects also apply to PPI::Node objects.
+
+=head1 METHODS
+
+=cut
+
 use strict;
 use UNIVERSAL 'isa';
-use Scalar::Util 'refaddr';
 use base 'PPI::Element';
+use Scalar::Util    ();
+use List::MoreUtils ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.818';
+	$VERSION = '0.819';
+	*_PARENT = *PPI::Element::_PARENT;
 }
 
 
@@ -18,30 +69,8 @@ BEGIN {
 # The basic constructor
 
 sub new {
-	my $class = ref($_[0]) || $_[0];
+	my $class = ref $_[0] || $_[0];
 	bless { elements => [] }, $class;
-}
-
-
-
-
-
-
-#####################################################################
-# Internal tree related code
-
-# Our reference count has hit zero...
-sub DESTROY {
-	# DESTROY from the bottom up
-	foreach ( @{$_[0]->{elements}} ) {
-		$_->DESTROY if isa( $_, 'PPI::Node' );
-	}
-
-	# Remove us from our parent node
-	delete $PPI::Element::_PARENT{ refaddr $_[0] };
-
-	# Clean up the last bits
-	%{$_[0]} = ();
 }
 
 
@@ -51,137 +80,213 @@ sub DESTROY {
 #####################################################################
 # Public tree related methods
 
-# Return the list of all elements in the Node
-sub elements {
-	@{$_[0]->{elements}};
-}
+=pod
 
-# Find the position within us of a child element.
-sub position {
-	my $self = shift;
-	my $child = isa( $_[0], 'PPI::Element' ) or return undef;
+=head2 add_element $Element
 
-	my $elements = $self->{elements};
-	for my $i ( 0 .. $#$elements ) {
-		return $i if $elements->[$i] eq $child;
-	}
+The C<add_element> method adds a PPI::Element object to the end of a
+PPI::Node. Because Elements maintain links to their parent, an
+Element can only be added to a single Node.
 
-	undef;
-}
+Returns true if the PPI::Element was added. Returns C<undef> if the
+Element was already within another Node, or the method is not passed 
+a PPI::Element object.
 
-# Add an element to the end of the node
+=cut
 
 sub add_element {
 	my $self = shift;
-	my $Element = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
-	$PPI::Element::_PARENT{ refaddr $Element } and return undef;
+
+	# Check the element
+	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	$_PARENT{Scalar::Util::refaddr $Element} and return undef;
 
 	# Add the argument to the elements
 	push @{$self->{elements}}, $Element;
-	$PPI::Element::_PARENT{ refaddr $Element } = $self;
+	$_PARENT{Scalar::Util::refaddr $Element} = $self;
 
 	1;
 }
 
-# Remove an element, given the child element we want to remove.
-sub remove_element {
+=pod
+
+=head2 children
+
+The C<children> method accesses all child elements lexically within the
+PPI::Node object. Note that in the case of the PPI::Structure class, this
+does B<NOT> include the brace tokens at either end of the structure.
+
+Returns a list of zero of more PPI::Element objects.
+
+Alternatively, if called in the scalar context, the C<children> method
+returns a count of the number of child elements.
+
+=cut
+
+sub children {
+	wantarray ? @{$_[0]->{elements}} : scalar @{$_[0]->{elements}};
+}
+
+=pod
+
+=head2 child $index
+
+The C<child> method accesses a child PPI::Element object by it's
+position within the Node.
+
+Returns a PPI::Element object, or C<undef> if there is no child
+element at that node.
+
+=cut
+
+sub child {
+	$_[0]->{elements}->[$_[1]];
+}
+
+=pod
+
+=head2 schild $index
+
+The lexical structure of the Perl language ignores 'insignifcant' items,
+such as whitespace and comments, while PPI treats these items as valid
+tokens so that it can reassemble the file at any time. Because of this,
+in many situations there is a need to find an Element within a Node by
+index, only counting lexically significant Elements.
+
+The C<schild> method returns a child Element by index, ignoring
+insignificant Elements. The index of a child Element is specified in the
+same way as for a normal array, with the first Element at index 0, and
+negative indexes used to identify a "from the end" position.
+
+=cut
+
+sub schild {
 	my $self = shift;
-	my $child = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
-
-	# Where is the child
-	my $position = $self->position( $child );
-	return undef unless defined $position;
-
-	# Splice it out
-	splice( @{$self->{elements}}, $position, 1 );
-
-	# Remove it's parent entry
-	delete $PPI::Element::_PARENT{ refaddr $self };
-
-	1;
-}
-
-# Overload the PPI::Element::delete method
-sub delete {
-	my $self = ref($_[0]) ? shift : return undef;
-
-	# Remove our element's parent index entry, and
-	# call delete on them
-	foreach ( @{$self->{elements}} ) {
-		delete $PPI::Element::_PARENT{ refaddr $_ };
-		$_->DESTROY;
-	}
-
-	# Clean up
-	$self->{elements} = [];
-	delete $self->{elements};
-
-	# Now delete ourselves like a normal element
-	$self->SUPER::delete;
-}
-
-# Gets and returns a significant child as indicated by the position.
-# A positive position number returns the nth significant child from the
-# beginning. A negative position number returns the nth significant 
-# child from the end.
-sub nth_significant_child {
-	my $elements = shift->{elements};
-	my ($number, $fromend) = ($_[0] > 0) ? (shift, 0) 
-		: ($_[0] < 0) ? (0 - shift(), 1)
-		: return undef;
-
-	# Start with the index of the last element
-	my $last_index = $#$elements;
-	foreach my $p ( 0 .. $last_index ) {
-		# Work out the actual position to test
-		my $i = $fromend ? ($last_index - $p) : $p;
-
-		if ( $elements->[$i]->significant ) {
-			# Is this the nth?
-			return $elements->[$i] unless --$number;
+	my $idx  = 0 + shift;
+	my @el   = @{$self->{elements}};
+	if ( $idx < 0 ) {
+		my $cursor = 0;
+		while ( exists $el[--$cursor] ) {
+			return $el[$cursor] if $el[$cursor]->significant and ++$idx >= 0;
+		}
+	} else {
+		my $cursor = -1;
+		while ( exists $el[++$cursor] ) {
+			return $el[$cursor] if $el[$cursor]->significant and --$idx < 0;
 		}
 	}
-
-	'';
+	undef;
 }
 
-# Search for one or more elements based on a condition
+=pod
+
+=head2 remove_child $Element
+
+If passed a L<PPI::Element|PPI::Element> object that is a direct child of
+the Node, the C<remove_element> method will remove the Element intact,
+along with any of it's children. As such, this method acts essentially as
+a lexical 'cut' function.
+
+=cut
+
+sub remove_child {
+	my $self  = shift;
+	my $child = isa($_[0], 'PPI::Element') ? shift : return undef;
+
+	# Find the position of the child
+	my $key      = Scalar::Util::refaddr $child;
+	my $position = List::MoreUtils::firstidx { Scalar::Util::refaddr $_ == $key } @{$self->{elements}};
+	return undef unless defined $position;
+
+	# Splice it out, and remove the child's parent entry
+	splice( @{$self->{elements}}, $position, 1 );
+	delete $_PARENT{Scalar::Util::refaddr $child};
+
+	# Return the child as a convenience
+	$child;
+}
+
+=pod
+
+=head2 find $class | \&condition
+
+The C<find> method is used to search within a code tree for PPI::Element
+objects that meet a particular condition. To specify the condition, the
+method can be provided with either a simple class name, or an anonymous
+subroutine.
+
+The anonymous subroutine will be passed two arguments, the top-level
+Node being searched within and the current Element that the condition is
+testing. The anonymous subroutine should return a simple true/false
+value incating match or no match.
+
+The C<find> method returns a reference to an array of PPI::Element object
+that match the condition, false if no Elements match the condition, or
+C<undef> if an error occurs during the search process.
+
+=cut
+
 sub find {
 	my $self = shift;
 	my $condition = $self->_condition(shift) or return undef;
 
 	# Use a queue based search, rather than a recursive one
 	my @found = ();
-	my @queue = $self->elements;
-	while ( my $node = shift @queue ) {
-		# Depth-first search keeps the queue size down,
-		# and provides a better logical order.
-		unshift @queue, $node->elements;
-		push @found, $node if &$condition( $self, $node );
+	my @queue = $self->children;
+	while ( my $Element = shift @queue ) {
+		push @found, $Element if &$condition( $self, $Element );
+
+		# Depth-first keeps the queue size down and provides a
+		# better logical order.
+		if ( $Element->isa('PPI::Structure') ) {
+			unshift @queue, $Element->finish if $Element->finish;
+			unshift @queue, $Element->children;
+			unshift @queue, $Element->start if $Element->start;
+		} elsif ( $Element->isa('PPI::Node') ) {
+			unshift @queue, $Element->children;
+		}
 	}
 
-	@queue ? \@queue : '';
+	@found ? \@found : '';
 }
+
+=pod
+
+=head2 prune $class | \&condition
+
+The C<prune> method is used to strip PPI::Element objects out of a code tree.
+The argument is the same as for the C<find> method, either a class name, or
+an anonymous subroutine which returns true/false. Any Element that matches
+the class|condition will be deleted from the code tree, along with any
+of it's children.
+
+The C<prune> method returns the number of Element objects that matched and
+were removed, B<NOT> including the child Elements of those that matched
+the condition. This might also be zero, so avoid a simple true/false test
+on the return false of the C<prune> method. It returns C<undef> on error,
+which you probably B<SHOULD> test for.
+
+=cut
 
 sub prune {
 	my $self = shift;
 	my $condition = $self->_condition(shift) or return undef;
 
-	# Use a queue search, rather than a recursive search
+	# Use a depth-first queue search
 	my $pruned = 0;
-	my @queue = ( @{$self->{elements}} );
-	while ( my $node = shift @queue ) {
-		if ( &$condition( $self, $node ) ) {
+	my @queue = $self->children;
+	while ( my $element = shift @queue ) {
+		if ( &$condition( $self, $element ) ) {
 			# Delete the child
-			$node->delete or return undef;
+			$element->delete or return undef;
 			$pruned++;
-		} else {
+		} elsif ( isa($element, 'PPI::Node') ) {
 			# Depth-first keeps the queue size down
-			unshift @queue, $node->elements;
+			unshift @queue, $element->children;
 		}
 	}
 
-	1;
+	$pruned;
 }
 
 sub _condition {
@@ -205,12 +310,39 @@ sub _condition {
 
 
 ####################################################################
-# Getting information out
+# PPI::Element overloaded methods
 
-# Merge from our children
-sub tokens { map { $_->tokens } @{$_[0]->{elements}} }
+sub tokens {
+	map { $_->tokens } @{$_[0]->{elements}}
+}
 
-# Overload to merge from our children
-sub content { join '', map { $_->content } @{$_[0]->{elements}} }
+sub content {
+	join '', map { $_->content } @{$_[0]->{elements}}
+}
+
+sub _line {
+	my $self = shift;
+	my $first = $self->{elements}->[0] or return undef;
+	$first->_line;
+}
+
+sub _col {
+	my $self = shift;
+	my $first = $self->{elements}->[0] or return undef;
+	$first->_col;
+}
+
+sub DESTROY {
+	if ( $_[0]->{elements} ) {
+		my @queue = $_[0];
+		while ( $_ = shift @queue ) {
+			next unless defined $_->{elements};
+			unshift @queue, @{delete $_->{elements}};
+		}
+	}
+
+	# Remove us from our parent node as normal
+	delete $_PARENT{Scalar::Util::refaddr $_[0]};
+}
 
 1;

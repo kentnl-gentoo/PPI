@@ -9,7 +9,7 @@ use PPI ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.818';
+	$VERSION = '0.819';
 }
 
 
@@ -53,6 +53,15 @@ sub elements {
 	( $self->{start} || (), @{$self->{elements}}, $self->{finish} || () );
 }
 
+# Get the full set of tokens, including start and finish
+sub tokens {
+	my $self = shift;
+	my @tokens = $self->SUPER::tokens(@_);
+	unshift @tokens, $self->{start} if $self->{start};
+	push @tokens, $self->{finish} if $self->{finish};
+	@tokens;
+}
+
 # Like the token method ->content, get our merged contents.
 # This will recurse downwards through everything
 sub content {
@@ -70,7 +79,7 @@ package PPI::Structure::Block;
 
 # The general block curly braces
 BEGIN {
-	$PPI::Structure::Block::VERSION = '0.818';
+	$PPI::Structure::Block::VERSION = '0.819';
 	@PPI::Structure::Block::ISA     = 'PPI::Structure';
 }
 
@@ -82,7 +91,7 @@ BEGIN {
 package PPI::Structure::Subscript;
 
 BEGIN {
-	$PPI::Structure::Subscript::VERSION = '0.818';
+	$PPI::Structure::Subscript::VERSION = '0.819';
 	@PPI::Structure::Subscript::ISA     = 'PPI::Structure';
 }
 
@@ -95,7 +104,7 @@ package PPI::Structure::Constructor;
 
 # The else block
 BEGIN {
-	$PPI::Structure::Constructor::VERSION = '0.818';
+	$PPI::Structure::Constructor::VERSION = '0.819';
 	@PPI::Structure::Constructor::ISA     = 'PPI::Structure';
 }
 
@@ -110,7 +119,7 @@ package PPI::Structure::Condition;
 # if ( ) { ... }
 
 BEGIN {
-	$PPI::Structure::Condition::VERSION = '0.818';
+	$PPI::Structure::Condition::VERSION = '0.819';
 	@PPI::Structure::Condition::ISA     = 'PPI::Structure';
 }
 
@@ -118,13 +127,25 @@ BEGIN {
 
 
 
-####################################################################
+#####################################################################
 package PPI::Structure::List;
 
 BEGIN {
-	$PPI::Structure::List::VERSION = '0.818';
+	$PPI::Structure::List::VERSION = '0.819';
 	@PPI::Structure::List::ISA     = 'PPI::Structure';
-}	
+}
+
+
+
+
+
+#####################################################################
+package PPI::Structure::ForLoop;
+
+BEGIN {
+	$PPI::Structure::ForLoop::VERSION = '0.819';
+	@PPI::Structure::ForLoop::ISA     = 'PPI::Structure';
+}
 
 
 
@@ -138,7 +159,7 @@ package PPI::Structure::Unknown;
 # clues.
 
 BEGIN {
-	$PPI::Structure::Unknown::VERSION = '0.818';
+	$PPI::Structure::Unknown::VERSION = '0.819';
 	@PPI::Structure::Unknown::ISA     = 'PPI::Structure';
 }	
 

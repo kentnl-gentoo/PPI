@@ -1,5 +1,28 @@
 Revision history for Perl extension PPI
 
+0.819 Mon Jul  5 2004
+	- Many parts of PPI are VASTLY changed in this revision
+	- Breaks API compatibility heavily
+	- Adds dependency on List::MoreUtils
+	- Added PPI::Lexer support for CHECK blocks
+	- Added PPI::Document::load method
+	- Added PPI::Document::save method
+	- Added PPI::Document::index_locations method
+	- Added PPI::Document::flush_locations method
+	- Added PPI::Element::top method
+	- Added PPI::Element::document method
+	- Renamed PPI::Element::extract -> PPI::Element::remove
+	- Added test script for element-y stuff
+	- Optimisation across the board using List::Any
+	- Added PPI::Node::first_child method
+	- Added PPI::Node::last_child method
+	- Added PPI::Element::clone method
+	- Removed Filehandle support from PPI::Tokenizer, to allow the
+	  ability to rollback source lines into the buffer if needed.
+	- Added POD documentation for PPI::Element
+	- Added POD documentation for PPI::Node
+	- Added POD documentation for PPI::Document
+
 0.818 Mon Jul  5 2004
 	- Changed lib/PPI/Manual.pm to lib/PPI/Manual.pod
 	- Added documentation for PPI::Lexer

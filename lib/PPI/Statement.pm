@@ -9,7 +9,7 @@ use PPI ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.818';
+	$VERSION = '0.819';
 }
 
 
@@ -50,8 +50,8 @@ package PPI::Statement::Expression;
 # A "normal" expression of some sort
 
 BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.818';
-	$PPI::Statement::Expression::ISA     = 'PPI::Statement';
+	$PPI::Statement::Expression::VERSION = '0.819';
+	@PPI::Statement::Expression::ISA     = 'PPI::Statement';
 }
 
 
@@ -65,7 +65,7 @@ package PPI::Statement::Scheduled;
 # BEGIN/INIT/LAST/END blocks
 
 BEGIN {
-	$PPI::Statement::Scheduled::VERSION = '0.818';
+	$PPI::Statement::Scheduled::VERSION = '0.819';
 	@PPI::Statement::Scheduled::ISA     = 'PPI::Statement';
 }
 
@@ -81,7 +81,7 @@ package PPI::Statement::Package;
 # Package decleration
 
 BEGIN {
-	$PPI::Statement::Package::VERSION = '0.818';
+	$PPI::Statement::Package::VERSION = '0.819';
 	@PPI::Statement::Package::ISA     = 'PPI::Statement';
 }
 
@@ -97,7 +97,7 @@ package PPI::Statement::Include;
 ### require should be a function, not a special statement?
 
 BEGIN {
-	$PPI::Statement::Include::VERSION = '0.818';
+	$PPI::Statement::Include::VERSION = '0.819';
 	@PPI::Statement::Include::ISA     = 'PPI::Statement';
 }
 
@@ -111,7 +111,7 @@ package PPI::Statement::Sub;
 # Subroutine or prototype declaration
 
 BEGIN {
-	$PPI::Statement::Sub::VERSION = '0.818';
+	$PPI::Statement::Sub::VERSION = '0.819';
 	@PPI::Statement::Sub::ISA     = 'PPI::Statement';
 }
 
@@ -121,14 +121,14 @@ sub name {
 	my $self = shift;
 
 	# The second token should be the name, if we have one
-	my $Token = $self->nth_significant_child(2) or return undef;
+	my $Token = $self->schild(1) or return undef;
 	$Token->is_a('Bareword') ? $Token->content : undef;
 }
 
 # If we don't have a block at the end, this is a forward declaration
 sub forward {
 	my $self = shift;
-	! $self->nth_significant_child(-1)->isa('PPI::Structure::Block');
+	! $self->schild(-1)->isa('PPI::Structure::Block');
 }
 
 
@@ -141,7 +141,7 @@ package PPI::Statement::Variable;
 # Explicit variable decleration ( my, our, local )
 
 BEGIN {
-	$PPI::Statement::Variable::VERSION = '0.818';
+	$PPI::Statement::Variable::VERSION = '0.819';
 	@PPI::Statement::Variable::ISA     = 'PPI::Statement';
 }
 
@@ -155,7 +155,7 @@ package PPI::Statement::Compound;
 # This should cover all flow control statements, if, while, etc, etc
 
 BEGIN {
-	$PPI::Statement::Compound::VERSION = '0.818';
+	$PPI::Statement::Compound::VERSION = '0.819';
 	@PPI::Statement::Compound::ISA     = 'PPI::Statement';
 }
 
@@ -165,11 +165,11 @@ sub _implied_end { 1 }
 # It should be the first bareword in the statement.
 sub type {
 	my $self = shift;
-	my $Token = $self->nth_significant_child(1);
+	my $Token = $self->schild(0);
 	if ( $Token->is_a('Bareword') ) {
 		return $Token->content;
 	} elsif ( $Token->isa_a('Label') ) {
-		$Token = $self->nth_significant_child(2);
+		$Token = $self->schild(1);
 		return $Token->is_a('Bareword') ? $Token->content : undef;
 	} else {
 		return undef;
@@ -187,7 +187,7 @@ package PPI::Statement::Break;
 # next, last, return.
 
 BEGIN {
-	$PPI::Statement::Break::VERSION = '0.818';
+	$PPI::Statement::Break::VERSION = '0.819';
 	@PPI::Statement::Break::ISA     = 'PPI::Statement';
 }
 
@@ -202,8 +202,25 @@ package PPI::Statement::Null;
 # Usually, just an extra ; on it's own.
 
 BEGIN {
-	$PPI::Statement::Null::VERSION = '0.818';
+	$PPI::Statement::Null::VERSION = '0.819';
 	@PPI::Statement::Null::ISA     = 'PPI::Statement';
+}
+
+
+
+
+
+#####################################################################
+package PPI::Statement::Unknown;
+
+# We are unable to definitely catagorize the statement from the first
+# token alone. Do additional checks when adding subsequent tokens.
+
+# Currently, the only time this happens is when we start with a label
+
+BEGIN {
+	$PPI::Statement::Unknown::VERSION = '0.819';
+	@PPI::Statement::Unknown::ISA     = 'PPI::Statement';
 }
 
 1;

@@ -15,8 +15,9 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 28;
+use Test::More tests => 32;
 use Class::Autouse qw{:devel};
+use File::Slurp ();
 
 use vars qw{$testdir};
 BEGIN {
@@ -76,6 +77,12 @@ foreach my $codefile ( @code ) {
 
 	# Compare the two
 	is_deeply( $array_ref, \@content,      "$codefile: Generated dump matches stored dump" );
+
+	# Also, do a round-trip check
+	my $source = File::Slurp::read_file( $codefile );
+	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
+
+	is( $Document->content, $source, "$codefile: Round-trip back to source was ok" );
 }
 
 exit();

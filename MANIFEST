@@ -42,6 +42,7 @@ sample/syntax/README
 t/01_compile.t
 t/02_api.t
 t/03_empiric.t
+t/04_element.t
 t/05_lexer_practical.t
 testdata/lexer/practical/01_simpleassign.code
 testdata/lexer/practical/01_simpleassign.dump

@@ -49,7 +49,7 @@ use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.818';
+	$VERSION = '0.819';
 }
 
 
@@ -65,7 +65,7 @@ BEGIN {
 
 The C<new> constructor creates a new PPI::Lexer object. The object itself
 is merely used to hold various buffers and state data during the lexing
-process, and holds no significant data between -E<GT>lex_xxxxx calls.
+process, and holds no significant data between -E<gt>lex_xxxxx calls.
 
 Returns a new PPI::Lexer object.
 
@@ -193,7 +193,7 @@ sub _lex_document {
 		}
 
 		# Handle anything other than a structural element
-		unless ( $Token->class eq 'PPI::Token::Structure' ) {
+		unless ( ref $Token eq 'PPI::Token::Structure' ) {
 			# Determine the class for the Statement, and create it
 			my $_class = $self->_resolve_statement($Document, $Token) or return undef;
 			my $Statement = $_class->new( $Token ) or return undef;
@@ -249,8 +249,8 @@ BEGIN {
 	%STATEMENT_CLASSES = (
 		# Things that affect the timing of execution
 		'BEGIN'   => 'PPI::Statement::Scheduled',
+		'CHECK'   => 'PPI::Statement::Scheduled',
 		'INIT'    => 'PPI::Statement::Scheduled',
-		'LAST'    => 'PPI::Statement::Scheduled',
 		'END'     => 'PPI::Statement::Scheduled',
 
 		# Loading and context statement
@@ -272,6 +272,7 @@ BEGIN {
 		'foreach' => 'PPI::Statement::Compound',
 		'while'   => 'PPI::Statement::Compound',
 
+		# Various ways of breaking out of scope
 		'redo'    => 'PPI::Statement::Break',
 		'next'    => 'PPI::Statement::Break',
 		'last'    => 'PPI::Statement::Break',
@@ -287,6 +288,16 @@ sub _resolve_statement {
 	# If it's a token in our list, use that class
 	if ( $STATEMENT_CLASSES{$Token->content} ) {
 		return $STATEMENT_CLASSES{$Token->content};
+	}
+
+	# If our parent is a Condition, we are an Expression
+	if ( $Parent->isa('PPI::Structure::Condition') ) {
+		return 'PPI::Statement::Expression';
+	}
+
+	# If our parent is a List, we are also an expression
+	if ( $Parent->isa('PPI::Structure::List') ) {
+		return 'PPI::Statement::Expression';
 	}
 
 	# Beyond that, I have no frigging idea for now
@@ -377,7 +388,7 @@ sub _statement_continues {
 	my $self = shift;
 	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
 	my $Token     = isa($_[0], 'PPI::Token')     ? shift : return undef;
-	my $LastToken = $Statement->nth_significant_child(-1) or return undef;
+	my $LastToken = $Statement->schild(-1) or return undef;
 
 	# Alrighty then, there are only three implied end statement types,
 	# ::Scheduled blocks, ::Sub declarations, and ::Compound statements.
@@ -399,7 +410,7 @@ sub _statement_continues {
 
 		# If the token before the block is an 'else',
 		# it's over, no matter what.
-		my $Before = $Statement->nth_significant_child(-2);
+		my $Before = $Statement->schild(-2);
 		if ( $Before and $Before->isa('PPI::Token') and $Before->is_a('Bareword','else') ) {
 			return 0;
 		}
@@ -423,10 +434,16 @@ use vars qw{%ROUND_CLASSES};
 BEGIN {
 	# Keyword -> Structure class maps
 	%ROUND_CLASSES = (
+		# Conditions
 		'if'     => 'PPI::Structure::Condition',
 		'elsif'  => 'PPI::Structure::Condition',
 		'unless' => 'PPI::Structure::Condition',
 		'while'  => 'PPI::Structure::Condition',
+		'until'  => 'PPI::Structure::Condition',
+
+		# For(each)
+		'for'     => 'PPI::Structure::ForLoop',
+		'foreach' => 'PPI::Structure::ForLoop',
 		);
 }
 
@@ -450,15 +467,21 @@ sub _resolve_structure_round {
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
-	my $Element = $Parent->nth_significant_child( -1 );
+	my $Element = $Parent->schild(-1);
 	if ( isa( $Element, 'PPI::Token::Bareword' ) ) {
 		# Can it be determined because it is a keyword?
-		return $ROUND_CLASSES{$Element->content}
-			|| 'PPI::Structure::List';
+		if ( $ROUND_CLASSES{$Element->content} ) {
+			return $ROUND_CLASSES{$Element->content};
+		}
 	}
 
-	# Otherwise, we don't know what it is
-	'PPI::Structure';
+	# If we are part of a for or foreach statement, we are a ForLoop
+	if ( $Parent->isa('PPI::Statement::Compound') and $Parent->type =~ /^for(?:each)?$/ ) {
+		return 'PPI::Structure::ForLoop';
+	}
+
+	# Otherwise, if must be a list
+	'PPI::Structure::List'
 }
 
 # Given a parent element, and a [ token to open a structure, determine
@@ -468,7 +491,7 @@ sub _resolve_structure_square {
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
-	my $Element = $Parent->nth_significant_child( -1 );
+	my $Element = $Parent->schild(-1);
 
 	# Is this a subscript, like $foo[1] or $foo{expr}
 	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
@@ -496,7 +519,7 @@ sub _resolve_structure_curly {
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
-	my $Element = $Parent->nth_significant_child( -1 );
+	my $Element = $Parent->schild(-1);
 
 	# Is this a subscript, like $foo[1] or $foo{expr}
 	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
@@ -535,7 +558,7 @@ sub _lex_structure {
 		}
 
 		# Anything other than a Structure starts a Statement
-		unless ( $Token->class eq 'PPI::Token::Structure' ) {
+		unless ( ref $Token eq 'PPI::Token::Structure' ) {
 			# Determine the class for the Statement and create it
 			my $_class = $self->_resolve_statement($Structure, $Token) or return undef;
 			my $Statement = $_class->new( $Token ) or return undef;
@@ -631,6 +654,18 @@ sub _add_element {
 	my $self = shift;
 	my $Parent  = isa($_[0], 'PPI::Node') ? shift : return undef;
 	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+
+	# Handle a special case, where a statement is not fully resolved
+	if ( ref $Parent eq 'PPI::Statement' ) {
+		my $first  = $Parent->schild(0);
+		my $second = $Parent->schild(1);
+		if ( $first and $first->isa('Label') and ! $second ) {
+			# It's a labelled statement
+			if ( $STATEMENT_CLASSES{$second->content} ) {
+				bless $Parent, $STATEMENT_CLASSES{$second->content};
+			}
+		}
+	}
 
 	# Add first the delayed, from the front, then the passed element
 	foreach my $el ( @{$self->{delayed}}, $Element ) {

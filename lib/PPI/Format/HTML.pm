@@ -10,7 +10,7 @@ use base qw{Exporter PPI::Base};
 use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.818';
+	$VERSION = '0.819';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
@@ -189,8 +189,8 @@ sub _serialize_syntax {
 # This is the method you should overload to make a new html syntax highlighter
 sub _get_token_color {
 	shift;
-	my $token = isa( $_[0], 'PPI::Token' ) ? shift : return '';
-	my $class = $token->class;
+	my $Token = isa( $_[0], 'PPI::Token' ) ? shift : return '';
+	my $class = ref $Token;
 	my $content = $token->{content};
 	if ( $class eq 'PPI::Token::Keyword' ) {
 		return 'blue';
@@ -233,21 +233,21 @@ sub _serialize_debug {
 	my $class = shift;
 	my $Tokenizer = isa( $_[0], 'PPI::Tokenizer' ) ? shift : return undef;
 	my $options = isa( $_[0], 'HASH' ) ? shift : {};
-	my ($token, $html) = ();
+	my ($html) = ();
 
 	# Reset the cursor and loop
 	my $line_count = 0;
 	my $bgcolor = '#EEEEEE';
-	foreach $token ( @{ $Tokenizer->all_tokens } ) {
-		$class = $token->class eq 'PPI::Token::Comment'
-			? $token->line ? "Comment Line" : "Comment"
-			: $token->class;
+	foreach my $Token ( @{$Tokenizer->all_tokens} ) {
+		$class = ref($Token) eq 'PPI::Token::Comment'
+			? $Token->line ? 'Comment Line' : 'Comment'
+			: ref($Token);
 		$bgcolor = $bgcolor eq '#FFFFFF' ? '#EEEEEE' : '#FFFFFF';
 		$html .= "<tr bgcolor='$bgcolor'><td align=right valign=top><b>"
 			. ++$line_count
 			. "</b></td>"
 			. "<td valign=top nowrap>$class</td>"
-			. "<td valign=top>" . escape_debug_html( $token->{content} ) . "</td></tr>\n";
+			. "<td valign=top>" . escape_debug_html($Token->{content}) . "</td></tr>\n";
 	}
 
 	qq~

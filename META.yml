@@ -1,19 +1,22 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         PPI
-version:      0.818
+version:      0.819
 version_from: lib/PPI.pm
 installdirs:  site
 requires:
     CGI:                           0
     CGI::Carp:                     0
-    Class::Autouse:                1.03
-    Class::Handle:                 1
-    Config::Tiny:                  1.6
+    Class::Autouse:                1.04
+    Class::Handle:                 1.0
+    Clone:                         0.13
+    Config::Tiny:                  1.9
     File::Find::Rule:              0
     File::Slurp:                   9999.04
     File::Spec:                    0.82
+    List::MoreUtils:               0.04
     List::Util:                    1.11
+    Scalar::Util:                  0
     Test::ClassAPI:                0.5
     Test::More:                    0
 

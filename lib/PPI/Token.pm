@@ -17,7 +17,7 @@ use PPI::Token::Classes       (); # This must be last
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.818';
+	$VERSION = '0.819';
 }
 
 
@@ -69,6 +69,16 @@ sub set_class {
 
 	1;
 }
+
+
+
+
+
+#####################################################################
+# Overloaded PPI::Element methods
+
+sub _line { $_[0]->{_line} }
+sub _col  { $_[0]->{_col}  }
 
 
 
