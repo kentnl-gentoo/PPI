@@ -1,5 +1,10 @@
 Revision history for Perl extension PPI
 
+0.812 Tue Jun 22 2004
+	- No changes to PPI itself.
+	- With the addition of Test::ClassAPI 'complete' support,
+	  upgraded 02_api.t to use it. Fixed a few small house-keeping bugs.
+
 0.811 Mon Jun 21 2004
 	- Added support for subroutine attributes
 	- Fixed some problems with anonymous subroutines and prototypes

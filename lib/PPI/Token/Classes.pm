@@ -22,7 +22,7 @@ use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.811';
+	$VERSION = '0.812';
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 
 	# Build the class map
@@ -43,7 +43,7 @@ BEGIN {
 	$classmap[ord '_']  = 'Bareword';
 }
 
-# Create a null base token
+# Create a null whitespace token
 sub null { $_[0]->new('') }
 
 sub significant { 0 }
@@ -225,7 +225,7 @@ sub _on_line_start {
 }
 
 # Breaks the pod into lines, returned as a reference to an array
-sub lines { [ split /(?:\015\012|\015|\012)/, $_[0]->{content} ] }
+sub lines { [ split /(?:\015{1,2}\012|\015|\012)/, $_[0]->{content} ] }
 
 # Extended methods.
 # See PPI::Token::_Pod for details

@@ -23,7 +23,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.811';
+	$VERSION = '0.812';
 }
 
 
@@ -36,7 +36,7 @@ sub _on_char {
 	my $t = $_[0]->{token} ? shift : return undef;
 
 	# Call the fill method to process the quote
-	my $rv = $t->{token}->fill( $t );
+	my $rv = $t->{token}->_fill( $t );
 	return undef unless defined $rv;
 
 	# Finalize the token and return 0 to tell the tokenizer

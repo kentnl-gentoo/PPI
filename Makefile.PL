@@ -13,7 +13,7 @@ WriteMakefile(
 		File::Flat       => 0.91,
 		File::Find::Rule => 0,
 		List::Util       => 1.11,
-		Test::ClassAPI   => 0.4,
+		Test::ClassAPI   => 0.5,
 		Config::Tiny     => 1.6,
 	},
 	($] >= 5.005) ? (

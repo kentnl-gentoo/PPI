@@ -7,7 +7,7 @@ use base 'PPI::Token::Quote';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.811';
+	$VERSION = '0.812';
 }
 
 
@@ -25,7 +25,7 @@ sub new {
 	$self;
 }
 
-sub fill {
+sub _fill {
 	my $class = shift;
 	my $t = shift;
 	my $self = $t->{token} or return undef;

@@ -8,7 +8,7 @@ use PPI ();
 
 use vars qw{$VERSION %round_classes %curly_classes};
 BEGIN {
-	$VERSION = '0.811';
+	$VERSION = '0.812';
 	@PPI::Structure::ISA = 'PPI::ParentElement';
 
 	# Keyword -> Structure class maps

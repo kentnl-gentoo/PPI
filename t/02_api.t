@@ -1,17 +1,32 @@
 #!/usr/bin/perl
 
-# Test the API for PPI
+# Basic first pass API testing for PPI
+
 use strict;
-use lib '../../modules'; # Development testing
-use lib '../lib';        # Installation testing
+use lib ();
+use File::Spec::Functions qw{:ALL};
+BEGIN {
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
+		lib->import( catdir( updir(), updir(), 'modules') );
+	}
+}
+
+# Load the API we will be testing
 use Class::Autouse qw{:devel};
 use PPI;
 
 # Execute the tests
-use Test::More 'tests' => 629;
+use Test::More 'tests' => 736;
 use Test::ClassAPI;
-Test::ClassAPI->execute;
 
+# Ignore various imported or special functions
+$Test::ClassAPI::IGNORE{'DESTROY'}++;
+$Test::ClassAPI::IGNORE{'refaddr'}++;
+
+# Execute the tests
+Test::ClassAPI->execute('complete');
 exit(0);
 
 # Now, define the API for the classes
@@ -36,7 +51,10 @@ PPI::Token::Operator=class
 PPI::Token::Magic=class
 PPI::Token::Cast=class
 PPI::Token::SubPrototype=class
+PPI::Token::Attribute=class
 PPI::Token::DashedBareword=class
+PPI::Token::Quote::Simple=abstract
+PPI::Token::Quote::Full=abstract
 PPI::Token::Quote::Single=class
 PPI::Token::Quote::Double=class
 PPI::Token::Quote::Execute=class
@@ -57,6 +75,7 @@ errstr_console=method
 
 [PPI::Tokenizer]
 new=method
+load=method
 get_token=method
 all_tokens=method
 increment_cursor=method
@@ -85,9 +104,12 @@ is_a=method
 
 [PPI::Token::Whitespace]
 PPI::Token=isa
+null=method
+tidy=method
 
 [PPI::Token::Pod]
 PPI::Token=isa
+lines=method
 merge=method
 
 [PPI::Token::Data]
@@ -98,6 +120,7 @@ PPI::Token=isa
 
 [PPI::Token::Comment]
 PPI::Token=isa
+line=method
 
 [PPI::Token::Bareword]
 PPI::Token=isa
@@ -129,32 +152,57 @@ PPI::Token=isa
 [PPI::Token::SubPrototype]
 PPI::Token=isa
 
+[PPI::Token::Attribute]
+PPI::Token=isa
+identifier=method
+parameters=method
+
 [PPI::Token::DashedBareword]
 PPI::Token=isa
 
+[PPI::Token::Quote::Simple]
+PPI::Token=isa
+PPI::Token::Quote=isa
+get_string=method
+
+[PPI::Token::Quote::Full]
+PPI::Token=isa
+PPI::Token::Quote=isa
+sections=method
+
 [PPI::Token::Quote::Single]
 PPI::Token=isa
+PPI::Token::Quote=isa
+PPI::Token::Quote::Simple=isa
 
 [PPI::Token::Quote::Double]
 PPI::Token=isa
+PPI::Token::Quote=isa
+PPI::Token::Quote::Simple=isa
 
 [PPI::Token::Quote::Execute]
 PPI::Token=isa
+PPI::Token::Quote=isa
 
 [PPI::Token::Quote::OperatorSingle]
 PPI::Token=isa
+PPI::Token::Quote=isa
 
 [PPI::Token::Quote::OperatorDouble]
 PPI::Token=isa
+PPI::Token::Quote=isa
 
 [PPI::Token::Quote::OperatorExecute]
 PPI::Token=isa
+PPI::Token::Quote=isa
 
 [PPI::Token::Quote::Words]
 PPI::Token=isa
+PPI::Token::Quote=isa
 
 [PPI::Token::Quote::Regex]
 PPI::Token=isa
+PPI::Token::Quote=isa
 
 [PPI::Token::Regex::Match]
 PPI::Token=isa
