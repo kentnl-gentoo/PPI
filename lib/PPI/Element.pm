@@ -32,7 +32,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.822';
+	$VERSION = '0.823';
 
 	# Master Child -> Parent index
 	%_PARENT = ();

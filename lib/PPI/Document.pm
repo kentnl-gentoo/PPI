@@ -53,10 +53,11 @@ use File::Slurp    ();
 use PPI            ();
 use PPI::Statement ();
 use PPI::Structure ();
+use PPI::Document::Fragment ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.822';
+	$VERSION = '0.823';
 }
 
 

@@ -49,7 +49,7 @@ use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.822';
+	$VERSION = '0.823';
 }
 
 
@@ -380,6 +380,24 @@ sub _lex_statement {
 	$self->_rollback;
 }
 
+sub _lex_statement_end {
+	my $self = shift;
+	my $Statement = isa($_[0], 'PPI::Statement::End') ? shift : return undef;
+	
+	# End of the file, EVERYTHING is ours
+	my $Token;
+	while ( $Token = $self->_get_token ) {
+		$Statement->add_element( $Token ) or return undef;
+	}
+
+	# Was it an error in the tokenizer?
+	return undef unless defined $Token;
+
+	# No, it's just the end of the file...
+	# Roll back any insignificant tokens, they'll get added at the Document level
+	$self->_rollback;
+}
+
 # For many statements, it can be dificult to determine the end-point.
 # This method takes a statement and the next significant token, and attempts
 # to determine if the there is a statement boundary between the two, or if
@@ -397,7 +415,8 @@ sub _statement_continues {
 
 	# Of these three, ::Scheduled and ::Sub both follow the same simple
 	# rule and can be handled first.
-	my $LastChild = $Statement->schild(-1) or return undef;
+	my @part = $Statement->schildren;
+	my $LastChild = $part[-1] or return undef;
 	unless ( $Statement->isa('PPI::Statement::Compound') ) {
 		# If the last significant element of the statement is a block,
 		# then a scheduled statement is done, no questions asked.
@@ -409,8 +428,16 @@ sub _statement_continues {
 	# relatively easy to handle compared to the others.
 	my $type = $Statement->type or return undef;
 	if ( $type eq 'if' ) {
+		# This should be one of the following
+		# if (EXPR) BLOCK
+		# if (EXPR) BLOCK else BLOCK
+		# if (EXPR) BLOCK elsif (EXPR) BLOCK ... else BLOCK
+
 		# We only implicitly end on a block
 		unless ( $LastChild->isa('PPI::Structure::Block') ) {
+			# if (EXPR) ...
+			# if (EXPR) BLOCK else ...
+			# if (EXPR) BLOCK elsif (EXPR) BLOCK ...
 			return 1;
 		}
 
@@ -418,20 +445,27 @@ sub _statement_continues {
 		# it's over, no matter what.
 		my $NextLast = $Statement->schild(-2);
 		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->is_a('Bareword','else') ) {
-			return 0;
+			return '';
 		}
 
 		# Otherwise, we continue for 'elsif' or 'else' only.
 		return 1 if $Token->is_a('Bareword', 'else');
 		return 1 if $Token->is_a('Bareword', 'elsif');
-		return 0;
+		return '';
 	}
 
 	if ( $type eq 'label' ) {
-		# We only have the label so far.
+		# We only have the label so far, could be any of
+		# LABEL while (EXPR) BLOCK
+		# LABEL while (EXPR) BLOCK continue BLOCK
+		# LABEL for (EXPR; EXPR; EXPR) BLOCK
+		# LABEL foreach VAR (LIST) BLOCK
+		# LABEL foreach VAR (LIST) BLOCK continue BLOCK
+		# LABEL BLOCK continue BLOCK
 
 		# Handle cases with a work after the label
-		if ( $Token->isa('PPI::Token::Bareword') and $Token->content =~ /^(?:while|for|foreach)$/ ) {
+		if ( $Token->isa('PPI::Token::Bareword')
+		and $Token->content =~ /^(?:while|for|foreach)$/ ) {
 			return 1;
 		}
 	
@@ -439,28 +473,119 @@ sub _statement_continues {
 		if ( $Token->isa('PPI::Structure::Block') ) {
 			return 1;
 		}
+
+		return '';
 	}
 
-	### FIXME - Default to 1 for now so we can test
-	1;
-}
-
-sub _lex_statement_end {
-	my $self = shift;
-	my $Statement = isa($_[0], 'PPI::Statement::End') ? shift : return undef;
-	
-	# End of the file, EVERYTHING is ours
-	my $Token;
-	while ( $Token = $self->_get_token ) {
-		$Statement->add_element( $Token ) or return undef;
+	# Handle the common "after round braces" case
+	if ( isa($LastChild, 'PPI::Structure') and $LastChild->braces eq '()' ) {
+		# LABEL while (EXPR) ...
+		# LABEL while (EXPR) ...
+		# LABEL for (EXPR; EXPR; EXPR) ...
+		# LABEL foreach VAR (LIST) ...
+		# LABEL foreach VAR (LIST) ...
+		# Only a block will do
+		return $Token->is_a('Structure', '{');
 	}
 
-	# Was it an error in the tokenizer?
-	return undef unless defined $Token;
+	if ( $type eq 'for' ) {
+		# LABEL for (EXPR; EXPR; EXPR) BLOCK
+		if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'for' ) {
+			# LABEL for ...
+			# Only an open braces will do
+			return $Token->is_a('Structure', '(');
 
-	# No, it's just the end of the file...
-	# Roll back any insignificant tokens, they'll get added at the Document level
-	$self->_rollback;
+		} elsif ( isa($LastChild, 'PPI::Structure::Block') ) {
+			# LABEL for (EXPR; EXPR; EXPR) BLOCK
+			# That's it, nothing can continue
+			return '';
+		}
+	}
+
+	# Handle the common continue case
+	if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'continue' ) {
+		# LABEL while (EXPR) BLOCK continue ...
+		# LABEL foreach VAR (LIST) BLOCK continue ...
+		# LABEL BLOCK continue ...
+		# Only a block will do
+		return $Token->is_a('Structure', '{');
+	}
+
+	# Handle the common continuable block case
+	if ( isa($LastChild, 'PPI::Structure::Block') ) {
+		# LABEL while (EXPR) BLOCK
+		# LABEL while (EXPR) BLOCK ...
+		# LABEL for (EXPR; EXPR; EXPR) BLOCK
+		# LABEL foreach VAR (LIST) BLOCK
+		# LABEL foreach VAR (LIST) BLOCK ...
+		# LABEL BLOCK ...
+		# Is this the block for a continue?
+		if ( isa($part[-2], 'PPI::Token::Bareword') and $part[-2]->content eq 'continue' ) {
+			# LABEL while (EXPR) BLOCK continue BLOCK
+			# LABEL foreach VAR (LIST) BLOCK continue BLOCK
+			# LABEL BLOCK continue BLOCK
+			# That's it, nothing can continue this
+			return '';
+		}
+
+		# Only a continue will do
+		return $Token->is_a('Bareword', 'continue');
+	}
+
+	if ( $type eq 'block' ) {
+		# LABEL BLOCK continue BLOCK
+		# Every possible case is covered in the common cases above
+	}
+
+	if ( $type eq 'while' ) {
+		# LABEL while (EXPR) BLOCK
+		# LABEL while (EXPR) BLOCK continue BLOCK
+		# The only case not covered is the while ...
+		if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'while' ) {
+			# LABEL while ...
+			# Only a condition structure will do
+			return $Token->is_a('Structure', '(');
+		}
+	}
+
+	if ( $type eq 'foreach' ) {
+		# LABEL foreach VAR (LIST) BLOCK
+		# LABEL foreach VAR (LIST) BLOCK continue BLOCK
+		# The only two cases that have not been covered already are
+		# 'foreach ...' and 'foreach VAR ...'
+		return undef unless isa($LastChild, 'PPI::Token');
+
+		if ( isa($LastChild, 'PPI::Token::Symbol') ) {
+			# LABEL foreach my $scalar ...
+			# Only an open round brace will do
+			return $Token->is_a('Structure', '(');
+		}
+
+		if ( $LastChild->content eq 'foreach' ) {
+			# There are three possibilities here
+			if ( $Token->is_a('Bareword', 'my') ) {
+				# VAR == 'my ...'
+				return 1;
+			} elsif ( $Token->content =~ /^\$/ ) {
+				# VAR == '$scalar'
+				return 1;
+			} elsif ( $Token->is_a('Structure', '(') ) {
+				return 1;
+			} else {
+				return '';
+			}
+		}
+		
+		if ( $LastChild->content eq 'my' ) {
+			# LABEL foreach my ...
+			# Only a scalar will do
+			return $Token->content =~ /^\$/;
+		}
+	}
+
+	# Something we don't know about... what could it be
+	warn("Illegal parse state in '$type' type compound statement");
+	return undef;
 }
 
 

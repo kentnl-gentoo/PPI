@@ -1,0 +1,77 @@
+PPI::Document
+  PPI::Statement::Compound
+    PPI::Token::Bareword  	'while'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Condition  	( ... )
+      PPI::Statement::Expression
+        PPI::Token::Number  	'1'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Bareword  	'foreach'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Label  	'LABEL:'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Bareword  	'foreach'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Symbol  	'$foo'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+      PPI::Token::Whitespace  	' '
+      PPI::Statement
+        PPI::Token::Number  	'1'
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Operator  	'..'
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Number  	'20'
+      PPI::Token::Whitespace  	' '
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+      PPI::Token::Whitespace  	'\n'
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Bareword  	'foreach'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Bareword  	'my'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Symbol  	'$foo'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Bareword  	'for'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+      PPI::Statement::Variable
+        PPI::Token::Bareword  	'my'
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Symbol  	'$a'
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Operator  	'='
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Number  	'0'
+        PPI::Token::Structure  	';'
+      PPI::Token::Whitespace  	' '
+      PPI::Statement
+        PPI::Token::Symbol  	'$a'
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Operator  	'<'
+        PPI::Token::Whitespace  	' '
+        PPI::Token::Number  	'10'
+        PPI::Token::Structure  	';'
+      PPI::Token::Whitespace  	' '
+      PPI::Statement
+        PPI::Token::Symbol  	'$a'
+        PPI::Token::Operator  	'++'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+      PPI::Token::Whitespace  	'\n'
+  PPI::Token::Whitespace  	'\n'

@@ -8,11 +8,23 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.822';
+	$VERSION = '0.823';
 }
 
 # Lexer clue
 sub __LEXER__normal { '' }
+
+# Keyword type map
+use vars qw{%TYPES};
+BEGIN {
+	%TYPES = (
+		'if'      => 'if',
+		'unless'  => 'if',
+		'while'   => 'while',
+		'for'     => 'for',
+		'foreach' => 'foreach',
+		);
+}
 
 
 
@@ -29,14 +41,16 @@ sub type {
 
 	# Most simple cases
 	if ( isa($Element, 'PPI::Token::Bareword') ) {
-		return $Element->content;
+		return $TYPES{$Element->content};
 	}
 
 	# A labelled statement
 	if ( isa($Element, 'PPI::Token::Label') ) {
 		$Element = $self->schild(1) or return 'label';
-		return $Element->content if isa($Element, 'PPI::Token::Bareword');
 		return 'block' if isa($Element, 'PPI::Structure::Block');
+		if ( isa($Element, 'PPI::Token::Bareword') ) {
+			return $TYPES{$Element->content};
+		}
 	}
 
 	# Unknown (shouldn't exist?)

@@ -23,7 +23,7 @@ use PPI::Lexer::Dump;
 use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 1609;
+use Test::More 'tests' => 1667;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -37,17 +37,18 @@ exit(0);
 # Now, define the API for the classes
 __DATA__
 
+# Explicitly list the core classes
 PPI::Base=abstract
 PPI::Element=abstract
 PPI::Node=abstract
 PPI::Document=class
+PPI::Document::Fragment=class
 PPI::Tokenizer=class
 PPI::Lexer=class
 PPI::Lexer::Dump=class
 PPI::Format::HTML=class
 
-# Most of the data classes arn't listed here,
-# and are instead derived from their section headers.
+# Only list the non-classes for data objects
 PPI::Token=abstract
 PPI::Token::Quote::Simple=abstract
 PPI::Token::Quote::Full=abstract
@@ -83,6 +84,7 @@ PPI::Element=isa
 add_element=method
 elements=method
 children=method
+schildren=method
 child=method
 schild=method
 contains=method
@@ -97,6 +99,9 @@ load=method
 save=method
 index_locations=method
 flush_locations=method
+
+[PPI::Document::Fragment]
+PPI::Document=isa
 
 [PPI::Tokenizer]
 new=method

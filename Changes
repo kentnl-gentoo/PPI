@@ -1,5 +1,11 @@
 Revision history for Perl extension PPI
 
+0.823 Wed Jul 21 2004
+	- Added PPI::Document::Fragment class
+	- Added PPI::Node::schildren object method
+	- Completed compound statement parsing
+	- Lexer is now officially feature complete
+
 0.822 Wed Jul 21 2004
 	- Filling out the API test as much as possible
 	- Added PPI::Statement::label object method

@@ -6,7 +6,7 @@ use strict;
 
 use vars qw{$VERSION @err_stack};
 BEGIN {
-	$VERSION   = '0.822';
+	$VERSION   = '0.823';
 	@err_stack = ();
 }
 

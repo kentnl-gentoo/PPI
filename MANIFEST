@@ -2,6 +2,7 @@ Changes
 lib/PPI.pm
 lib/PPI/Base.pm
 lib/PPI/Document.pm
+lib/PPI/Document/Fragment.pm
 lib/PPI/Element.pm
 lib/PPI/Format/HTML.pm
 lib/PPI/Lexer.pm
@@ -36,6 +37,8 @@ t.data/05_lexer_practical/03_subroutine_attributes.code
 t.data/05_lexer_practical/03_subroutine_attributes.dump
 t.data/05_lexer_practical/04_anonymous_subroutines.code
 t.data/05_lexer_practical/04_anonymous_subroutines.dump
+t.data/05_lexer_practical/05_compound_loops.code
+t.data/05_lexer_practical/05_compound_loops.dump
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t
@@ -45,4 +48,5 @@ t/04_element.t
 t/05_lexer_practical.t
 t/06_round_trip.t
 t/07_token.t
+tmon.out
 META.yml                                Module meta-data (added by MakeMaker)

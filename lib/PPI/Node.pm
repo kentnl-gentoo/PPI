@@ -52,12 +52,12 @@ L<PPI::Element|PPI::Element> objects also apply to PPI::Node objects.
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Element';
-use Scalar::Util    ();
+use Scalar::Util 'refaddr';
 use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.822';
+	$VERSION = '0.823';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -99,11 +99,11 @@ sub add_element {
 
 	# Check the element
 	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
-	$_PARENT{Scalar::Util::refaddr $Element} and return undef;
+	$_PARENT{refaddr $Element} and return undef;
 
 	# Add the argument to the elements
 	push @{$self->{elements}}, $Element;
-	$_PARENT{Scalar::Util::refaddr $Element} = $self;
+	$_PARENT{refaddr $Element} = $self;
 
 	1;
 }
@@ -145,6 +145,24 @@ returns a count of the number of lexical children.
 # In the default case, this is the same as for the elements method
 sub children {
 	wantarray ? @{$_[0]->{elements}} : scalar @{$_[0]->{elements}};
+}
+
+=pod
+
+=head2 schildren
+
+The C<schildren> method is really just a convenience, the significant-only
+variation of the normal C<children> method.
+
+In list context, returns a list of significant children. In scalar context,
+returns the number of significant children.
+
+=cut
+
+sub schildren {
+	my $self = shift;
+	my @schildren = grep { $_->significant } $self->children;
+	wantarray ? @schildren : scalar(@schildren);
 }
 
 =pod
@@ -220,7 +238,7 @@ sub contains {
 	# Iterate up the Element's parent chain until we either run out
 	# of parents, or get to ourself.
 	while ( $Element = $Element->parent ) {
-		return 1 if Scalar::Util::refaddr($self) == Scalar::Util::refaddr($Element);
+		return 1 if refaddr($self) == refaddr($Element);
 	}
 
 	'';
@@ -324,13 +342,13 @@ sub remove_child {
 	my $child = isa($_[0], 'PPI::Element') ? shift : return undef;
 
 	# Find the position of the child
-	my $key      = Scalar::Util::refaddr $child;
-	my $position = List::MoreUtils::firstidx { Scalar::Util::refaddr $_ == $key } @{$self->{elements}};
+	my $key      = refaddr $child;
+	my $position = List::MoreUtils::firstidx { refaddr $_ == $key } @{$self->{elements}};
 	return undef unless defined $position;
 
 	# Splice it out, and remove the child's parent entry
 	splice( @{$self->{elements}}, $position, 1 );
-	delete $_PARENT{Scalar::Util::refaddr $child};
+	delete $_PARENT{refaddr $child};
 
 	# Return the child as a convenience
 	$child;
@@ -416,14 +434,14 @@ sub clone {
 	while ( my $Node = shift @queue ) {
 		# Link our immediate children
 		foreach my $Element ( @{$Node->{elements}} ) {
-			$_PARENT{Scalar::Util::refaddr($Element)} = $Node;
+			$_PARENT{refaddr($Element)} = $Node;
 			unshift @queue, $Element if isa($Element, 'PPI::Node');
 		}
 
 		# If it's a structure, relink the open/close braces
 		next unless isa($Node, 'PPI::Structure');
-		$_PARENT{Scalar::Util::refaddr($Node->start)}  = $Node if $Node->start;
-		$_PARENT{Scalar::Util::refaddr($Node->finish)} = $Node if $Node->finish;
+		$_PARENT{refaddr($Node->start)}  = $Node if $Node->start;
+		$_PARENT{refaddr($Node->finish)} = $Node if $Node->finish;
 	}
 
 	$self;
@@ -452,7 +470,7 @@ sub DESTROY {
 	}
 
 	# Remove us from our parent node as normal
-	delete $_PARENT{Scalar::Util::refaddr $_[0]};
+	delete $_PARENT{refaddr $_[0]};
 }
 
 1;

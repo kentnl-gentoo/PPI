@@ -15,7 +15,7 @@ use PPI::Statement::Compound ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.822';
+	$VERSION = '0.823';
 }
 
 # Statements that are normal end at statement terminators.
@@ -63,7 +63,7 @@ package PPI::Statement::Expression;
 # A "normal" expression of some sort
 
 BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.822';
+	$PPI::Statement::Expression::VERSION = '0.823';
 	@PPI::Statement::Expression::ISA     = 'PPI::Statement';
 }
 
@@ -78,7 +78,7 @@ package PPI::Statement::Scheduled;
 # BEGIN/INIT/LAST/END blocks
 
 BEGIN {
-	$PPI::Statement::Scheduled::VERSION = '0.822';
+	$PPI::Statement::Scheduled::VERSION = '0.823';
 	@PPI::Statement::Scheduled::ISA     = 'PPI::Statement';
 }
 
@@ -94,7 +94,7 @@ package PPI::Statement::Package;
 # Package decleration
 
 BEGIN {
-	$PPI::Statement::Package::VERSION = '0.822';
+	$PPI::Statement::Package::VERSION = '0.823';
 	@PPI::Statement::Package::ISA     = 'PPI::Statement';
 }
 
@@ -110,7 +110,7 @@ package PPI::Statement::Include;
 ### require should be a function, not a special statement?
 
 BEGIN {
-	$PPI::Statement::Include::VERSION = '0.822';
+	$PPI::Statement::Include::VERSION = '0.823';
 	@PPI::Statement::Include::ISA     = 'PPI::Statement';
 }
 
@@ -125,7 +125,7 @@ package PPI::Statement::Break;
 # next, last, return.
 
 BEGIN {
-	$PPI::Statement::Break::VERSION = '0.822';
+	$PPI::Statement::Break::VERSION = '0.823';
 	@PPI::Statement::Break::ISA     = 'PPI::Statement';
 }
 
@@ -140,7 +140,7 @@ package PPI::Statement::Null;
 # Usually, just an extra ; on it's own.
 
 BEGIN {
-	$PPI::Statement::Null::VERSION = '0.822';
+	$PPI::Statement::Null::VERSION = '0.823';
 	@PPI::Statement::Null::ISA     = 'PPI::Statement';
 }
 
@@ -154,7 +154,7 @@ package PPI::Statement::Data;
 # The section of a file containing data
 
 BEGIN {
-	$PPI::Statement::Data::VERSION = '0.822';
+	$PPI::Statement::Data::VERSION = '0.823';
 	@PPI::Statement::Data::ISA     = 'PPI::Statement';
 }
 
@@ -168,7 +168,7 @@ package PPI::Statement::End;
 # The useless stuff (although maybe containing POD) at the end of a file
 
 BEGIN {
-	$PPI::Statement::End::VERSION = '0.822';
+	$PPI::Statement::End::VERSION = '0.823';
 	@PPI::Statement::End::ISA     = 'PPI::Statement';
 }
 
@@ -185,7 +185,7 @@ package PPI::Statement::Unknown;
 # Currently, the only time this happens is when we start with a label
 
 BEGIN {
-	$PPI::Statement::Unknown::VERSION = '0.822';
+	$PPI::Statement::Unknown::VERSION = '0.823';
 	@PPI::Statement::Unknown::ISA     = 'PPI::Statement';
 }
 
