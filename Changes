@@ -1,5 +1,9 @@
 Revision history for Perl extension PPI
 
+0.807 Sat Apr  3 2004
+	- Added a manual META.yml file to stop the bundled private AppLib
+	  library from being indexed by CPAN
+
 0.806 Mon Mar 22 2004
 	- The $} magic variable is now supported
 	- Fixed a "tight sub property" bug ( sub foo:lvalue )
