@@ -23,48 +23,32 @@ use strict;
 # use warnings;
 # use diagnostics;
 use UNIVERSAL 'isa';
-use Class::Autouse;
+use Class::Inspector ();
+use Class::Autouse   ();
 
-# Load the essentials
+# Set the version for CPAN
+use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
+BEGIN {
+	$VERSION       = '0.845';
+	$XS_COMPATIBLE = '0.845';
+	@XS_EXCLUDE    = ();
+}
+
+# Always load the entire PDOM
 use base 'PPI::Base';
 use PPI::Token     ();
 use PPI::Statement ();
 use PPI::Structure ();
 
-# Set the version for CPAN
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.844';
-}
-
-
-
-
-
-# Build a regex library containing just the bits we need,
-# and precompile them all. Note that in all the places that
-# have critical speed issues, the regexs have been inlined.
-use vars qw{%RE};
-BEGIN {
-	%RE = (
-		CLASS        => qr/[\w:]/,                       # Characters anywhere in a class name
-		SYMBOL_FIRST => qr/[^\W\d]/,                     # The first character in a perl symbol
-		xpnl         => qr/(?:\015{1,2}\012|\015|\012)/, # Cross-platform newline
-		blank_line   => qr/^\s*$/,
-		comment_line => qr/^\s*#/,
-		pod_line     => qr/^=(\w+)/,
-		end_line     => qr/^\s*__(END|DATA)__\s*$/,
-		);
-}
-
-
-
-
-
 # Autoload the remainder of the classes
 use Class::Autouse 'PPI::Document',
                    'PPI::Tokenizer',
                    'PPI::Lexer';
+
+# If it is installed, load in PPI::XS
+if ( Class::Inspector->installed('PPI::XS') ) {
+	require PPI::XS;
+}
 
 1;
 

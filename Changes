@@ -1,5 +1,16 @@
 Revision history for Perl extension PPI
 
+0.845 Sat Jan 15 2005
+	General:
+	- Adding integration with PPI::XS, autoloading if installed
+
+	Details:
+	- Added $PPI::XS_COMPATIBLE and $PPI::XS_EXCLUDE variables to guide integration
+	- Don't autoload PPI::Document, always load
+	- Load in PPI::XS whenever it is installed
+	- Loading and depending on Class::Inspector
+	- PPI::Element::significant implemented in XS (as a trial)
+
 0.844 Fri Jan 14 2005
 	General:
 	- Found a massive performance bug when parsing large perl constructs

@@ -23,7 +23,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.844';
+	$VERSION = '0.845';
 }
 
 # What type of variable declaration is it? ( my, local, our )

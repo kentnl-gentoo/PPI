@@ -8,7 +8,7 @@ use base 'PPI::Token::_QuoteEngine::Simple',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.844';
+	$VERSION = '0.845';
 }
 
 # Initially return true/fales for if there are ANY interpolations.

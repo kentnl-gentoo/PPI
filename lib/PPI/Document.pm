@@ -65,7 +65,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.844';
+	$VERSION = '0.845';
 }
 
 
@@ -131,12 +131,10 @@ resulting Perl document to a file. Returns C<undef> on error.
 sub save {
 	my $self = shift;
 
-	# Serialize the Document
-	my $content = $self->serialize;
-
 	### FIXME - Check the return conditions for this
 	File::Slurp::write_file( shift,
-		{ err_mode => 'quiet' }, $content,
+		{ err_mode => 'quiet' },
+		$self->serialize,
 		) ? 1 : undef;
 }
 

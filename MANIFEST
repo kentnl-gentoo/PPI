@@ -1,6 +1,5 @@
 Build.PL
 Changes
-inc/Class/Inspector.pm
 inc/Config/Tiny.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm

@@ -33,11 +33,10 @@ use overload 'bool' => sub () { 1 },
              '""'   => 'content',
              '=='   => '__equals',
              'eq'   => '__eq';
-             
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.844';
+	$VERSION = '0.845';
 
 	# Master Child -> Parent index
 	%_PARENT = ();
@@ -62,6 +61,7 @@ of a file after (and including) the __END__ token.
 
 =cut
 
+### XS -> PPI/XS.xs:_PPI_Element__significant 0.845+
 sub significant { 1 }
 
 =pod

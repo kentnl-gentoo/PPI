@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.844';
+	$VERSION = '0.845';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
