@@ -65,7 +65,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
 }
 
 
@@ -199,8 +199,7 @@ sub serialize {
 		# case will definately not contain a newline.
 		$output .= $Token->content;
 
-		# Now add all of the here-doc content to the heredoc
-		# buffer.
+		# Now add all of the here-doc content to the heredoc buffer.
 		foreach my $line ( $Token->heredoc ) {
 			$heredoc .= $line;
 		}

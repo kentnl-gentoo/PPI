@@ -1,5 +1,5 @@
 name: PPI
-version: 0.845
+version: 0.846
 abstract: Analyze and manipulate Perl code without using perl itself
 author: Adam Kennedy<cpan@ali.as>
 license: perl

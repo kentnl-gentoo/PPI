@@ -29,7 +29,7 @@ use Class::Autouse   ();
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '0.845';
+	$VERSION       = '0.846';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }

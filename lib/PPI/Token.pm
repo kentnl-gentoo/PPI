@@ -9,7 +9,7 @@ use base 'PPI::Element';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
 }
 
 # We don't load the abstracts, they are loaded
@@ -33,6 +33,7 @@ use PPI::Token::QuoteLike::Backtick   ();
 use PPI::Token::QuoteLike::Command    ();
 use PPI::Token::QuoteLike::Regexp     ();
 use PPI::Token::QuoteLike::Words      ();
+use PPI::Token::QuoteLike::Readline   ();
 use PPI::Token::Regexp::Match         ();
 use PPI::Token::Regexp::Substitute    ();
 use PPI::Token::Regexp::Transliterate ();

@@ -24,7 +24,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
 }
 
 # Identical, except for not having its own scope

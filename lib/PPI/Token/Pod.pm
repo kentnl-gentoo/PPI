@@ -8,7 +8,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
 }
 
 sub significant { 0 }

@@ -1,6 +1,6 @@
-package PPI::Token::QuoteLike::Command;
+package PPI::Token::QuoteLike::Readline;
 
-# Back Ticks
+# Quote Words
 
 use strict;
 use UNIVERSAL 'isa';

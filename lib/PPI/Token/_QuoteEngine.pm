@@ -19,10 +19,11 @@ package PPI::Token::_QuoteEngine;
 # If ->fill returns true, finalise the token.
 
 use strict;
+use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
 }
 
 
@@ -131,7 +132,7 @@ sub _scan_for_unescaped_character {
 sub _scan_for_brace_character {
 	my $class       = shift;
 	my $t           = shift;
-	my $close_brace = $_[0] =~ /^(?:\>|\)|\}|\])$/ ? shift : return undef;
+	my $close_brace = $_[0] =~ /^(?:\>|\)|\}|\])$/ ? shift : Carp::confess(''); # return undef;
 	my $open_brace  = $close_brace;
 	$open_brace =~ tr/\>\)\}\]/\<\(\{\[/;
 
@@ -153,7 +154,7 @@ sub _scan_for_brace_character {
 		unless ( /$search/ ) {
 			# Load in the next line
 			$string .= $_;
-			return undef unless defined $t->_fill_line;
+			defined $t->_fill_line or return undef;
 			$t->{line_cursor} = 0;
 			next;
 		}

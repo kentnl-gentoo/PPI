@@ -9,14 +9,14 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
         foreach ( 'a' .. 'w', 'y', 'z', 'A' .. 'Z', '_' ) { $COMMITMAP[ord $_] = 'PPI::Token::Word'  }
 	foreach ( qw!; [ ] { } )! )                       { $COMMITMAP[ord $_] = 'PPI::Token::Structure' }
         foreach ( 0 .. 9 )                                { $CLASSMAP[ord $_]  = 'Number'   }
-	foreach ( qw{= ? | + < > . ! ~ ^} )               { $CLASSMAP[ord $_]  = 'Operator' }
+	foreach ( qw{= ? | + > . ! ~ ^} )                 { $CLASSMAP[ord $_]  = 'Operator' }
 	foreach ( qw{* $ @ & : - %} )                     { $CLASSMAP[ord $_]  = 'Unknown'  }
 
 	# Miscellaneous remainder
@@ -110,6 +110,36 @@ sub _on_char {
 
 		# This is a normal open bracket
 		return 'Structure';
+
+	} elsif ( $_ == 60 ) { # $_ eq '<'
+		# Finalise any whitespace token...
+		$t->_finalize_token if $t->{token};
+
+		# This is either "less than" or "readline quote-like"
+		# Do some context stuff to guess which.
+		my $previous = $t->_last_significant_token;
+
+		# The most common group of readlines are used like
+		# @foo = <...>
+		# while ( <...> )
+		# grep { } <...>
+		return 'QuoteLike::Readline' if $previous->_isa( 'Structure', '('     );
+		return 'QuoteLike::Readline' if $previous->_isa( 'Operator',  '='     );
+		return 'QuoteLike::Readline' if $previous->_isa( 'Structure', '}'     );
+		return 'QuoteLike::Readline' if $previous->_isa( 'Word',      'while' );
+
+		# The most common group of less-thans are used like
+		# $foo < $bar
+		# 1 < $bar
+		# $#foo < $bar
+		return 'Operator' if $previous->_isa( 'Symbol'     );
+		return 'Operator' if $previous->_isa( 'Magic'      );
+		return 'Operator' if $previous->_isa( 'Number'     );
+		return 'Operator' if $previous->_isa( 'ArrayIndex' );
+
+		# Otherwise, we guess operator, which has been the default up
+		# until this more comprehensive section was created.
+		return 'Operator';
 
 	} elsif ( $_ == 47 ) { #  $_ eq '/'
 		# Finalise any whitespace token...

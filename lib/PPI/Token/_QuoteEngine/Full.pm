@@ -4,10 +4,19 @@ package PPI::Token::_QuoteEngine::Full;
 
 use strict;
 use base 'PPI::Token::_QuoteEngine';
+use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.845';
+	$VERSION = '0.846';
+
+	# Prototypes for the different braced sections
+	%sections = (
+		'(' => { type => '()', _close => ')' },
+		'<' => { type => '<>', _close => '>' },
+		'[' => { type => '[]', _close => ']' },
+		'{' => { type => '{}', _close => '}' },
+		);
 
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
@@ -26,20 +35,14 @@ BEGIN {
 
 		'/'   => { operator => undef, braced => 0,     seperator => '/',   _sections => 1, modifiers => {} },
 
+		# Angle brackets quotes mean "readline(*FILEHANDLE)"
+		'<'   => { operator => undef, braced => 1,     seperator => undef, _sections => 1, },
+
 		# The final ( and kind of depreciated ) "first match only" one is not
 		# used yet, since I'm not sure on the context differences between
 		# this and the trinary operator, but its here for completeness.
 		'?'   => { operator => undef, braced => 0,     seperator => '?',   _sections => 1, modifieds => {} },
 		);
-
-	# Prototypes for the different braced sections
-	%sections = (
-		'(' => { type => '()', _close => ')' },
-		'<' => { type => '<>', _close => '>' },
-		'[' => { type => '[]', _close => ']' },
-		'{' => { type => '{}', _close => '}' },
-		);
-
 }
 
 
@@ -56,8 +59,13 @@ sub new {
 	my $self = PPI::Token::new( $class, $init ) or return undef;
 
 	# Do we have a prototype for the intializer? If so, add the extra fields
-	my $options = $quotes{$init} or return $self->_error( "Unknown quote like operator '$init'" );
+	my $options = $quotes{$init} or return $self->_error( "Unknown quote type '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
+
+	# Handle the special < base
+	if ( $init eq '<' ) {
+		$self->{sections}->[0] = Clone::clone( $sections{'<'} );
+	}
 
 	$self;
 }
@@ -90,10 +98,10 @@ sub _fill {
 
 		# Determine if these are normal or braced type sections
 		if ( my $section = $sections{$_} ) {
-			$self->{braced} = 1;
-			$self->{sections}->[0] = { %$section };
+			$self->{braced}        = 1;
+			$self->{sections}->[0] = Clone::clone($section);
 		} else {
-			$self->{braced} = 0;
+			$self->{braced}    = 0;
 			$self->{seperator} = $_;
 		}
 	}
@@ -125,7 +133,7 @@ sub _fill {
 # Handle the content parsing path for normally seperated
 sub _fill_normal {
 	my $self = shift;
-	my $t = shift;
+	my $t    = shift;
 
 	# Get the content up to the next seperator
 	my $string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
@@ -173,10 +181,11 @@ sub _fill_normal {
 # Handle content parsing for matching crace seperated
 sub _fill_braced {
 	my $self = shift;
-	my $t = shift;
+	my $t    = shift;
 
 	# Get the content up to the close character
 	my $section = $self->{sections}->[0];
+	$DB::single = 1 unless $section->{_close};
 	$_ = $self->_scan_for_brace_character( $t, $section->{_close} );
 	return undef unless defined $_;
 	if ( ref $_ ) {
