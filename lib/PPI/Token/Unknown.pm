@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.814';
+	$VERSION = '0.815';
 }
 
 
@@ -68,7 +68,7 @@ sub _on_char {
 			return $t->_set_token_class( 'Symbol' ) ? 1 : undef;
 		}
 
-		if ( /-+/ ) {
+		if ( /[\-\+\*]/ ) {
 			# Magic variable
 			return $t->_set_token_class( 'Magic' ) ? 1 : undef;
 		}

@@ -9,7 +9,7 @@ use Scalar::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.814';
+	$VERSION = '0.815';
 }
 
 

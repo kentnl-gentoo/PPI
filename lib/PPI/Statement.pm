@@ -7,7 +7,7 @@ use UNIVERSAL 'isa';
 use PPI ();
 
 BEGIN {
-	$PPI::Statement::VERSION = '0.814';
+	$PPI::Statement::VERSION = '0.815';
 	@PPI::Statement::ISA     = 'PPI::ParentElement';
 }
 
@@ -49,7 +49,7 @@ package PPI::Statement::Expression;
 # A "normal" expression of some sort
 
 BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.814';
+	$PPI::Statement::Expression::VERSION = '0.815';
 	$PPI::Statement::Expression::ISA     = 'PPI::Statement';
 }
 
@@ -64,7 +64,7 @@ package PPI::Statement::Scheduled;
 # BEGIN/INIT/LAST/END blocks
 
 BEGIN {
-	$PPI::Statement::Scheduled::VERSION = '0.814';
+	$PPI::Statement::Scheduled::VERSION = '0.815';
 	@PPI::Statement::Scheduled::ISA     = 'PPI::Statement';
 }
 
@@ -80,7 +80,7 @@ package PPI::Statement::Package;
 # Package decleration
 
 BEGIN {
-	$PPI::Statement::Package::VERSION = '0.814';
+	$PPI::Statement::Package::VERSION = '0.815';
 	@PPI::Statement::Package::ISA     = 'PPI::Statement';
 }
 
@@ -96,7 +96,7 @@ package PPI::Statement::Include;
 ### require should be a function, not a special statement?
 
 BEGIN {
-	$PPI::Statement::Include::VERSION = '0.814';
+	$PPI::Statement::Include::VERSION = '0.815';
 	@PPI::Statement::Include::ISA     = 'PPI::Statement';
 }
 
@@ -110,7 +110,7 @@ package PPI::Statement::Sub;
 # Subroutine or prototype declaration
 
 BEGIN {
-	$PPI::Statement::Sub::VERSION = '0.814';
+	$PPI::Statement::Sub::VERSION = '0.815';
 	@PPI::Statement::Sub::ISA     = 'PPI::Statement';
 }
 
@@ -140,7 +140,7 @@ package PPI::Statement::Variable;
 # Explicit variable decleration ( my, our, local )
 
 BEGIN {
-	$PPI::Statement::Variable::VERSION = '0.814';
+	$PPI::Statement::Variable::VERSION = '0.815';
 	@PPI::Statement::Variable::ISA     = 'PPI::Statement';
 }
 
@@ -154,7 +154,7 @@ package PPI::Statement::Compound;
 # This should cover all flow control statements, if, while, etc, etc
 
 BEGIN {
-	$PPI::Statement::Compound::VERSION = '0.814';
+	$PPI::Statement::Compound::VERSION = '0.815';
 	@PPI::Statement::Compound::ISA     = 'PPI::Statement';
 }
 
@@ -186,7 +186,7 @@ package PPI::Statement::Break;
 # next, last, return.
 
 BEGIN {
-	$PPI::Statement::Break::VERSION = '0.814';
+	$PPI::Statement::Break::VERSION = '0.815';
 	@PPI::Statement::Break::ISA     = 'PPI::Statement';
 }
 
@@ -201,7 +201,7 @@ package PPI::Statement::Null;
 # Usually, just an extra ; on it's own.
 
 BEGIN {
-	$PPI::Statement::Null::VERSION = '0.814';
+	$PPI::Statement::Null::VERSION = '0.815';
 	@PPI::Statement::Null::ISA     = 'PPI::Statement';
 }
 

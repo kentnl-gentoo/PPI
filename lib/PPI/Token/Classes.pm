@@ -21,16 +21,16 @@ use PPI::Token::Quote::Full   ();
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$PPI::Token::Whitespace::VERSION = '0.814';
+	$PPI::Token::Whitespace::VERSION = '0.815';
 	@PPI::Token::Whitespace::ISA     = 'PPI::Token';
 
 	# Build the class map
         @classmap = ();
-        foreach ( 'a' .. 'z', 'A' .. 'Z', '_' ) { $commitmap[ord $_] = 'PPI::Token::Bareword'  }
-	foreach ( qw!; [ ] { } )! )             { $commitmap[ord $_] = 'PPI::Token::Structure' }
-        foreach ( 0 .. 9 )                      { $classmap[ord $_]  = 'Number'   }
-	foreach ( qw{= ? | + < > . ! ~} )       { $classmap[ord $_]  = 'Operator' }
-	foreach ( qw{* $ @ & : - %} )           { $classmap[ord $_]  = 'Unknown'  }
+        foreach ( 'a' .. 'w', 'y', 'z', 'A' .. 'Z', '_' ) { $commitmap[ord $_] = 'PPI::Token::Bareword'  }
+	foreach ( qw!; [ ] { } )! )                       { $commitmap[ord $_] = 'PPI::Token::Structure' }
+        foreach ( 0 .. 9 )                                { $classmap[ord $_]  = 'Number'   }
+	foreach ( qw{= ? | + < > . ! ~ ^} )               { $classmap[ord $_]  = 'Operator' }
+	foreach ( qw{* $ @ & : - %} )                     { $classmap[ord $_]  = 'Unknown'  }
 
 	# Miscellaneous remainder
         $commitmap[ord '#'] = 'PPI::Token::Comment';
@@ -177,6 +177,21 @@ sub _on_char {
 		# Otherwise... erm... assume operator?
 		# I expect we will have to add more tests here
 		return 'Operator';
+
+	} elsif ( $_ == 120 ) { # $_ eq 'x'
+		# Handle an arcane special case where "string"x10 means the x is an operator.
+		# String in this case means single, double or execute, or the operator versions or same.
+		my $nextchar = substr $t->{line}, $t->{line_cursor} + 1, 1;
+		my $previous = $t->_previous_significant_tokens(1);
+		$previous = ref $previous->[0];
+		if ( $nextchar =~ /^\d$/ and $previous ) {
+			if ( $previous =~ /::Quote::(?:Operator)?(?:Single|Double|Execute)$/ ) {
+				return 'Operator';
+			}
+		}
+
+		# Otherwise, commit like a normal bareword
+		PPI::Token::Bareword->_commit($t);
 	}
 
 	# This SHOULD BE is just normal base stuff
@@ -850,7 +865,7 @@ BEGIN {
 		$_ $& $` $' $+ @+ $* $. $/ $|
 		$\\ $" $; $% $= $- @- $)
 		$~ $^ $: $? $! %! $@ $$ $< $>
-		$( $0 $[ $]
+		$( $0 $[ $] @_ @*
 
 		$^L $^A $^E $^C $^D $^F $^H
 		$^I $^M $^N $^O $^P $^R $^S
@@ -1144,7 +1159,7 @@ package PPI::Token::Quote::OperatorExecute;
 
 BEGIN {
 	$PPI::Token::Quote::OperatorExecute::VERSION = '0.809';
-	@PPI::Token::Quote::OperatorExecute::ISA = 'PPI::Token::Quote::Full';
+	@PPI::Token::Quote::OperatorExecute::ISA     = 'PPI::Token::Quote::Full';
 }
 
 # Quote Words
