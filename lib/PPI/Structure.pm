@@ -6,10 +6,27 @@ use strict;
 use UNIVERSAL 'isa';
 use PPI ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION %round_classes %curly_classes};
 BEGIN {
-	$VERSION = '0.803';
+	$VERSION = '0.804';
 	@PPI::Structure::ISA = 'PPI::ParentElement';
+
+	# Keyword -> Structure class maps
+	%round_classes = (
+		'sub'    => 'PPI::Structure::Prototype',
+
+		'if'     => 'PPI::Structure::Condition',
+		'elsif'  => 'PPI::Structure::Condition',
+		'unless' => 'PPI::Structure::Condition',
+		);
+
+	%curly_classes = (
+		'sub'   => 'PPI::Structure::AnonymousSub',
+		'BEGIN' => 'PPI::Structure::Block',
+		'INIT'  => 'PPI::Structure::Block',
+		'LAST'  => 'PPI::Structure::Block',
+		'END'   => 'PPI::Structure::Block',
+		);
 }
 
 
@@ -22,10 +39,17 @@ sub new {
 		? shift : return undef;
 
 	# Create the object
-	return bless {
+	bless {
 		elements => [],
 		start    => $token,
 		}, $class;
+}
+
+# To be used by our children to rebless a structure
+sub rebless { 
+	ref $_[0] and return;
+	isa( $_[1], 'PPI::Structure' ) or return;
+	bless $_[1], $_[0];
 }
 
 
@@ -37,6 +61,17 @@ sub new {
 
 sub start  { $_[0]->{start} }
 sub finish { $_[0]->{finish} }
+
+# What general brace type are we
+sub _brace_type {
+	my $self = shift;
+	return undef unless $self->{start};
+	return { 
+		'[' => '[]', 
+		'(' => '()', 
+		'{' => '{}' 
+		}->{ $self->{start}->{content} };
+}
 
 
 
@@ -118,16 +153,154 @@ sub lex {
 
 
 #####################################################################
+# Starting with only our context, determine what subclass we are
+# and try to rebless to it
+
+sub resolve {
+	my $self = shift;
+
+	# Split based on type
+	my $type = $self->_brace_type or return undef;
+	if ( $type eq '()' ) {
+		return $self->_resolve_round( @_ );
+	} elsif ( $type eq '[]' ) {
+		return $self->_resolve_square( @_ );
+	} elsif ( $type eq '{}' ) {
+		return $self->_resolve_curly( @_ );
+	} else {
+		return undef;
+	}
+}
+
+sub _resolve_round {
+	my $self = shift;
+	my $parent = isa( $_[0], 'PPI::ParentElement' ) ? shift : return undef;
+
+	# Get the last significant element in the parent
+	my $el = $parent->last_significant_child( 1 );
+	if ( isa( $el, 'PPI::Token::Bareword' ) ) {
+		# Can it be determined because it is a keyword?
+		my $class = $round_classes{$el->content};
+		return $class->rebless( $self ) if $class;
+
+		# If it's after a normal bareword, we assume that
+		# the round specify an argument list.
+		return PPI::Structure::List->rebless( $self );
+	}
+
+	# Otherwise, we know not what it is, and as the logic is far from
+	# complete, we do not attempt a default rebless... yet.
+	$self;
+}
+
+sub _resolve_square {
+	my $self = shift;
+	my $parent = isa( $_[0], 'PPI::ParentElement' ) ? shift : return undef;
+
+	# Don't know. Don't care. Don't rebless
+	$self;
+}
+
+sub _resolve_curly {
+	my $self = shift;
+	my $parent = isa( $_[0], 'PPI::ParentElement' ) ? shift : return undef;
+
+	# Get the last significant element in the parent
+	my $el = $parent->last_significant_child( 1 );
+	if ( isa( $el, 'PPI::Token::Bareword' ) ) {
+		# Can it be determined because it is a keyword?
+		my $class = $curly_classes{$el->content};
+		return $class->rebless( $self ) if $class;
+	}
+
+	# Don't rebless
+	$self;
+}
+
+
+
+
+
+#####################################################################
 # Tools
 
 # Like the token method ->content, get our merged contents.
 # This will recurse downwards through everything
 sub content {
 	my $self = shift;
-	return join '',
-		map { $_->content }
-		grep { $_ }
+	join '', map { $_->content } grep { $_ }
 		( $self->{start}, @{$self->{elements}}, $self->{finish} );
 }
+
+
+
+
+
+#####################################################################
+package PPI::Structure::Condition;
+
+# The round-braces condition structure from an if, elsif or unless
+# if ( ) { ... }
+
+BEGIN {
+	@PPI::Structure::Condition::ISA = 'PPI::Structure';
+}
+
+sub DUMMY { 1 }
+
+
+
+
+
+####################################################################
+package PPI::Structure::List;
+
+BEGIN {
+	@PPI::Structure::List::ISA = 'PPI::Structure';
+}	
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Structure::Prototype;
+
+# The round-braces condition structure from an if or elsif
+BEGIN {
+	@PPI::Structure::Prototype::ISA = 'PPI::Structure';
+}
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Structure::AnonymousSub;
+
+# The round-braces condition structure from an if or elsif
+BEGIN {
+	@PPI::Structure::AnonymousSub::ISA = 'PPI::Structure';
+}
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Structure::Block;
+
+# The round-braces condition structure from an if or elsif
+BEGIN {
+	@PPI::Structure::Block::ISA = 'PPI::Structure';
+}
+
+sub DUMMY { 1 }
 
 1;

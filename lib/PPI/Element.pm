@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.803';
+	$VERSION = '0.804';
 	
 	# Child -> Parent links
 	%_PARENT = ()
@@ -129,7 +129,6 @@ sub significant { 1 }
 
 package PPI::ParentElement;
 
-use strict;
 use UNIVERSAL 'isa';
 
 BEGIN {
@@ -281,6 +280,31 @@ sub delete {
 	$self->SUPER::delete;
 }
 
+# Start from the end, find the nth ( default 1st ) significant 
+# child element. Returns the element, 0 if none, or undef or error.
+sub last_significant_child {
+	my $self = shift;
+	my $number = ($_[0] > 0) ? shift : 1;
+
+	# Start with the index of the last element
+	my $i = $#{$self->{elements}};
+	while ( $i >= 0 ) {
+		if ( $self->{elements}->[$i]->significant ) {
+			if ( $number > 1 ) {
+				# More
+				$number--;
+			} else {
+				# Found it
+				return $self->{elements}->[$i];
+			}
+		}
+
+		$i--;
+	}
+
+	# Didn't find it
+	0;
+}
 
 
 

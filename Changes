@@ -1,5 +1,10 @@
 Revision history for Perl extension PPI
 
+0.804 Sat Sep 06 2003
+	- Statement and Structure resolution preliminarily work.
+	  Some basic types of statements and structures are identified.
+	- PPI::Format::Apache has been seperated into a different module
+
 0.803 Sat Sep 06 2003
 	- Added very long line protection support.
 	  Maximum line length is now 5000.

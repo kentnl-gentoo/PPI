@@ -10,7 +10,7 @@ use PPI::Structure ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.803';
+	$VERSION = '0.804';
 	@PPI::Document::ISA = 'PPI::ParentElement'
 }
 
@@ -63,7 +63,10 @@ sub lex {
 			# Pass the lex control to it
 			$Structure->lex( $self->{tokenizer} ) or return undef;
 
-			# On return, add the completed block to our elements
+			# Try to determine what type of structure it is
+			$Structure->resolve( $self ) or return undef;
+
+			# Add the resolved block to our elements
 			$self->add_element( $Structure );
 			next;
 		}

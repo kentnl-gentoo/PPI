@@ -8,16 +8,16 @@ use PPI ();
 
 use vars qw{$VERSION %classes};
 BEGIN {
-	$VERSION = '0.803';
+	$VERSION = '0.804';
 	@PPI::Statement::ISA = 'PPI::ParentElement';
 
-	# The main keyword -> statement-class map
+	# Keyword -> Statement Subclass
 	%classes = (
 		# Things that affect the timing of execution
-		'BEGIN'   => 'PPI::Statement::Scheduling',
-		'INIT'    => 'PPI::Statement::Scheduling',
-		'LAST'    => 'PPI::Statement::Scheduling',
-		'END'     => 'PPI::Statement::Scheduling',
+		'BEGIN'   => 'PPI::Statement::Scheduled',
+		'INIT'    => 'PPI::Statement::Scheduled',
+		'LAST'    => 'PPI::Statement::Scheduled',
+		'END'     => 'PPI::Statement::Scheduled',
 
 		# Loading and context statement
 		'package' => 'PPI::Statement::Package',
@@ -38,6 +38,8 @@ BEGIN {
 		'next'    => 'PPI::Statement::Break',
 		'last'    => 'PPI::Statement::Break',
 		'return'  => 'PPI::Statement::Break',
+		'if'      => 'PPI::Statement::Condition',
+		'unless'  => 'PPI::Statement::Condition',
 		);
 }
 
@@ -46,36 +48,27 @@ BEGIN {
 
 
 sub new {
+	my $class = ref $_[0] ? ref shift : shift;
+	
 	# Create the object
-	my $self = bless { elements => [] }, shift;
+	my $self = bless { 
+		elements => [],
+		}, $class;
 
 	# If we have been passed an initial token, add it
 	if ( isa( $_[0], 'PPI::Token' ) ) {
-		$self->add_element( shift );
+		$self->add_element( shift ) or return undef;
 	}
 
 	$self;
 }
 
-sub class {
-	my $self = shift;
-	return $self->{class} if exists $self->{class};
-
-	# Classification is done by examining the first
-	# token in the statement
-	my $first = $self->{elements}->[0] or return undef;
-
-	# Is it a known bareword
-	if ( $first->class eq 'PPI::Token::Bareword' ) {
-		my $class = $classes{ $first->content };
-		if ( $class ) {
-			return $self->{class} = $class;
-		}
-
-		return $self->{class} = 'Statement';
-	}
-
-	### ERRR... somethings missing
+# Rebless as a subclass
+# To be used by our children to rebless a structure
+sub rebless { 
+	ref $_[0] and return;
+	isa( $_[1], 'PPI::Statement' ) or return;
+	bless $_[1], $_[0];
 }
 
 
@@ -83,7 +76,7 @@ sub class {
 
 
 #####################################################################
-# Tests
+# Lexing
 
 # Main lexing method
 sub lex {
@@ -96,11 +89,7 @@ sub lex {
 		my $class = $token->class;
 
 		# Delay whitespace and comments
-		if ( $class eq 'PPI::Token::Whitespace' ) {
-			$self->_delay_element( $token );
-			next;
-		}
-		if ( $class eq 'PPI::Token::Comment' ) {
+		unless ( $token->significant ) {
 			$self->_delay_element( $token );
 			next;
 		}
@@ -122,6 +111,7 @@ sub lex {
 			# Create a structure parser, and hand off to it
 			my $Structure = PPI::Structure->new( $token ) or return undef;
 			$Structure->lex( $self->{tokenizer} ) or return undef;
+			$Structure->resolve( $self ) or return undef;
 			$self->add_element( $Structure );
 			next;
 		}
@@ -141,6 +131,80 @@ sub lex {
 	$self->_clean( 1 );
 }
 
+# Add the resolution hook
+sub add_element {
+	my $self = shift;
+
+	# If this is the first element,
+	# try to resolve the statement type.
+	unless ( @{$self->{elements}} ) {
+		$self->resolve( $_[0] ) or return undef;
+	}
+
+	$self->SUPER::add_element( @_ );
+}
+
+# Attempt to resolve the statement using the first element
+sub resolve {
+	my $self = shift;
+	my $element = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
+
+	# Is the statement defined by it's first keyword?
+	if ( isa( $element, 'PPI::Token::Bareword' ) ) {
+		my $class = $classes{$element->content};
+		return $class->rebless( $self ) if $class;
+	}
+
+	# There may be more options we haven't though of yet
+	$self;	
+}
+
+
+
+
+
+#####################################################################
+package PPI::Statement::Scheduled;
+
+# BEGIN/INIT/LAST/END blocks
+
+BEGIN {
+	@PPI::Statement::Scheduled::ISA = 'PPI::Statement';
+}
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Statement::Package;
+
+# Package decleration
+
+BEGIN {
+	@PPI::Statement::Package::ISA = 'PPI::Statement';
+}
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Statement::Include;
+
+# Commands that call in other files.
+# use, no and require.
+### require should be a function, not a special statement?
+
+BEGIN {
+	@PPI::Statement::Include::ISA = 'PPI::Statement';
+}
+
+sub DUMMY { 1 }
 
 
 
@@ -149,32 +213,70 @@ sub lex {
 #####################################################################
 package PPI::Statement::Sub;
 
-# Implements a class for a subroutine ( or prototype ) decleration statement.
-use strict;
+# Subroutine or prototype
+
 BEGIN {
 	@PPI::Statement::Sub::ISA = 'PPI::Statement';
 }
 
-# Rebless an ordinary statement
-sub new {
-	my $class = shift;
-	my $element = isa( $_[0], 'PPI::Statement' ) ? shift : return undef;
-	bless $element, $class;
+
+
+
+
+#####################################################################
+package PPI::Statement::Variable;
+
+# Explicit variable decleration ( my, our, local )
+
+BEGIN {
+	@PPI::Statement::Variable::ISA = 'PPI::Statement';
 }
 
-# What is the subroutine name
-sub name {
-	my $self = shift;
+sub DUMMY { 1 }
 
-	### Find the first significant thing after the sub keyword
+
+
+
+
+#####################################################################
+package PPI::Statement::Loop;
+
+# Package decleration
+
+BEGIN {
+	@PPI::Statement::Loop::ISA = 'PPI::Statement';
 }
 
-# Find something
-sub _find_element_index {
-	my $self = shift;
-	my %options = @_;
+sub DUMMY { 1 }
 
-	### What index do we start at
+
+
+
+
+#####################################################################
+package PPI::Statement::Break;
+
+# Package decleration
+
+BEGIN {
+	@PPI::Statement::Break::ISA = 'PPI::Statement';
 }
+
+sub DUMMY { 1 }
+
+
+
+
+
+#####################################################################
+package PPI::Statement::Condition;
+
+# Package decleration
+
+BEGIN {
+	@PPI::Statement::Condition::ISA = 'PPI::Statement';
+}
+
+sub DUMMY { 1 }
 
 1;

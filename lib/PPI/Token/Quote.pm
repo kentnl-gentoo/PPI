@@ -23,7 +23,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.803';
+	$VERSION = '0.804';
 }
 
 

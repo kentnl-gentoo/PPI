@@ -14,13 +14,15 @@ package PPI::Token::Whitespace;
 use strict;
 # use warnings;
 # use diagnostics;
-use PPI::Token;
+use PPI::Token ();
+use PPI::Token::Quote::Simple ();
+use PPI::Token::Quote::Full ();
 
 use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.803';
+	$VERSION = '0.804';
 	@PPI::Token::Whitespace::ISA = 'PPI::Token';
 
 	# Build the class map
@@ -197,8 +199,6 @@ sub tidy {
 
 package PPI::Token::Pod;
 
-use strict;
-
 BEGIN {
 	@PPI::Token::Pod::ISA = 'PPI::Token';
 }
@@ -236,8 +236,6 @@ sub merge { require PPI::Token::_Pod; return shift->merge( @_ ) }
 
 package PPI::Token::Data;
 
-use strict;
-
 BEGIN {
 	@PPI::Token::Data::ISA = 'PPI::Token';
 }
@@ -252,8 +250,9 @@ sub _on_char { 1 }
 
 package PPI::Token::End;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::End::ISA = 'PPI::Token';
+}
 
 sub significant { 0 }
 
@@ -296,8 +295,9 @@ sub _on_line_start {
 
 package PPI::Token::Comment;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Comment::ISA = 'PPI::Token';
+}
 
 sub significant { 0 }
 
@@ -355,8 +355,9 @@ sub line {
 
 package PPI::Token::Bareword;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Bareword::ISA = 'PPI::Token';
+}
 
 use vars qw{%quotelike};
 BEGIN {
@@ -449,8 +450,9 @@ sub _commit {
 
 package PPI::Token::Label;
 
-use strict;
-use base 'PPI::Token::Bareword';
+BEGIN {
+	@PPI::Token::Label::ISA = 'PPI::Token';
+}
 
 sub DUMMY { 1 }
 
@@ -463,8 +465,9 @@ sub DUMMY { 1 }
 
 package PPI::Token::Structure;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Structure::ISA = 'PPI::Token';
+}
 
 sub _on_char {
 	# Structures are one character long, always.
@@ -513,8 +516,9 @@ package PPI::Token::Number;
 #
 # We currently support decimal, real, and octal ( by accident :) )
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Number::ISA = 'PPI::Token';
+}
 
 sub _on_char {
 	my $class = shift;
@@ -613,8 +617,9 @@ sub _on_char {
 
 package PPI::Token::Symbol;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Symbol::ISA = 'PPI::Token';
+}
 
 sub _on_char {
 	my $t = $_[1];
@@ -643,8 +648,9 @@ sub _on_char {
 
 package PPI::Token::ArrayIndex;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::ArrayIndex::ISA = 'PPI::Token';
+}
 
 sub _on_char {
 	my $t = $_[1];
@@ -669,8 +675,9 @@ sub _on_char {
 
 package PPI::Token::Operator;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Operator::ISA = 'PPI::Token';
+}
 
 # Build the operator index
 use vars qw{%operator};
@@ -732,8 +739,9 @@ sub _on_char {
 
 package PPI::Token::Magic;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Magic::ISA = 'PPI::Token';
+}
 
 use vars qw{%magic};
 BEGIN {
@@ -807,8 +815,9 @@ sub _on_char {
 
 package PPI::Token::Cast;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::Cast::ISA = 'PPI::Token';
+}
 
 # A cast is always a single character
 sub _on_char {
@@ -824,8 +833,9 @@ sub _on_char {
 
 package PPI::Token::SubPrototype;
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::SubPrototype::ISA = 'PPI::Token';
+}
 
 sub _on_char {
 	my $class = shift;
@@ -853,8 +863,9 @@ package PPI::Token::DashedBareword;
 
 # This should be a string... but I'm still musing on whether that's a good idea
 
-use strict;
-use base 'PPI::Token';
+BEGIN {
+	@PPI::Token::DashedBareword::ISA = 'PPI::Token';
+}
 
 sub _on_char {
 	my $t = $_[1];
@@ -880,62 +891,63 @@ sub _on_char {
 
 # Single Quote
 package PPI::Token::Quote::Single;
-use base 'PPI::Token::Quote::Simple';
+BEGIN { @PPI::Token::Quote::Single::ISA = 'PPI::Token::Quote::Simple' }
 sub DUMMY { 1 }
 
 # Double Quote
 package PPI::Token::Quote::Double;
-use base 'PPI::Token::Quote::Simple';
+BEGIN { @PPI::Token::Quote::Double::ISA = 'PPI::Token::Quote::Simple' }
 sub DUMMY { 1 }
 
 # Back Ticks
 package PPI::Token::Quote::Execute;
-use base 'PPI::Token::Quote::Simple';
+BEGIN { @PPI::Token::Quote::Execute::ISA = 'PPI::Token::Quote::Simple' }
 sub DUMMY { 1 }
 
 # Single Quote
 package PPI::Token::Quote::OperatorSingle;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Quote::OperatorSingle::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Double Quote
 package PPI::Token::Quote::OperatorDouble;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Quote::OperatorDouble::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Back Ticks
 package PPI::Token::Quote::OperatorExecute;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Quote::OperatorExecute::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Quote Words
 package PPI::Token::Quote::Words;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Quote::Words::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Quote Regex Expression
 package PPI::Token::Quote::Regex;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Quote::Regex::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Operator or Non-Operator Match Regex
 package PPI::Token::Regex::Match;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Regex::Match::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Operator Pattern Regex
+### Either this of PPI::Token::Quote::Regex is probably a duplicate
 package PPI::Token::Regex::Pattern;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Regex::Pattern::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Replace Regex
 package PPI::Token::Regex::Replace;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Regex::Replace::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 # Transform regex
 package PPI::Token::Regex::Transform;
-use base 'PPI::Token::Quote::Full';
+BEGIN { @PPI::Token::Regex::Transform::ISA = 'PPI::Token::Quote::Full' }
 sub DUMMY { 1 }
 
 
@@ -946,15 +958,15 @@ sub DUMMY { 1 }
 # Classes to support multi-line inputs
 
 package PPI::Token::RawInput::Operator;
-use base 'PPI::Token';
+BEGIN { @PPI::Token::RawInput::Operator::ISA = 'PPI::Token' }
 sub DUMMY { 1 }
 
 package PPI::Token::RawInput::Terminator;
-use base 'PPI::Token';
+BEGIN { @PPI::Token::RawInput::Terminator::ISA = 'PPI::Token' }
 sub DUMMY { 1 }
 
 package PPI::Token::RawInput::String;
-use base 'PPI::Token';
+BEGIN { @PPI::Token::RawInput::String::ISA = 'PPI::Token' }
 sub DUMMY { 1 }
 
 1;

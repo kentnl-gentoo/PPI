@@ -50,10 +50,10 @@ sub dump_element {
 
 	# Print the element if needed
 	my $show = 1;
-	if ( isa( $element, 'PPI::Token::WhiteSpace' ) ) {
+	if ( isa( $element, 'PPI::Token::Whitespace' ) ) {
 		$show = 0 unless $self->{display}->{whitespace};
 	} elsif ( isa( $element, 'PPI::Token::Comment' ) ) {
-		$show = 0 unless $self->{display}->{comment};
+		$show = 0 unless $self->{display}->{comments};
 	}
 	print $self->element_string( $element, $indent ) if $show;
 
@@ -101,11 +101,11 @@ sub element_string {
 	} elsif ( isa( $element, 'PPI::Structure' ) ) {
 		# Add the content
 		if ( $self->{display}->{content} ) {
-			my $start = $element->{start}
-				? $element->{start}->content
+			my $start = $element->start
+				? $element->start->content
 				: '???';
-			my $finish = $element->{finish}
-				? $element->{finish}->content
+			my $finish = $element->finish
+				? $element->finish->content
 				: '???';
 			$string .= "  \t$start ... $finish";
 		}
