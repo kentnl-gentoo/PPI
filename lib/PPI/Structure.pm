@@ -11,7 +11,7 @@ use Scalar::Util ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.820';
+	$VERSION = '0.821';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -103,7 +103,7 @@ package PPI::Structure::Block;
 
 # The general block curly braces
 BEGIN {
-	$PPI::Structure::Block::VERSION = '0.820';
+	$PPI::Structure::Block::VERSION = '0.821';
 	@PPI::Structure::Block::ISA     = 'PPI::Structure';
 }
 
@@ -115,7 +115,7 @@ BEGIN {
 package PPI::Structure::Subscript;
 
 BEGIN {
-	$PPI::Structure::Subscript::VERSION = '0.820';
+	$PPI::Structure::Subscript::VERSION = '0.821';
 	@PPI::Structure::Subscript::ISA     = 'PPI::Structure';
 }
 
@@ -128,7 +128,7 @@ package PPI::Structure::Constructor;
 
 # The else block
 BEGIN {
-	$PPI::Structure::Constructor::VERSION = '0.820';
+	$PPI::Structure::Constructor::VERSION = '0.821';
 	@PPI::Structure::Constructor::ISA     = 'PPI::Structure';
 }
 
@@ -143,7 +143,7 @@ package PPI::Structure::Condition;
 # if ( ) { ... }
 
 BEGIN {
-	$PPI::Structure::Condition::VERSION = '0.820';
+	$PPI::Structure::Condition::VERSION = '0.821';
 	@PPI::Structure::Condition::ISA     = 'PPI::Structure';
 }
 
@@ -155,7 +155,7 @@ BEGIN {
 package PPI::Structure::List;
 
 BEGIN {
-	$PPI::Structure::List::VERSION = '0.820';
+	$PPI::Structure::List::VERSION = '0.821';
 	@PPI::Structure::List::ISA     = 'PPI::Structure';
 }
 
@@ -167,7 +167,7 @@ BEGIN {
 package PPI::Structure::ForLoop;
 
 BEGIN {
-	$PPI::Structure::ForLoop::VERSION = '0.820';
+	$PPI::Structure::ForLoop::VERSION = '0.821';
 	@PPI::Structure::ForLoop::ISA     = 'PPI::Structure';
 }
 
@@ -183,7 +183,7 @@ package PPI::Structure::Unknown;
 # clues.
 
 BEGIN {
-	$PPI::Structure::Unknown::VERSION = '0.820';
+	$PPI::Structure::Unknown::VERSION = '0.821';
 	@PPI::Structure::Unknown::ISA     = 'PPI::Structure';
 }	
 

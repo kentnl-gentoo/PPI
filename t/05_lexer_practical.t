@@ -33,7 +33,7 @@ use File::Slurp ();
 
 use vars qw{$testdir};
 BEGIN {
-	$testdir = catdir( 'testdata', 'lexer', 'practical' );
+	$testdir = catdir( 't.data', '05_lexer_practical' );
 }
 
 # Does the test directory exist?

@@ -23,7 +23,7 @@ use PPI::Lexer::Dump;
 use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 925;
+use Test::More 'tests' => 929;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -161,6 +161,7 @@ PPI::Token=isa
 
 [PPI::Token::Symbol]
 PPI::Token=isa
+canonical=method
 
 [PPI::Token::ArrayIndex]
 PPI::Token=isa
@@ -170,6 +171,7 @@ PPI::Token=isa
 
 [PPI::Token::Magic]
 PPI::Token=isa
+PPI::Token::Symbol=isa
 
 [PPI::Token::Cast]
 PPI::Token=isa

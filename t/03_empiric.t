@@ -26,7 +26,7 @@ use PPI;
 # Execute the tests
 use Test::More tests => 3;
 
-
+my $testdir = catdir( 't.data', '03_empiric' );
 
 
 
@@ -36,7 +36,7 @@ ok( $Lexer, 'PPI::Lexer->new() returns true' );
 isa_ok( $Lexer, 'PPI::Lexer' );
 
 # Parse a file
-my $Document = $Lexer->lex_file('./data/test.dat');
+my $Document = $Lexer->lex_file( catfile( $testdir, 'test.dat' ) );
 isa_ok( $Document, 'PPI::Document' );
 
 1;

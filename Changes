@@ -1,5 +1,15 @@
 Revision history for Perl extension PPI
 
+0.821 Mon Jul 19 2004
+	- Cleaned up test data files directories
+	- Added PPI::Statement::Variable::type
+	- Added PPI::Statement::Variable::variables
+	- Added some more classes to the API testing
+	- Started 07_tokens.t for testing particular token classes
+	- Added PPI::Token::Symbol::canonical ( and tests )
+	- PPI::Token::Magic now ISA PPI::Token::Symbol
+	- PPI::Element::clone now fixes _PARENT links for Nodes
+
 0.820 Mon Jul 19 2004
 	- Added Round-Trip-Safe testing for all PPI files
 	- Added PPI::Node::find_any object method

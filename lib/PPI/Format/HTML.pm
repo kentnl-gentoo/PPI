@@ -10,7 +10,7 @@ use base qw{Exporter PPI::Base};
 use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.820';
+	$VERSION = '0.821';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};

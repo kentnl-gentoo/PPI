@@ -32,7 +32,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.820';
+	$VERSION = '0.821';
 
 	# Child -> Parent links
 	%_PARENT = ();

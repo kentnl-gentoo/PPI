@@ -1,7 +1,4 @@
 Changes
-data/basic.pl
-data/test.dat
-data/test2.txt
 lib/PPI.pm
 lib/PPI/Base.pm
 lib/PPI/Document.pm
@@ -27,19 +24,22 @@ LICENSE
 Makefile.PL
 MANIFEST			This list of files
 README
+t.data/03_empiric/test.dat
+t.data/05_lexer_practical/01_simpleassign.code
+t.data/05_lexer_practical/01_simpleassign.dump
+t.data/05_lexer_practical/02_END.code
+t.data/05_lexer_practical/02_END.dump
+t.data/05_lexer_practical/03_subroutine_attributes.code
+t.data/05_lexer_practical/03_subroutine_attributes.dump
+t.data/05_lexer_practical/04_anonymous_subroutines.code
+t.data/05_lexer_practical/04_anonymous_subroutines.dump
+t.data/basic.pl
+t.data/test2.txt
 t/01_compile.t
 t/02_api.t
 t/03_empiric.t
 t/04_element.t
 t/05_lexer_practical.t
 t/06_round_trip.t
-testdata/lexer/practical/01_simpleassign.code
-testdata/lexer/practical/01_simpleassign.dump
-testdata/lexer/practical/02_END.code
-testdata/lexer/practical/02_END.dump
-testdata/lexer/practical/03_subroutine_attributes.code
-testdata/lexer/practical/03_subroutine_attributes.dump
-testdata/lexer/practical/04_anonymous_subroutines.code
-testdata/lexer/practical/04_anonymous_subroutines.dump
-tmon.out
+t/07_token.t
 META.yml                                Module meta-data (added by MakeMaker)

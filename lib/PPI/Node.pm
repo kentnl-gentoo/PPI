@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.820';
+	$VERSION = '0.821';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -385,6 +385,30 @@ sub tokens {
 sub content {
 	join '', map { $_->content } @{$_[0]->{elements}}
 }
+
+# Clone as normal, but then go down and relink all the _PARENT entries
+sub clone {
+	my $self = shift;
+	my $clone = $self->SUPER::clone;
+
+	# Relink all our children ( depth first )
+	my @queue = ( $clone );
+	while ( my $Node = shift @queue ) {
+		# Link our immediate children
+		foreach my $Element ( @{$Node->{elements}} ) {
+			$_PARENT{Scalar::Util::refaddr($Element)} = $Node;
+			unshift @queue, $Element if isa($Element, 'PPI::Node');
+		}
+
+		# If it's a structure, relink the open/close braces
+		next unless isa($Node, 'PPI::Structure');
+		$_PARENT{Scalar::Util::refaddr($Node->start)}  = $Node if $Node->start;
+		$_PARENT{Scalar::Util::refaddr($Node->finish)} = $Node if $Node->finish;
+	}
+
+	$self;
+}
+
 
 sub _line {
 	my $self = shift;

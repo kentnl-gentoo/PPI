@@ -27,7 +27,7 @@ use Class::Autouse ':devel';
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 126;
+use Test::More tests => 130;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -219,6 +219,16 @@ is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previo
 
 #####################################################################
 # Test the PPI::Element manipulation methods
+
+# Cloning an Element/Node
+{
+	my $Doc2 = $Document->clone;
+	isa_ok( $Doc2, 'PPI::Document' );
+	isa_ok( $Doc2->schild(0), 'PPI::Statement' );
+	is_object( $Doc2->schild(0)->parent, $Doc2, 'Basic parent links stay intact after ->clone' );
+	is_object( $Doc2->schild(0)->schild(3)->start->document, $Doc2,
+		'Clone goes deep, and Structure braces get relinked properly' );
+}
 
 # Delete the second token
 ok( $Token2->delete, "Deletion of token 2 returns true" );
