@@ -1,0 +1,390 @@
+package PPI::Format::HTML;
+
+# PPI::Format::HTML is a package to format Perl source code for HTML viewing.
+
+use strict;
+use UNIVERSAL 'isa';
+use PPI;
+use base qw{Exporter PPI::Common};
+use Class::Autouse;
+
+# Keyword lists
+use vars qw{@keywords @functions $colormap};
+BEGIN {
+	@keywords = qw{
+		-A -B -C -M -O -R -S -T -W -X 
+		-b -c -d -e -f -g -k -l -o -p -r -s -t -u -w -x -z
+		__DATA__ __END__ __FILE__ __LINE__ __PACKAGE__ __WARN__ __DIE__
+		bootstrap continue do else elsif for foreach goto if last local
+		my next no package redo return require sub until unless use
+		while BEGIN INIT END
+		};
+	@functions = qw{
+		accept alarm atan2
+		bind binmode bless
+		caller chdir chmod chomp chop chown chr chroot close closedir connect 
+		cos crypt
+		dbmclose dbmopen defined delete die dump
+		each endgrent endhostent endnetent endprotoent endpwent endservent eof 
+		eval exec exit exp exists
+		fcntl fileno flock fork formline format
+		getc getgrent getgrgid getgrname gethostbyaddr gethostbyname 
+		gethostent getlogin getnetbyaddr getnetbyname getnetent getpeername 
+		getpgrp getppid getpriority getprotobyname getprotobynumber getprotoent 
+		getpwent getpwnam getpwuid getservbyname getservbyport getservent 
+		getsockname getsockopt glob gmtime grep
+		hex
+		index int ioctl
+		join
+		keys kill
+		lc lcfirst length link listen localtime log lstat
+		map mkdir msgctl msgget msgrcv msgsnd
+		oct open opendir ord
+		pack pipe pop pos print printf push
+		quotemeta
+		rand read readdir readline readlink recv ref rename reset reverse 
+		rewinddir rindex rmdir
+		scalar seek seekdir select semctl semgett semop send setgrent 
+		sethostent setnetent setpgrp setpriority setprotoent setpwent 
+		setservent setsockopt shift shmctl shmget shmread shmwrite shutdown 
+		sin sleep socket socketpair sort splice split sprintf sqrt srand stat 
+		study substr symlink syscall sysopen sysread system syswrite
+		tell telldir tie tied time times truncate
+		uc ucfirst umask undef unlink unpack unshift utime
+		values vec
+		wait waitpid wantarray warn write
+		};
+	$colormap = {};
+	foreach ( @keywords ) { $colormap->{$_} = 'blue' }
+	foreach ( @functions ) { $colormap->{$_} = 'red' }
+}
+
+
+
+
+
+#####################################################################
+# Core methods
+
+sub serializeDocument {
+	my $class = shift;
+	my $Document = shift;
+	my $style = shift || 'plain';
+	my $options = shift || {};
+
+	# Check the arguments
+	unless ( isa( $Document, 'PPI::Document' ) ) {
+		return $class->andError( "Can only serialize PPI::Document objects, not " . ref $Document );
+	}
+	unless ( $style eq 'syntax' or $style eq 'debug' or $style eq 'plain' ) {
+		return $class->andError( "Invalid html format style '$style'" );
+	}
+	
+	# Hand off to the appropriate formatter
+	if ( $style eq 'syntax' or $style eq 'Ultraedit' ) {
+		return $class->_serializeDocumentSyntax( $Document, $options );
+	} elsif ( $style eq 'debug' ) {
+		return $class->_serializeDocumentDebug( $Document, $options );
+	} elsif ( $style eq 'plain' or ! $style ) {
+		return $class->_serializeDocumentPlain( $Document, $options );
+	} else {
+		# Look for a child class
+		my $styleclass = "PPI::Format::HTML::$style";
+		if ( Class::Autouse->class_exists( $styleclass ) ) {
+			# Call the serializeDocument function for that class
+			Class::Autouse->load( $styleclass ) 
+				or return $class->andError( "Error loading class $styleclass to format Document" );
+			return $styleclass->_serializeDocumentSyntax( $Document, $options );	
+		} else {
+			return $class->andError( "Error looking for style '$style'. The class $styleclass foes not exist" );
+		}
+	}
+}
+
+sub _serializeDocumentSyntax {
+	my $class = shift;
+	my $Document = shift or return undef;
+	my $options = shift;
+	my ($token, $html, $color) = ();
+	my $baseBuffer = '';
+	
+	# Reset the cursor, and loop through
+	my $current = '';
+	foreach $token ( @{ $Document->getTokenArray } ) {
+		unless ( defined $token->{class} ) {
+			die "Token '$token->{content}' missing class at " . $Document->getLineCharText( $token );
+		}
+		if ( $token->{class} eq 'Base' ) {
+			if ( $token->{content} !~ /^\s*$/ ) {
+				$color = 'pink';
+			} else {
+				# It's a base token
+				$baseBuffer .= $token->{content};
+				next;
+			}	
+		}
+		
+		# Get the color for the token
+		$color = $class->_getTokenColor( $token );
+		
+		if ( $color ne $current ) {
+			# End the previous color
+			$html .= "</font>" if $current;
+		}	
+			
+		# Add bufferred whitespace
+		if ( $baseBuffer ) {
+			$html .= escape_whitespace( $baseBuffer ) ;
+			$baseBuffer = '';
+		}
+
+		if ( $color ne $current ) {
+			$color = '' if $color eq 'black';
+				
+			# Start the new color				
+			$html .= "<font color='$color'>" if $color;
+			$current = $color;
+		}
+		
+		# Add the current token
+		$html .= escape_html( $token->{content} );
+		$current = $color;
+	}
+	
+	# Terminate any remaining bits
+	$html .= "</font>" if $current;
+	$html .= escape_whitespace( $baseBuffer );
+	
+	# Optionally add line numbers
+	if ( $options->{linenumbers} ) {
+		my $line = 0;
+		my $lines = scalar( my @newlines = $html =~ /\n/g ) + 1;
+		my $lines_width = length $lines;
+		$html =~ s!(^|\n)!
+			$1 
+			. "<font color='#666666'>" 
+			. $class->line_label( ++$line, $lines_width )
+			. "</font> "
+			!ge;
+	}
+	
+	return $html;
+}
+
+# Determine the appropriate color for a token.
+# This is the method you should overload to make a new html syntax highlighter
+sub _getTokenColor {
+	my $token = $_[1] or return '';
+	my $class = $token->{class};
+	my $content = $token->{content};
+	if ( $class eq 'Keyword' ) {
+		return 'blue';
+	} elsif ( $class eq 'Bareword' ) {
+		return $colormap->{$content} if $colormap->{$content};
+	} elsif ( $class eq 'Comment' ) {
+		return '#008080';
+	} elsif ( $class eq 'Pod' ) {
+		return '#008080';
+	} elsif ( $class =~ /^Quote::/ or $class =~ /^RawInput::/ ) {
+		return '#999999';
+	} elsif ( $class eq 'Base' ) {
+		# There should be no visible Base content
+		return '#FF00FF' if $content =~ /\S/;
+		return ''; # Transparent
+	} elsif ( $class eq 'Magic' ) {
+		return '#000099';
+	} elsif ( $class =~ /^Regex::/ ) {
+		return '#9900AA';
+	} elsif ( $class eq 'Operator' ) {
+		return '#FF9900';
+	} elsif ( $class eq 'Number' ) {
+		return '#990000';
+	}
+	return 'black';
+}
+		
+sub _serializeDocumentDebug {
+	my $class = shift;
+	my $Document = shift or return undef;
+	my $options = shift;
+	my ($token, $html) = ();
+
+	# Reset the cursor and loop
+	my $lineCounter = 0;
+	foreach $token ( @{ $Document->getTokenArray } ) {
+		$class = $token->{class} eq 'Comment' ?
+			$token->{tags}
+				? ("Comment (" . join( ', ', map { ucfirst $_ } keys %{$token->{tags}}) . ")")
+				: "Comment"
+			: $token->{class};
+		$html .= "<tr bgcolor='#FFFFFF'><td align=right valign=top><b>" 
+			. ++$lineCounter 
+			. "</b></td>"
+			. "<td valign=top nowrap>$class</td>"
+			. "<td valign=top>" . escape_debug_html( $token->{content} ) . "</td></tr>\n";
+	}
+	
+	return qq~
+		<table border="0" cellspacing="0" cellpadding="1"><tr><td bgcolor="#000000"> 
+      		<table border=0 cellspacing=1 cellpadding=2>
+        	<tr bgcolor="#CCCCCC"><th>Token</th><th>Class</th><th>Content</th></tr>
+		$html
+		</table>
+		</td></tr></table>
+		~;	
+}
+
+sub _serializeDocumentPlain {
+	my $class = shift;
+	my $Document = shift;
+	my $options = shift;
+
+	# Get the content
+	my $plain = escape_html( $Document->toString );
+	
+	# Optionally add line numbers
+	if ( $options->{linenumbers} ) {
+		my $line = 0;
+		my $lines = scalar( my @newlines = $plain =~ /\n/g ) + 1;
+		my $lines_width = length $lines;
+		$plain =~ s!(^|\n)!
+			$1 
+			. $class->line_label( ++$line, $lines_width )
+			. " "
+			!ge;
+	}
+	
+	# Done, return the content
+	return $plain;
+}
+
+sub escape_html {
+	$_ = shift;
+	s/\&/&amp;/g;
+	s/\</&lt;/g;
+	s/\>/&gt;/g;
+	s/\n/<br>\n/g;
+	s/\t/        /g;
+	s/  /&nbsp;&nbsp;/g;
+	return $_;
+}
+
+sub escape_whitespace {
+	$_ = shift;
+	s/\n/<br>\n/g;
+	s/\t/        /g;
+	s/  /&nbsp;&nbsp;/g;
+	return $_;
+}
+
+sub escape_debug_html {
+	$_ = shift;
+	s/\&/&amp;/g;	
+	s/\</&lt;/g;
+	s/\>/&gt;/g;
+	s!\n!<b>\\n</b>!g;
+	s/\t/        /g;
+	s/ /&nbsp;/g;
+	s!(</b>)(.)!$1<br>$2!g;
+	return $_;
+}
+
+# Wrap source code in a minamilist page
+sub wrapPage {
+	my $class = shift;
+	my $style = shift;
+	my $content = shift;
+	
+	if ( $style eq 'syntax' ) {
+		return qq~<html>
+		<head>
+		<title>Formatted Perl Source Code</title>
+		</head>
+		<body bgcolor="#FFFFFF" text="#000000">
+		<font face="Courier" size=-1>
+		$content
+		</font>
+		</body>
+		</html>
+		~;
+	
+	} elsif ( $style eq 'debug' ) {
+		return qq~<html>
+		<head>
+		<title>Debug Perl Source Code</title>
+		<style type="text/css">
+		<!--
+		body {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px}
+		td {  font-size: 12px; font-family: Verdana, Arial, Helvetica, sans-serif}
+		th {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px}
+		-->
+		</style>
+		</head>
+		<body bgcolor="#FFFFFF" text="#000000">
+		$content
+		</body>
+		</html>
+		~;
+	
+	} else {
+		return qq~<html>
+		<head>
+		<title>Perl Source Code</title>
+		</head>
+		<body bgcolor="#FFFFFF" text="#000000">
+		<font face="Courier" size=-1>
+		$content
+		</font>
+		</body>
+		</html>
+		~;
+	}		
+}
+
+sub line_label {
+	my $class = shift;
+	my $line = shift;
+	my $width = shift;
+	my $label = sprintf( '%'.$width.'d:', $line );
+	$label =~ s/ /&nbsp;/g;
+	return $label;	
+}
+	
+
+
+
+#####################################################################
+# Interface methods
+
+# These will work as both exportable functions, and methods
+
+use vars qw{@EXPORT_OK};
+BEGIN {
+	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
+}
+
+sub syntax_string {
+	shift if $_[0] eq 'PPI::HTML::Format';
+	my $Perl = Perl->new( shift ) or return undef;
+	return $Perl->html('syntax');
+}
+
+sub syntax_page {
+	shift if $_[0] eq 'PPI::HTML::Format';
+	my $Perl = Perl->new( $_[1] ) or return undef;
+	return $Perl->htmlPage('syntax');
+}
+
+sub debug_string {
+	shift if $_[0] eq 'PPI::HTML::Format';
+	my $Perl = Perl->new( $_[1] ) or return undef;
+	return $Perl->html('debug');
+}
+
+sub debug_page {
+	shift if $_[0] eq 'PPI::HTML::Format';
+	my $Perl = Perl->new( $_[1] ) or return undef;
+	return $Perl->htmlPage('debug');
+}
+
+1;
