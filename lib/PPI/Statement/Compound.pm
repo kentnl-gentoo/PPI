@@ -8,7 +8,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 # Lexer clue
@@ -40,7 +40,7 @@ sub type {
 	my $Element = $self->schild(0);
 
 	# Most simple cases
-	if ( isa($Element, 'PPI::Token::Bareword') ) {
+	if ( isa($Element, 'PPI::Token::Word') ) {
 		return $TYPES{$Element->content};
 	}
 
@@ -48,7 +48,7 @@ sub type {
 	if ( isa($Element, 'PPI::Token::Label') ) {
 		$Element = $self->schild(1) or return 'label';
 		return 'block' if isa($Element, 'PPI::Structure::Block');
-		if ( isa($Element, 'PPI::Token::Bareword') ) {
+		if ( isa($Element, 'PPI::Token::Word') ) {
 			return $TYPES{$Element->content};
 		}
 	}

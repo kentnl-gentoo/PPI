@@ -186,11 +186,11 @@ PPI::Token=isa
 PPI::Token=isa
 line=method
 
-[PPI::Token::Bareword]
+[PPI::Token::Word]
 PPI::Token=isa
 
 [PPI::Token::Separator]
-PPI::Token::Bareword=isa
+PPI::Token::Word=isa
 
 [PPI::Token::Label]
 PPI::Token=isa
@@ -227,7 +227,7 @@ PPI::Token=isa
 identifier=method
 parameters=method
 
-[PPI::Token::DashedBareword]
+[PPI::Token::Quote::Dashed]
 PPI::Token=isa
 
 [PPI::Token::Quote::Simple]

@@ -1,11 +1,11 @@
-package PPI::Token::Bareword;
+package PPI::Token::Word;
 
 use strict;
 use base 'PPI::Token';
 
 use vars qw{$VERSION %quotelike};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 
 	%quotelike = (
 		'q'  => 'Quote::OperatorSingle',
@@ -166,7 +166,7 @@ sub _commit {
 
 	} elsif ( $word =~ /\:/ ) {
 		# Since it's not a simple identifier...
-		$token_class = 'Bareword';
+		$token_class = 'Word';
 
 	} else {
 		# Now, if the next character is a :, it's a label
@@ -178,7 +178,7 @@ sub _commit {
 		} elsif ( $word eq '_' ) {
 			$token_class = 'Magic';
 		} else {
-			$token_class = 'Bareword';
+			$token_class = 'Word';
 		}
 	}
 

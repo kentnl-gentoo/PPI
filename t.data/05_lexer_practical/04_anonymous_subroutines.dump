@@ -1,12 +1,12 @@
 PPI::Document
   PPI::Statement::Variable
-    PPI::Token::Bareword  	'my'
+    PPI::Token::Word  	'my'
     PPI::Token::Whitespace  	' '
     PPI::Token::Symbol  	'$a'
     PPI::Token::Whitespace  	' '
     PPI::Token::Operator  	'='
     PPI::Token::Whitespace  	' '
-    PPI::Token::Bareword  	'sub'
+    PPI::Token::Word  	'sub'
     PPI::Token::Whitespace  	' '
     PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
@@ -16,7 +16,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Operator  	'='
     PPI::Token::Whitespace  	' '
-    PPI::Token::Bareword  	'sub'
+    PPI::Token::Word  	'sub'
     PPI::Token::SubPrototype  	'($)'
     PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
@@ -26,7 +26,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Operator  	'='
     PPI::Token::Whitespace  	' '
-    PPI::Token::Bareword  	'sub'
+    PPI::Token::Word  	'sub'
     PPI::Token::Whitespace  	' '
     PPI::Token::SubPrototype  	'(&$@)'
     PPI::Token::Whitespace  	' '

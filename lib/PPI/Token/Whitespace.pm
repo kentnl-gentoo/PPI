@@ -9,11 +9,11 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
-        foreach ( 'a' .. 'w', 'y', 'z', 'A' .. 'Z', '_' ) { $COMMITMAP[ord $_] = 'PPI::Token::Bareword'  }
+        foreach ( 'a' .. 'w', 'y', 'z', 'A' .. 'Z', '_' ) { $COMMITMAP[ord $_] = 'PPI::Token::Word'  }
 	foreach ( qw!; [ ] { } )! )                       { $COMMITMAP[ord $_] = 'PPI::Token::Structure' }
         foreach ( 0 .. 9 )                                { $CLASSMAP[ord $_]  = 'Number'   }
 	foreach ( qw{= ? | + < > . ! ~ ^} )               { $CLASSMAP[ord $_]  = 'Operator' }
@@ -26,7 +26,7 @@ BEGIN {
 	$CLASSMAP[ord '"']  = 'Quote::Double';
 	$CLASSMAP[ord '`']  = 'Quote::Execute';
 	$CLASSMAP[ord '\\'] = 'Cast';
-	$CLASSMAP[ord '_']  = 'Bareword';
+	$CLASSMAP[ord '_']  = 'Word';
 	$CLASSMAP[32]       = 'Whitespace'; # A normal space
 }
 
@@ -91,8 +91,8 @@ sub _on_char {
 		my $tokens = $t->_previous_significant_tokens( 3 );
 		if ( $tokens ) {
 			# A normal subroutine declaration
-		     	if ( $tokens->[0]->_isa('Bareword')
-		     		and $tokens->[1]->_isa('Bareword', 'sub')
+		     	if ( $tokens->[0]->_isa('Word')
+		     		and $tokens->[1]->_isa('Word', 'sub')
 		     	 	and (
 			     		$tokens->[2]->_isa('Structure')
 					or $tokens->[2]->_isa('Whitespace', '')
@@ -103,7 +103,7 @@ sub _on_char {
 			}
 
 			# An prototyped anonymous subroutine
-			if ( $tokens->[0]->_isa( 'Bareword', 'sub' ) ) {
+			if ( $tokens->[0]->_isa( 'Word', 'sub' ) ) {
 				return 'SubPrototype';
 			}
 		}
@@ -137,12 +137,12 @@ sub _on_char {
 		return 'Regex::Match' if $previous->_isa( 'Structure', ';' );
 
 		# Functions that we know use commonly use regexs as an argument
-		return 'Regex::Match' if $previous->_isa( 'Bareword', 'split' );
+		return 'Regex::Match' if $previous->_isa( 'Word', 'split' );
 
 		# After a keyword
-		return 'Regex::Match' if $previous->_isa( 'Bareword', 'if' );
-		return 'Regex::Match' if $previous->_isa( 'Bareword', 'unless' );
-		return 'Regex::Match' if $previous->_isa( 'Bareword', 'grep' );
+		return 'Regex::Match' if $previous->_isa( 'Word', 'if' );
+		return 'Regex::Match' if $previous->_isa( 'Word', 'unless' );
+		return 'Regex::Match' if $previous->_isa( 'Word', 'grep' );
 
 		# As an argument in a list
 		return 'Regex::Match' if $previous->_isa( 'Operator', ',' );
@@ -173,7 +173,7 @@ sub _on_char {
 		}
 
 		# Otherwise, commit like a normal bareword
-		return PPI::Token::Bareword->_commit($t);
+		return PPI::Token::Word->_commit($t);
 	}
 
 	# This SHOULD BE is just normal base stuff

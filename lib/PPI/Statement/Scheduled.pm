@@ -9,7 +9,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 sub type {

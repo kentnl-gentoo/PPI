@@ -1,6 +1,6 @@
 PPI::Document
   PPI::Statement::Variable
-    PPI::Token::Bareword  	'my'
+    PPI::Token::Word  	'my'
     PPI::Token::Whitespace  	' '
     PPI::Token::Symbol  	'$a'
     PPI::Token::Whitespace  	' '

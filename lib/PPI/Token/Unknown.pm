@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 
@@ -123,7 +123,7 @@ sub _on_char {
 		}
 
 		if ( /[a-zA-Z]/ ) {
-			return $t->_set_token_class( 'DashedBareword' ) ? 1 : undef;
+			return $t->_set_token_class( 'Quote::Dashed' ) ? 1 : undef;
 		}
 
 		# The numeric negative operator
@@ -135,7 +135,7 @@ sub _on_char {
 	} elsif ( $c eq ':' ) {
 		if ( $_ eq ':' ) {
 			# ::foo style bareword
-			return $t->_set_token_class( 'Bareword' ) ? 1 : undef;
+			return $t->_set_token_class( 'Word' ) ? 1 : undef;
 		}
 
 		# Now, : acts very very differently in different contexts.
@@ -173,17 +173,17 @@ sub _is_an_attribute {
 	}
 
 	# Other than that, we would need to have had a bareword
-	unless ( $tokens->[0]->_isa('Bareword') ) {
+	unless ( $tokens->[0]->_isa('Word') ) {
 		return '';
 	}
 
 	# We could be an anonymous subroutine
-	if ( $tokens->[0]->_isa('Bareword', 'sub') ) {
+	if ( $tokens->[0]->_isa('Word', 'sub') ) {
 		return 1;
 	}
 
 	# Or, we could be a named subroutine
-	if ( $tokens->[1]->_isa('Bareword', 'sub')
+	if ( $tokens->[1]->_isa('Word', 'sub')
 		and ( $tokens->[2]->_isa('Structure')
 			or $tokens->[2]->_isa('Whitespace','')
 		)

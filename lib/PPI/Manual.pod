@@ -1,41 +1,40 @@
 =head1 NAME
 
-PPI Manual - The ( unfinished ) manual for PPI
+PPI Manual - The (still incomplete) manual for PPI
 
 =head1 DESCRIPTION
 
 =head2 About this Document
 
-This is the PPI ( Parse::Perl::Isolated ) user manual. It describes PPI,
-it's structure, it's use, an overview of it's API, and provides
-implementation samples.
+This is the PPI manual. It describes PPI, its reason for existing, its
+structure, its use, an overview of the API, and provides implementation
+samples.
 
 =head2 Background
 
-The ability to read, and understand perl ( programmatically ) outside of
-the perl executable is one that has caused difficulty for a very long time.
+The ability to read, and understand perl (programmatically) other than with
+the perl executable is one that has caused difficulty for a long time.
 
 The root cause of this problem is perl's dynamic grammer. Although there
-are typically not huge differences in the grammer, some things cause
-large problems.
+are typically not huge differences in the grammer of most code, some things
+cause large problems.
 
 An example of these are function signatures, as demonstrated by the following.
 
-  @result = (&dothis $foo, $bar);
-
+  @result = (dothis $foo, $bar);
+  
   # Which of the following is it equivalent to?
-  @result = (&dothis($foo), $bar);
-  @result = &dothis($foo, $bar);
+  @result = (dothis($foo), $bar);
+  @result = dothis($foo, $bar);
 
 This code can be interpreted in two different ways, depending on whether the
 C<&dothis> function is expecting one argument, or two, or several.
 
-To restate this, a parser would need context information that could not be
-found in the immediate vicinity. In fact, this information might not even
-be in the same file. It might also not be able to determine this without
-the prior execution of a BEGIN {} block. In other words, to parse perl, you
-must also execute it, or if not it, everything that it depends on for it's
-grammer.
+To restate, a true or "real" parser needs information that can not be found
+in the immediate vicinity. In fact, this information might not even be in the
+same file. It might also not be able to determine this without the prior
+execution of a C<BEGIN {}> block. In other words, to parse perl, you must
+also execute it, or if not it, everything that it depends on for its grammer.
 
 This, while possibly feasable in some circumstances, is not a valid solution
 ( at least, so far as this module is concerned ). Imagine trying to parse some
@@ -43,39 +42,38 @@ code that had a dependency on the C<Win32::*> modules from a Unix machine, or
 trying to parse some code with a dependency on another module that had not
 even been written yet...
 
-For more information on why it isn't possible to parse perl, see:
+For more information on why it is impossible to parse perl, see:
 
-http://www.perlmonks.org/index.pl?node_id=44722
+L<http://www.perlmonks.org/index.pl?node_id=44722>
 
 =head2 Why "Isolated"?
 
-In aknowledgement that someone may some day come up with a valid solution for
-this problem, we leave the C<Parse::Perl> namespace free. The namespace of 
-Parse::Perl::Isolated ( shortened to PPI ), has been chosen because our 
-purpose here is only to "parse" perl code that is isolated from other 
-resources. That is, we assume that there is no possiblity of accessing 
-other code on which we have a dependency, or of running an instance of perl
-alongside the parser ( a possible solution for Parse::Perl that is
-investigated from time to time ).
+Technically, PPI is short for Parse::Perl::Isolated. In aknowledgement that
+someone may some day come up with a valid solution for the grammar problem,
+it was decided to leave the C<Parse::Perl> namespace free.
 
-=head2 Goals of PPI
+The purpose of this parser is not to parse Perl B<code>, but to parse Perl
+B<documents>. In most cases, a single file is valid as both. By treating the
+problem this way, we can parse a single file containing Perl source isolated
+from any other resources, such as the libraries upon which the code may depend,
+and without needing to run an instance of perl alongside or inside the the
+parser (a possible solution for Parse::Perl that is investigated from time to
+time).
 
-Once we have recognised that an attempt to parse perl well enough to execute
-it either impossible or beyond an immediate solution, it is important we
-establish just what uses we want to put a Parse::Perl type module to.
+=head2 Why do we want to parse?
 
-=over
+Once we accept that we will probably never be able to parse perl well enough
+to execute it, it is worth re-examining C<WHY> we wanted to "parse" perl in
+the first place. What are the uses we would put such a parser.
 
-=item Presentation / Colouring etc
-
-Modify, improve, syntax colour etc the presentation of code.
+=over 4
 
 =item Documentation
 
-Analyze the contents of code to automatically generate documentation,
-parrellel to, or as a replacement for, POD documentation.
+Analyze the contents of of a Perl document to automatically generate
+documentation, in parellel to, or as a replacement for, POD documentation.
 
-=item Structural Analysis
+=item Structural and Quality Analysis
 
 Determine quality or other metrics across a body of code, and identify
 situations relating to particular phrases, techniques or locations.
@@ -83,85 +81,157 @@ situations relating to particular phrases, techniques or locations.
 =item Refactoring
 
 Make structural, syntax, or other changes to code in an automated manner,
-independantly, or in assistance to an editor.
+independantly, or in assistance to an editor. This list includes backporting,
+forward porting, partial evaluation, "improving" code, or whatever.
 
 =item Layout
 
-This includes techniques such as tidying ( ala perltidy ), obfuscation, or
-to implement formatting preferences or policies.
+Change the layout of code without changing it's meaning. This includes
+techniques such as tidying (like perltidy), obfuscation, compression, or to
+implement formatting preferences or policies.
+
+=item Presentation
+
+This includes method of improving the presentating of code, without changing
+the text of the code. Modify, improve, syntax colour etc the presentation of
+a Perl document.
 
 =back
 
-As long as the above tasks can be achieved, without damaging code, then
-PPI can be considered to be a success.
+With these goals identified, as long as the above tasks can be achieved,
+with some sort of reasonabe guarentee that the code will not be damaged in
+the process, then PPI can be considered to be a success.
 
 =head2 Good Enough(TM)
 
 With the above tasks in mind, PPI seeks to be good enough to achieve the
-above tasks within a single framework, and provide a sufficient good API
-to allow others to implement code in these and related areas.
+above tasks, or to provide a sufficiently good API on which to allow others
+to implement modules in these and related areas.
 
-However, some limits are applied. Because PPI cannot adapt to changing
-grammers, any code written using code filters should not assume to be
-parsable. This includes anything munged by Acme::Bleach, as well as
-( arguably ) more common cases like Switch.pm and Exception.pm. We do
-not assume to be able to parse code using these modules, although someone
+However, there are going to be limits to this process. Because PPI cannot
+adapt to changing grammers, any code written using code filters should not
+be assumed to be parsable. At one extreme, this includes anything munged by
+L<Acme::Bleach|Acme::Bleach>, as well as (arguably) more common cases like
+L<Switch|Switch.pm>, L<Error|Error.pm> and L<Exception|Exception.pm>. We do
+not pretend to be able to parse code using these modules, although someone
 may be able to extend PPI to handle them.
 
-Our goals for success are to be able to successfully parse 99% of all
-perl source files contained in CPAN. This means the entire file in each
-case. In pratical tests, we actually do much better. Aside from very
-intentionally nasty things, the only code which we currently fail to parse
-is the "selfgol" obscured code entry. We are in fact able to parse most
-obscured code, but selfgol uses the sub definition C<sub'new>, an
-apparently special case which is equivalent to C<sub ::new> and not
-C<sub::new>.
+UPDATE: The ability to extend PPI to handle lexical additions to the
+language, which means handling filters that LOOK like they should be perl,
+but arn't, is on the drawing board to be done some time post-1.0
+
+The goal for success is thus to be able to successfully parse 99% of all
+Perl documents contained in CPAN. This means the entire file in each case.
 
 =head1 IMPLEMENTATION
 
 =head2 General Layout
 
-PPI has two major parsing componants, L<PPI::Tokenizer> and L<PPI::Lexer>,
-upon which everything else is based.
+PPI is built upon two primary "parsing" components,
+L<PPI::Tokenizer|PPI::Tokenizer> and L<PPI::Lexer|PPI::Lexer>, and a large
+tree of nearly 50 classes which implement the various objects within the
+Perl Document Object Model (PDOM).
+
+The Perl Document Object Model is somewhat similar in style and intent to the
+regular DOM, but contains many diferences to handle perl-specific cases.
+
+On top of the Tokenizer and Lexer, and the classes of the PDOM, sit a number
+of classes intended to make life a little easier when dealing with PDOM
+objects trees.
+
+Both the major parsing components are implemented by using manual code, from
+scratch. There are no grammar rules, no YACC or LEX style tools, just code.
+This is primarily because of the sheer volume of accumulated cruft. Not even
+perl itself is capable of parsing perl documents (remember, it just parses
+code) so PPI needs to be even cruftier than perl itself. Yes, eewww...
 
 =head2 The Tokenizer
 
+The Tokenizer is considered complete and of release quality. Not quite
+"stable", but close.
+
 The Tokenizer takes source code and converts it into a series of tokens. It
 does this using a slow but thorough character by character manual process,
-rather than using complex regexs. Currently, this implementation means that
-PPI is not of use for highly interactive tasks, such as an editor which
-checks and formats code on the fly.
+rather than using complex regexs. Well, that's actually a lie, it has a lot
+of support regexs throughout, and it's not truly character by character. The
+Tokenizer is increasingly "skipping ahead" when it can find shortcuts, so
+the "current character" cursor tends to jump a bit wildly. Remember that
+cruft I was mentioning. Right, well the tokenizer is full of it.
+
+Currently, this implementation means that PPI is not of use for highly
+interactive tasks, such as an editor which checks and formats code on
+the fly. This situation is improving somewhat with multi-gigahertz
+processors, but can still be painful at times.
 
 How slow? As an example, tokenizing CPAN.pm, a 7112 line, 40,000 token file
 takes about 5 seconds on my little Duron 800 test server. So you should
 expect the tokenizer to work at a rate of about 1700 lines of code per
-gigacycle. The code is currently being optomised, and there is plenty of
-scope remaining for speed improvements, but it is fairly slow work. The
-target rate is about 5000 lines per gigacycle.
+gigacycle. The code gets tweaked and improved all the time, and there is a
+fair amount of scope left for speed improvements, but it is painstaking work,
+and fairly slow going.
+
+The target rate is about 5000 lines per gigacycle. Without moving bits to C,
+I just can't see any way to improve this. Any move of things to C would be
+B<hard> and is probably a 2.0 task.
 
 =head2 The Lexer
 
-The Lexer is currently structurally complete, but lacks a fair percentage
-of it's logic code, especially relating to code blocks.
+The Lexer is considered complete, but subject to change. Early beta quality.
 
-At the top level of all lex trees is the L<PPI::Document>. This will contain
-non-significant tokens ( whitespace, comments, pod etc ), as well as
-statements and structure. A L<PPI::Structure> is any series of tokens
-terminated by matching braces ( with a few exceptions ). This includes
-things like code blocks, conditionals, function argument braces, anonymous
-array square brackets et al. A L<PPI::Statement> is any series of tokens
-that is included in a single contigious statement.
+The Lexer takes a token stream, and converts it to a lexical tree. Again,
+remember we are parsing Perl B<documents> here, not code, so this includes
+whitespace, comments, and all number of weird things that have no relevance
+when code it actually executed. An instantiated L<PPI::Lexer|PPI::Lexer>
+object consumes streams of L<PPI::Token|PPI::Token> objects, and produces
+L<PPI::Document|PPI::Document> objects.
 
-The following example shows how Statements and Structures nest.
+=head1 PDOM
 
-  PPI::Statement      "Hello World!"
-  PPI::Structure      ( "Hello World!" )
-  PPI::Statement      print( "Hello World!" );
-  PPI::Document       #!/usr/bin/perl
-                      print( "Hello World!" );
+This section provides a basic overview of the Perl Document Object
+Model (the PDOM). Although this is a basic overview and doesn't cover the
+PDOM classes in order, the following is a rough layout of the main classes.
 
-As you can see, a statement can have as little as one token. The actual nested
-structure for some code would look something like this.
+  PPI::Element
+      PPI::Token
+          PPI::Token::*
+      PPI::Node
+          PPI::Statement
+              PPI::Statement::*
+          PPI::Structure
+              PPI::Structure::*
+          PPI::Document
+
+To summarize the above layout, ALL PDOM objects inherit from the
+basic L<PPI::Element|Element> class. Inheriting from this are
+L<PPI::Token|Tokens> (which are just strings of content with a known
+meaning) and L<PPI::Node|Nodes> (which are containers to hold other Elements)
+
+Moving on, we'll start at the bottom of the inheritance tree with the
+first PDOM element you are likely to encounter, the Document object.
+
+=head2 The Document
+
+At the top of all PDOM object trees is a L<PPI::Document|PPI::Document>
+object. Each Document can contain a number of Statements, Structures, and
+Tokens.
+
+A L<PPI::Structure|PPI::Structure> is any series of tokens contained within
+matching braces (with a few exceptions in special cases). This includes things
+like code blocks, conditions, function argument braces, anonymous array
+constructors, lists, scoping braces et al. Each Structure contains none,
+one, or many Tokens and Structures (the rules for which vary for the different
+Structure subclasses)
+
+A L<PPI::Statement|PPI::Statement> is any series of Tokens and Structures
+that are treated as a single contigious statement by perl itself. You should
+note that a Statement is as close as PPI can get to "parsing" the code in the
+sense that perl itself parses Perl code to build the op-tree. PPI cannot tell
+you, for example, which tokens are subroutine names, or arguments to a sub call,
+or what have you. It only knows that this series of elements represents a
+single Statement.
+
+This example shows how the PDOM tree created for the following chunk of simple
+perl code.
 
   #!/usr/bin/perl
 
@@ -169,33 +239,203 @@ structure for some code would look something like this.
 
   exit();
 
-  PPI::Document
-    PPI::Token::Comment               "#!/usr/bin/perl\n"
-    PPI::Token::Whitespace                  "\n"
-    PPI::Statement
-      PPI::Token::Bareword            'print'
-        PPI::Structure                '(' ... ')'
-          PPI::Token::Whitespace            ' '
-          PPI::Statement
-            PPI::Token::Quote::Double '"Hello World!"'
-          PPI::Token::Whitespace            ' '
-      PPI::Token::Structure           ';'
-    PPI::Token::Whitespace                  "\n"
-    PPI::Token::Whitespace                  "\n"
-    PPI::Statement
-      PPI::Token::Bareword            'exit'
-      PPI::Structure                  '(' ... ')'
-      PPI::Token::Structure           ';'
-    PPI::Token::Whitespace                  "\n"
+This is not all that complicated. Very very simple in fact. Translated into
+a PDOM tree it would have the following structure. In this example, strings
+are only listed for the ACTUAL element that contains the string.
 
+  PPI::Document
+    PPI::Token::Comment                '#!/usr/bin/perl\n'
+    PPI::Token::Whitespace             '\n'
+    PPI::Statement
+      PPI::Token::Bareword             'print'
+      PPI::Structure::List             ( ... )
+        PPI::Token::Whitespace         ' '
+        PPI::Statement::Expression
+          PPI::Token::Quote::Double    '"Hello World!"'
+        PPI::Token::Whitespace         ' '
+      PPI::Token::Structure            ';'
+    PPI::Token::Whitespace             '\n'
+    PPI::Token::Whitespace             '\n'
+    PPI::Statement
+      PPI::Token::Bareword             'exit'
+      PPI::Structure::List             ( ... )
+      PPI::Token::Structure            ';'
+    PPI::Token::Whitespace             '\n'
+
+Notice how PPI builds EVERYTHING into the model, including whitespace. This
+is needed in order to make the Document fully "round trip" capable. That is,
+if you stringify the Document you get the same file you started with.
+
+That is a little easier to read if we strip out all the whitespace. Here it
+is again, sans the distracting whitespace tokens.
+
+  PPI::Document
+    PPI::Token::Comment                '#!/usr/bin/perl\n'
+    PPI::Statement
+      PPI::Token::Bareword             'print'
+      PPI::Structure::List             ( ... )
+        PPI::Statement::Expression
+          PPI::Token::Quote::Double    '"Hello World!"'
+      PPI::Token::Structure            ';'
+    PPI::Statement
+      PPI::Token::Bareword             'exit'
+      PPI::Structure::List             ( ... )
+      PPI::Token::Structure            ';'
 
 As you can see, the tree can get fairly deep at time, especially when every
-isolated token in a bracket becomes it's own statement. This is needed to
+isolated token in a bracket becomes its own statement. This is needed to
 allow anything inside the tree the ability to grow. It also makes the
 search and analysis algorithms simpler.
 
-Please note that the lexer is partly completed, but not enough to use it on
-anything "real". It needs major work before it can be considered to be 
-"working".
+Because of the depth and complexity of PDOM trees, a vast number of methods
+have been added wherever possible to help people working with tree do normal
+tasks relatively efficiently. It acts as a DWIM layer above the large trees.
 
-TO BE COMPLETED
+=head1 CLASS INDEX
+
+The following provides a list of all classes contained in the core PPI
+distribution. The list is in alphabetical order. Anything with it's own POD
+documentation can be considered stable, as the POD is only written after the
+API is largely finalised and frozen. Still, don't rely on anything here until
+after PPI official becomes a beta, in the 0.9xx versions.
+
+=over 4
+
+=item PPI::Base
+
+The base class for all PPI classes. This may be removed before Beta
+
+=item L<PPI::Document|PPI::Document>
+
+The Document object, the top of the PDOM
+
+=item PPI::Document::Fragment
+
+A cohesive fragment of a larger Document. Incomplete. Will be used later
+on for cut/paste/insert etc. Very similar to PPI::Document, but has some
+additional methods, and does not represent a lexical scope boundary.
+
+=item L<PPI::Element|PPI::Element>
+
+The Element class is the abstract base class for all objects within the PDOM
+
+=item Format::HTML
+
+Converts Document object to a syntax-highlighted HTML form. The current
+version is redundant, using only Token streams and not taking advantage
+of the additional information provided by the PDOM. Will be rewritten.
+May also be removed from the core.
+
+=item L<PPI::Lexer|PPI::Lexer>
+
+The PPI Lexer. Converts Token streams into PDOM trees.
+
+=item PPI::Lexer::Dump
+
+A simple class for dumping readable debugging version of PDOM structures
+
+=item L<PPI::Node|PPI::Node>
+
+The Node object, the abstract base class for all PDOM object that can
+contain other Elements, such as the Document, Statement and Strucure
+objects.
+
+=item PPI::Statement
+
+The base class for all Perl statements. Generic "evaluate for side-effects"
+statements are of this actual type. Other more interesting statement types
+belong to one of it's children.
+
+See the PPI::Statement documentation (not yet written) for a description and
+list of all of the different statement types/classes.
+
+=item PPI::Structure
+
+The abstract base class for all structures. A Structure is a language
+construct consisting of matching braces containing a set of other elements.
+
+See the PPI::Structure documentation (not yet written) for a description and
+list of all of the different structure types/classes.
+
+=item PPI::Token
+
+A token is the basic unit of content. At it's most basic, a Token is just
+a string tagged with metadata (it's class, some additional flags in some
+cases).
+
+See the PPI::Token documentation (not yet written) for a description and
+list of all of the different Token types/classes
+
+=item PPI::Token::Quote
+
+The PPI::Token::Quote class provides an abstract base class for the many and
+varied types of quote and quote-like things in perl. Classes that inherit
+from PPI::Token::Quote, or one of it's other abstract subclasses
+PPI::Token::Quote::Simple or PPI::Token::Quote::Full, are mostly handled by
+the Tokenizer quote engine.
+
+=item PPI::Tokenizer
+
+The PPI Tokenizer consumes chunks of text and provides access to a stream of
+PPI::Token objects. The Tokenizer is really nastily complicated, to the point
+where even the author treads a bit carefully when working with it. Most of
+the complication is the result of optimizations which have tripled the
+tokenization speed, at the expense of maintainability. Yeah, I know...
+
+Because the Tokenizer holds the array of Tokens internally, providing
+cursor-based access to it, an instantiate Tokenizer object can only be used
+B<once>, unlike the Lexer, which just spits out a single PPI::Document object
+and can be reused as needed.
+
+=item PPI::Transform
+
+A Transform is a chunk of logic that takes a PDOM element of some sort and
+manipulates it. Most things that do blanket manipulation of some sort are
+likely to be implemented using a Transform class.
+
+=item PPI::Transform::Object
+
+To allow for Transforms to be assembled from random parts, a Transform object
+allows for the creation of much more ad-hoc transforms compared to fixed
+Transform classes.
+
+=head1 TO DO
+
+PPI is slowly approaching feature freeze and API freeze. In general, anything
+that has got proper class documentation can be considered to be frozen, and
+be relatively reliably used in your code. Otherwise, be prepared for changes,
+as there are still some issues to be resolved, in particular Token class
+names, the Transform API, the (non-existant) Plugin system, and what (if
+anything) the base PPI class will actually do.
+
+Also needed are more Manual sections, probably including basic tutorials for
+common tasks and stuff...
+
+=head1 SUPPORT
+
+Although this is pre-beta, what code is there should actually work. So if you
+find any bugs, they should be submitted via the CPAN bug tracker, located at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
+
+For other issues, contact the author. In particular, if you want to make a
+CPAN or private module that uses PPI, it would be best to stay in direct
+contact with the author until PPI goes beta.
+
+=head1 AUTHOR
+
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution.
+
+Copyright (c) 2004 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

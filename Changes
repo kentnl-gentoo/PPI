@@ -1,5 +1,11 @@
 Revision history for Perl extension PPI
 
+0.828
+	- BREAKS API COMPATIBILITY
+	- Changed PPI::Token::DashedBareword to PPI::Token::Quote::Dashed
+	- Changed PPI::Token::Bareword to PPI::Token::Word
+	- Vastly improved PPI::Manual
+
 0.827 Thu Aug  5 2004
 	- Added PPI::Token::Seperator class ( for __DATA__ and __END__ )
 	- Added better Tokenizer handling of __DATA__ and __END__

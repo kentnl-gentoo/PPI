@@ -34,7 +34,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 
@@ -398,7 +398,7 @@ sub _handle_raw_input {
 
 		# Check the terminator, and get the termination string
 		my $tString;
-		if ( ref($terminator) eq 'PPI::Token::Bareword' ) {
+		if ( ref($terminator) eq 'PPI::Token::Word' ) {
 			$tString = $terminator->{content};
 		} elsif ( ref($terminator) =~ /^PPI::Token::Quote::(Single|Double)$/ ) {
 			$tString = $terminator->get_string;

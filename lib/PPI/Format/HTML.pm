@@ -10,7 +10,7 @@ use base qw{Exporter PPI::Base};
 use vars qw{$VERSION @EXPORT_OK};
 use vars qw{@keywords @functions $colormap};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 
 	# Some methods will also work as exportable functions
 	@EXPORT_OK = qw{syntax_string syntax_page debug_string debug_page};
@@ -194,7 +194,7 @@ sub _get_token_color {
 	my $content = $Token->{content};
 	if ( $class eq 'PPI::Token::Keyword' ) {
 		return 'blue';
-	} elsif ( $class eq 'PPI::Token::Bareword' ) {
+	} elsif ( $class eq 'PPI::Token::Word' ) {
 		return $colormap->{$content} if $colormap->{$content};
 	} elsif ( $class eq 'PPI::Token::Comment' ) {
 		return '#008080';

@@ -19,7 +19,6 @@ lib/PPI/Statement/Variable.pm
 lib/PPI/Structure.pm
 lib/PPI/Token.pm
 lib/PPI/Token/Attribute.pm
-lib/PPI/Token/Bareword.pm
 lib/PPI/Token/Comment.pm
 lib/PPI/Token/Magic.pm
 lib/PPI/Token/Number.pm
@@ -31,9 +30,8 @@ lib/PPI/Token/Quote/Simple.pm
 lib/PPI/Token/Symbol.pm
 lib/PPI/Token/Unknown.pm
 lib/PPI/Token/Whitespace.pm
+lib/PPI/Token/Word.pm
 lib/PPI/Tokenizer.pm
-lib/PPI/Tokenizer/Quote/Full.pm
-lib/PPI/Tokenizer/Quote/Simple.pm
 lib/PPI/Transform.pm
 lib/PPI/Transform/Object.pm
 LICENSE

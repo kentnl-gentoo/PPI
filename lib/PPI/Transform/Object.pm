@@ -3,6 +3,11 @@ package PPI::Transform::Object;
 use strict;
 use base 'PPI::Transform';
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.828';
+}
+
 # PPI::Transform::Object provides a mechanism for building complex transforms
 # and transform toolkits by allowing instantiated Transform to be assembled
 # from an arbitrary set of functions.

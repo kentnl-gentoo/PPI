@@ -8,7 +8,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 # What type of variable declaration is it? ( my, local, our )
@@ -20,7 +20,7 @@ sub type {
 	shift @schild if isa($schild[0], 'PPI::Token::Label');
 
 	# Get the type
-	(isa($schild[0], 'PPI::Token::Bareword') and $schild[0]->content =~ /^(my|local|our)$/)
+	(isa($schild[0], 'PPI::Token::Word') and $schild[0]->content =~ /^(my|local|our)$/)
 		? $schild[0]->content
 		: undef;
 }

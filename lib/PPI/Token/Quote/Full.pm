@@ -7,7 +7,7 @@ use base 'PPI::Token::Quote';
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.

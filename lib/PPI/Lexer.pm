@@ -50,7 +50,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 
@@ -449,13 +449,13 @@ sub _statement_continues {
 		# If the token before the block is an 'else',
 		# it's over, no matter what.
 		my $NextLast = $Statement->schild(-2);
-		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->_isa('Bareword','else') ) {
+		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->_isa('Word','else') ) {
 			return '';
 		}
 
 		# Otherwise, we continue for 'elsif' or 'else' only.
-		return 1 if $Token->_isa('Bareword', 'else');
-		return 1 if $Token->_isa('Bareword', 'elsif');
+		return 1 if $Token->_isa('Word', 'else');
+		return 1 if $Token->_isa('Word', 'elsif');
 		return '';
 	}
 
@@ -469,7 +469,7 @@ sub _statement_continues {
 		# LABEL BLOCK continue BLOCK
 
 		# Handle cases with a work after the label
-		if ( $Token->isa('PPI::Token::Bareword')
+		if ( $Token->isa('PPI::Token::Word')
 		and $Token->content =~ /^(?:while|for|foreach)$/ ) {
 			return 1;
 		}
@@ -495,7 +495,7 @@ sub _statement_continues {
 
 	if ( $type eq 'for' ) {
 		# LABEL for (EXPR; EXPR; EXPR) BLOCK
-		if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'for' ) {
+		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'for' ) {
 			# LABEL for ...
 			# Only an open braces will do
 			return $Token->_isa('Structure', '(');
@@ -508,7 +508,7 @@ sub _statement_continues {
 	}
 
 	# Handle the common continue case
-	if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'continue' ) {
+	if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'continue' ) {
 		# LABEL while (EXPR) BLOCK continue ...
 		# LABEL foreach VAR (LIST) BLOCK continue ...
 		# LABEL BLOCK continue ...
@@ -525,7 +525,7 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) BLOCK ...
 		# LABEL BLOCK ...
 		# Is this the block for a continue?
-		if ( isa($part[-2], 'PPI::Token::Bareword') and $part[-2]->content eq 'continue' ) {
+		if ( isa($part[-2], 'PPI::Token::Word') and $part[-2]->content eq 'continue' ) {
 			# LABEL while (EXPR) BLOCK continue BLOCK
 			# LABEL foreach VAR (LIST) BLOCK continue BLOCK
 			# LABEL BLOCK continue BLOCK
@@ -534,7 +534,7 @@ sub _statement_continues {
 		}
 
 		# Only a continue will do
-		return $Token->_isa('Bareword', 'continue');
+		return $Token->_isa('Word', 'continue');
 	}
 
 	if ( $type eq 'block' ) {
@@ -546,7 +546,7 @@ sub _statement_continues {
 		# LABEL while (EXPR) BLOCK
 		# LABEL while (EXPR) BLOCK continue BLOCK
 		# The only case not covered is the while ...
-		if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'while' ) {
+		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'while' ) {
 			# LABEL while ...
 			# Only a condition structure will do
 			return $Token->_isa('Structure', '(');
@@ -568,7 +568,7 @@ sub _statement_continues {
 
 		if ( $LastChild->content eq 'foreach' ) {
 			# There are three possibilities here
-			if ( $Token->_isa('Bareword', 'my') ) {
+			if ( $Token->_isa('Word', 'my') ) {
 				# VAR == 'my ...'
 				return 1;
 			} elsif ( $Token->content =~ /^\$/ ) {
@@ -638,7 +638,7 @@ sub _resolve_new_structure_round {
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->schild(-1);
-	if ( isa( $Element, 'PPI::Token::Bareword' ) ) {
+	if ( isa( $Element, 'PPI::Token::Word' ) ) {
 		# Can it be determined because it is a keyword?
 		if ( $ROUND_CLASSES{$Element->content} ) {
 			return $ROUND_CLASSES{$Element->content};

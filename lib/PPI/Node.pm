@@ -18,14 +18,14 @@ PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
   my $Node = PPI::Document->new;
   
   # Add an element to the node( in this case, a token )
-  my $Token = PPI::Token::Bareword->new('my');
+  my $Token = PPI::Token::Word->new('my');
   $Node->add_element( $Token );
   
   # Get the elements for the Node
   my @elements = $Node->children;
   
   # Find all the barewords within a Node
-  my @barewords = $Node->find( 'PPI::Token::Bareword' );
+  my @barewords = $Node->find( 'PPI::Token::Word' );
   
   # Find by more complex criteria
   my @my_tokens = $Node->find( sub { $_[1]->content eq 'my' } );
@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -511,7 +511,7 @@ sub DESTROY {
 		while ( defined($_ = shift @queue) ) {
 			unshift @queue, @{delete $_->{children}} if $_->{children};
 
-			# Removed all internal/private weird crosslinking so that
+			# Remove all internal/private weird crosslinking so that
 			# the cascading DESTROY calls will get called properly.
 			%$_ = ();
 		}
@@ -522,3 +522,33 @@ sub DESTROY {
 }
 
 1;
+
+=pod
+
+=head1 TO DO
+
+Not much left to do here, by and large this can be considered stable.
+
+Most additional methods are being added on-demand.
+
+=head1 SUPPORT
+
+See the L<support section|PPI::Manual/SUPPORT> in the main PPI Manual
+
+=head1 AUTHOR
+
+Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution.
+
+Copyright (c) 2004 Adam Kennedy. All rights reserved.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

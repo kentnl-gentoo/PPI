@@ -10,19 +10,19 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 sub type {
 	my $self = shift;
 	my $keyword = $self->schild(0) or return undef;
-	isa($keyword, 'PPI::Token::Bareword') and $keyword->content;
+	isa($keyword, 'PPI::Token::Word') and $keyword->content;
 }
 
 sub module {
 	my $self = shift;
 	my $module = $self->schild(1) or return undef;
-	isa($module, 'PPI::Token::Bareword') and $module->content;
+	isa($module, 'PPI::Token::Word') and $module->content;
 }
 
 sub pragma {

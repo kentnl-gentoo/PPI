@@ -8,13 +8,13 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.827';
+	$VERSION = '0.828';
 }
 
 sub namespace {
 	my $self = shift;
 	my $namespace = $self->child(1) or return '';
-	isa($namespace, 'PPI::Token::Bareword') ? $namespace->content : '';
+	isa($namespace, 'PPI::Token::Word') ? $namespace->content : '';
 }
 
 1;
