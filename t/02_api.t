@@ -23,7 +23,7 @@ use PPI::Lexer::Dump;
 use PPI::Format::HTML;
 
 # Execute the tests
-use Test::More 'tests' => 1667;
+use Test::More 'tests' => 1644;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -149,7 +149,6 @@ add_content=method
 set_class=method
 set_content=method
 length=method
-is_a=method
 
 [PPI::Token::Whitespace]
 PPI::Token=isa
@@ -282,12 +281,18 @@ PPI::Statement=isa
 
 [PPI::Statement::Scheduled]
 PPI::Statement=isa
+type=method
 
 [PPI::Statement::Package]
 PPI::Statement=isa
+namespace=method
 
 [PPI::Statement::Include]
 PPI::Statement=isa
+type=method
+module=method
+pragma=method
+version=method
 
 [PPI::Statement::Sub]
 PPI::Statement=isa

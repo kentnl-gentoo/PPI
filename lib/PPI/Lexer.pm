@@ -42,14 +42,15 @@ All methods do a one-shot "lex this and give me a PPI::Document object".
 
 use strict;
 use UNIVERSAL 'isa';
+use base 'PPI::Base';
+use File::Slurp   ();
 use PPI           ();
 use PPI::Token    ();
 use PPI::Document ();
-use base 'PPI::Base';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
 
 
@@ -103,15 +104,8 @@ sub lex_file {
 	my $self = ref $_[0] ? shift : shift->new;
 	my $file = (-f $_[0] and -r $_[0]) ? shift : return undef;
 
-	# Load the source from the file
-	local $/ = undef;
-	open( FILE, $file ) or return undef;
-	my $source = <FILE>;
-	return undef unless defined $source;
-	close FILE or return undef;
-
-	# Hand off to the next method
-	$self->lex_source( $source );
+	# Load the source and hand off to the next method
+	$self->lex_source( scalar File::Slurp::read_file $file );
 }
 
 =pod
@@ -130,10 +124,8 @@ sub lex_source {
 	my $self   = ref $_[0] ? shift : shift->new;
 	my $source = defined $_[0] ? shift : return undef;
 
-	# Create the Tokenizer
+	# Create the Tokenizer and hand off to the next method
 	my $Tokenizer = PPI::Tokenizer->new( $source ) or return undef;
-
-	# Hand off the next method
 	$self->lex_tokenizer( $Tokenizer );
 }
 
@@ -150,18 +142,22 @@ Returns a PPI::Document object, or C<undef> on error.
 
 sub lex_tokenizer {
 	my $self      = ref $_[0] ? shift : shift->new;
-	my $Tokenizer = isa($_[0], 'PPI::Tokenizer') ? shift : return undef;
+	my $Tokenizer = isa(ref $_[0], 'PPI::Tokenizer') ? shift : return undef;
 
 	# Create the Document
 	my $Document = PPI::Document->new;
 
 	# Lex the token stream into the document
 	$self->{Tokenizer} = $Tokenizer;
-	$self->_lex_document( $Document ) or return undef;
+	my $rv = $self->_lex_document( $Document );
 	$self->{Tokenizer} = undef;
+	return $Document if $rv;
 
-	# Return the Document
-	$Document;
+	$DB::single = 1;
+
+	# If an error occurs, DESTROY the partially built document.
+	$Document->DESTROY;
+	undef;
 }
 
 
@@ -173,7 +169,7 @@ sub lex_tokenizer {
 
 sub _lex_document {
 	my $self = shift;
-	my $Document = isa($_[0], 'PPI::Document') ? shift : return undef;
+	my $Document = isa(ref $_[0], 'PPI::Document') ? shift : return undef;
 
 	# Start the processing loop
 	my $Token;
@@ -217,14 +213,22 @@ sub _lex_document {
 			$self->_add_delayed( $Document ) or return undef;
 			$self->_lex_structure( $Structure ) or return undef;
 
-			# Add the resolved Structure to the Document $self-
-			$self->_add_element( $Document, $Structure ) or return undef;
+			# Add the resolved Structure to the Document $self-
+			$self->_add_element( $Document, $Structure ) or return undef;
 			next;
 		}
 
 		# Is this the close of a structure.
-		# Because we are at the top of the tree, this is an error.
-		# This means either a mis-parsing, or an mistake in the code.
+		if ( $Token->_closes ) {
+			# Because we are at the top of the tree, this is an error.
+			# This means either a mis-parsing, or an mistake in the code.
+			# To handle this, we create a "Naked Close" statement
+			my $UnmatchedBrace = PPI::Statement::UnmatchedBrace->new( $Token ) or return undef;
+			$self->_add_element( $Document, $UnmatchedBrace ) or return undef;
+			next;
+		}
+
+		# Shouldn't be able to get here
 		return undef;
 	}
 
@@ -387,7 +391,7 @@ sub _lex_statement_end {
 	# End of the file, EVERYTHING is ours
 	my $Token;
 	while ( $Token = $self->_get_token ) {
-		$Statement->add_element( $Token ) or return undef;
+		$Statement->__add_element( $Token );
 	}
 
 	# Was it an error in the tokenizer?
@@ -444,13 +448,13 @@ sub _statement_continues {
 		# If the token before the block is an 'else',
 		# it's over, no matter what.
 		my $NextLast = $Statement->schild(-2);
-		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->is_a('Bareword','else') ) {
+		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->_isa('Bareword','else') ) {
 			return '';
 		}
 
 		# Otherwise, we continue for 'elsif' or 'else' only.
-		return 1 if $Token->is_a('Bareword', 'else');
-		return 1 if $Token->is_a('Bareword', 'elsif');
+		return 1 if $Token->_isa('Bareword', 'else');
+		return 1 if $Token->_isa('Bareword', 'elsif');
 		return '';
 	}
 
@@ -485,7 +489,7 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) ...
 		# LABEL foreach VAR (LIST) ...
 		# Only a block will do
-		return $Token->is_a('Structure', '{');
+		return $Token->_isa('Structure', '{');
 	}
 
 	if ( $type eq 'for' ) {
@@ -493,7 +497,7 @@ sub _statement_continues {
 		if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'for' ) {
 			# LABEL for ...
 			# Only an open braces will do
-			return $Token->is_a('Structure', '(');
+			return $Token->_isa('Structure', '(');
 
 		} elsif ( isa($LastChild, 'PPI::Structure::Block') ) {
 			# LABEL for (EXPR; EXPR; EXPR) BLOCK
@@ -508,7 +512,7 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) BLOCK continue ...
 		# LABEL BLOCK continue ...
 		# Only a block will do
-		return $Token->is_a('Structure', '{');
+		return $Token->_isa('Structure', '{');
 	}
 
 	# Handle the common continuable block case
@@ -529,7 +533,7 @@ sub _statement_continues {
 		}
 
 		# Only a continue will do
-		return $Token->is_a('Bareword', 'continue');
+		return $Token->_isa('Bareword', 'continue');
 	}
 
 	if ( $type eq 'block' ) {
@@ -544,7 +548,7 @@ sub _statement_continues {
 		if ( isa($LastChild, 'PPI::Token::Bareword') and $LastChild->content eq 'while' ) {
 			# LABEL while ...
 			# Only a condition structure will do
-			return $Token->is_a('Structure', '(');
+			return $Token->_isa('Structure', '(');
 		}
 	}
 
@@ -558,18 +562,18 @@ sub _statement_continues {
 		if ( isa($LastChild, 'PPI::Token::Symbol') ) {
 			# LABEL foreach my $scalar ...
 			# Only an open round brace will do
-			return $Token->is_a('Structure', '(');
+			return $Token->_isa('Structure', '(');
 		}
 
 		if ( $LastChild->content eq 'foreach' ) {
 			# There are three possibilities here
-			if ( $Token->is_a('Bareword', 'my') ) {
+			if ( $Token->_isa('Bareword', 'my') ) {
 				# VAR == 'my ...'
 				return 1;
 			} elsif ( $Token->content =~ /^\$/ ) {
 				# VAR == '$scalar'
 				return 1;
-			} elsif ( $Token->is_a('Structure', '(') ) {
+			} elsif ( $Token->_isa('Structure', '(') ) {
 				return 1;
 			} else {
 				return '';
@@ -770,8 +774,15 @@ sub _lex_structure {
 				return 1;
 			}
 
-			# Unexpected close... error
-			return undef;
+			# Unmatched closing brace.
+			# Either they typed the wrong thing, or haven't put
+			# one at all. Either way it's an error we need to
+			# somehow handle gracefully. For now, we'll treat it
+			# as implicitly ending the structure. This causes the
+			# least damage across the various reasons why this
+			# might have happened.
+			warn('Unexpected closing brace') if $self->{warnings};
+			return $self->_rollback( $Token );
 		}
 
 		# It's a semi-colon on it's own, just inside the block.
@@ -839,7 +850,7 @@ sub _add_element {
 
 	# Add first the delayed, from the front, then the passed element
 	foreach my $el ( @{$self->{delayed}}, $Element ) {
-		$Parent->add_element( $el ) or return undef;
+		$Parent->__add_element( $el );
 	}
 
 	# Clear the delayed elements if needed
@@ -855,7 +866,7 @@ sub _add_delayed {
 
 	# Add any delayed
 	foreach my $el ( @{$self->{delayed}} ) {
-		$Parent->add_element( $el ) or return undef;
+		$Parent->__add_element($el);
 	}
 
 	# Clear the delayed elements

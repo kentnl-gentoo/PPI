@@ -83,15 +83,15 @@ isa_ok( $Token2, 'PPI::Token::Symbol'     );
 isa_ok( $Token3, 'PPI::Token::Whitespace' );
 isa_ok( $Braces, 'PPI::Structure::List'   );
 isa_ok( $Token7, 'PPI::Token::Structure'  );
-ok( $Token1->is_a('Bareword', 'my'), 'First token is correct'   );
-ok( $Token2->is_a('Symbol', '@foo'), 'Second token is correct'  );
-ok( $Token3->is_a('Whitespace', ' '), 'Third token is correct'  );
+ok( $Token1->_isa('Bareword', 'my'), 'First token is correct'   );
+ok( $Token2->_isa('Symbol', '@foo'), 'Second token is correct'  );
+ok( $Token3->_isa('Whitespace', ' '), 'Third token is correct'  );
 is( $Braces->braces, '()', 'Braces seem correct' );
-ok( $Token7->is_a('Structure', ';'), 'Seventh token is correct' );
+ok( $Token7->_isa('Structure', ';'), 'Seventh token is correct' );
 isa_ok( $Braces->start, 'PPI::Token::Structure' );
-ok( $Braces->start->is_a('Structure', '('), 'Start brace token matches expected' );
+ok( $Braces->start->_isa('Structure', '('), 'Start brace token matches expected' );
 isa_ok( $Braces->finish, 'PPI::Token::Structure' );
-ok( $Braces->finish->is_a('Structure', ')'), 'Finish brace token matches expected' );
+ok( $Braces->finish->_isa('Structure', ')'), 'Finish brace token matches expected' );
 
 
 

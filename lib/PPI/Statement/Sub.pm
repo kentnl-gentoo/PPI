@@ -8,7 +8,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
 
 # Lexer clue
@@ -26,7 +26,7 @@ sub name {
 
 	# The second token should be the name, if we have one
 	my $Token = $self->schild(1) or return undef;
-	$Token->is_a('Bareword') ? $Token->content : undef;
+	$Token->_isa('Bareword') ? $Token->content : undef;
 }
 
 # If we don't have a block at the end, this is a forward declaration

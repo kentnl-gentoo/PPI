@@ -57,7 +57,7 @@ use List::MoreUtils ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -106,6 +106,12 @@ sub add_element {
 	$_PARENT{refaddr $Element} = $self;
 
 	1;
+}
+
+# In a typical run profile, add_element is the number 1 resource drain.
+# This is a highly optimised unsafe version, for internal use only.
+sub __add_element {
+	push @{($_PARENT{refaddr $_[1]} = $_[0])->{elements}}, $_[1];
 }
 
 =pod
@@ -463,9 +469,12 @@ sub _col {
 sub DESTROY {
 	if ( $_[0]->{elements} ) {
 		my @queue = $_[0];
-		while ( $_ = shift @queue ) {
-			next unless defined $_->{elements};
-			unshift @queue, @{delete $_->{elements}};
+		while ( defined($_ = shift @queue) ) {
+			unshift @queue, @{delete $_->{elements}} if $_->{elements};
+
+			# Removed all internal/private weird crosslinking so that
+			# the cascading DESTROY calls will get called properly.
+			%$_ = ();
 		}
 	}
 

@@ -8,7 +8,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
 
 # Lexer clue

@@ -1,20 +1,35 @@
-package PPI::Token::_Pod;
+package PPI::Token::Pod;
 
-# This is the shadow package for Pod tokens.
-# It holds extended functionality to keep the memory overhead
-# for loading PPI down.
-
-# When loaded, it overwrites the PPI::Token::Pod class methods
-# as needed. Note, there isn't much in here yet... it will grow.
+# Represents a section of POD
 
 use strict;
 use UNIVERSAL 'isa';
-use PPI::Token::Classes ();
+use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
+
+sub significant { 0 }
+
+sub _on_line_start {
+	my $t = $_[1];
+
+	# Add the line to the token first
+	$t->{token}->{content} .= $t->{line};
+
+	# Check the line to see if it is a =cut line
+	if ( $t->{line} =~ /^=(\w+)/ ) {
+		# End of the token
+		$t->_finalize_token if lc $1 eq 'cut';
+	}
+
+	0;
+}
+
+# Breaks the pod into lines, returned as a reference to an array
+sub lines { [ split /(?:\015{1,2}\012|\015|\012)/, $_[0]->{content} ] }
 
 # Merges one or more Pod tokens.
 # Can be called as either a class or object method.
@@ -71,11 +86,6 @@ sub merge {
 
 	# Return the static method response
 	$either->new( $merged );
-}
-
-# Link the methods
-BEGIN {
-	*PPI::Token::Pod::merge = *PPI::Token::_Pod::merge{CODE};
 }
 
 1;

@@ -1,5 +1,27 @@
 Revision history for Perl extension PPI
 
+0.825 Mon Jul 26 2004
+	- Added PPI::Statement::Include::type object method
+	- Added PPI::Statement::Include::module object method
+	- Added PPI::Statement::Include::pragma object method
+	- Added PPI::Statement::Include::version object method
+	- Overloaded == as "the same object" for PPI::Element
+	- Overloaded eq as "->content is the same" for PPI::Element
+	- Overloaded bool as always true, to prevent an error
+	- Added PPI::Statement::Package::namespace object method
+	- 100% round-trip safe. What goes in, will come out.
+	- Reduced leaks by 95%. Process size 30meg after 5000 files.
+	  Still some leaks remaining when Lexing errors out.
+	- Seperated largest Tokens into their own classes.
+	  This aligns token class structure with that of ::Statement and ::Structure
+	- Rewrote PPI::Node::DESTROY several times while hunting down more leaks
+	- Fixed Tokenizer crash on empty subroutine prototypes such as C< sub foo() {} >
+	- Treat unexpected braces as an implicit close, to make the lexer more resilient
+	- Added PPI::Statement::UnmatchedBrace (name suggested by Abhijit Menon-Sen)
+	  to handle closing braces found at the base of a Document.
+	- Enabled foo'bar package notation again.
+	- Getting close to the first 0.900 series beta release
+
 0.824 Wed Jul 21 2004
 	- Removed a 6 meg tmon.out file I accidentally bundled
 

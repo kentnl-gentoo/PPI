@@ -9,13 +9,16 @@ use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
 use PPI ();
-use PPI::Statement::Sub      ();
-use PPI::Statement::Variable ();
-use PPI::Statement::Compound ();
+use PPI::Statement::Sub       ();
+use PPI::Statement::Include   ();
+use PPI::Statement::Package   ();
+use PPI::Statement::Variable  ();
+use PPI::Statement::Compound  ();
+use PPI::Statement::Scheduled ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
 
 # Statements that are normal end at statement terminators.
@@ -38,8 +41,8 @@ sub new {
 		}, $class;
 
 	# If we have been passed an initial token, add it
-	if ( isa( ref $_[0], 'PPI::Token' ) ) {
-		$self->add_element( shift ) or return undef;
+	if ( isa(ref $_[0], 'PPI::Token') ) {
+		$self->__add_element(shift);
 	}
 
 	$self;
@@ -63,55 +66,8 @@ package PPI::Statement::Expression;
 # A "normal" expression of some sort
 
 BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.823';
+	$PPI::Statement::Expression::VERSION = '0.825';
 	@PPI::Statement::Expression::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Scheduled;
-
-# Code that is scheduled to run at a particular time/phase.
-# BEGIN/INIT/LAST/END blocks
-
-BEGIN {
-	$PPI::Statement::Scheduled::VERSION = '0.823';
-	@PPI::Statement::Scheduled::ISA     = 'PPI::Statement';
-}
-
-sub __LEXER__normal { '' }
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Package;
-
-# Package decleration
-
-BEGIN {
-	$PPI::Statement::Package::VERSION = '0.823';
-	@PPI::Statement::Package::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Include;
-
-# Commands that call in other files ( or 'uncall' them :/ )
-# use, no and require.
-### require should be a function, not a special statement?
-
-BEGIN {
-	$PPI::Statement::Include::VERSION = '0.823';
-	@PPI::Statement::Include::ISA     = 'PPI::Statement';
 }
 
 
@@ -125,7 +81,7 @@ package PPI::Statement::Break;
 # next, last, return.
 
 BEGIN {
-	$PPI::Statement::Break::VERSION = '0.823';
+	$PPI::Statement::Break::VERSION = '0.825';
 	@PPI::Statement::Break::ISA     = 'PPI::Statement';
 }
 
@@ -140,7 +96,7 @@ package PPI::Statement::Null;
 # Usually, just an extra ; on it's own.
 
 BEGIN {
-	$PPI::Statement::Null::VERSION = '0.823';
+	$PPI::Statement::Null::VERSION = '0.825';
 	@PPI::Statement::Null::ISA     = 'PPI::Statement';
 }
 
@@ -154,7 +110,7 @@ package PPI::Statement::Data;
 # The section of a file containing data
 
 BEGIN {
-	$PPI::Statement::Data::VERSION = '0.823';
+	$PPI::Statement::Data::VERSION = '0.825';
 	@PPI::Statement::Data::ISA     = 'PPI::Statement';
 }
 
@@ -168,8 +124,24 @@ package PPI::Statement::End;
 # The useless stuff (although maybe containing POD) at the end of a file
 
 BEGIN {
-	$PPI::Statement::End::VERSION = '0.823';
+	$PPI::Statement::End::VERSION = '0.825';
 	@PPI::Statement::End::ISA     = 'PPI::Statement';
+}
+
+
+
+
+
+#####################################################################
+package PPI::Statement::UnmatchedBrace;
+
+# An unattached structural clode such as ) ] } found incorrectly at
+# the root level of a Document. We create a seperate statement for it
+# so that we can continue parsing the code.
+
+BEGIN {
+	$PPI::Statement::UnmatchedBrace::VERSION = '0.825';
+	@PPI::Statement::UnmatchedBrace::ISA     = 'PPI::Statement';
 }
 
 
@@ -185,7 +157,7 @@ package PPI::Statement::Unknown;
 # Currently, the only time this happens is when we start with a label
 
 BEGIN {
-	$PPI::Statement::Unknown::VERSION = '0.823';
+	$PPI::Statement::Unknown::VERSION = '0.825';
 	@PPI::Statement::Unknown::ISA     = 'PPI::Statement';
 }
 

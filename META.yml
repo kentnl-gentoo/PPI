@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         PPI
-version:      0.824
+version:      0.825
 version_from: lib/PPI.pm
 installdirs:  site
 requires:

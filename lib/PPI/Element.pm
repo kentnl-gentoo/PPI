@@ -29,10 +29,13 @@ use base 'PPI::Base';
 use PPI::Node       ();
 use Clone           ();
 use List::MoreUtils ();
+use overload '=='   => '__equals';
+use overload 'eq'   => '__eq';
+use overload 'bool' => sub { 1 };
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 
 	# Master Child -> Parent index
 	%_PARENT = ();
@@ -119,8 +122,7 @@ if it is not within any other ::Elements.
 =cut
 
 sub top {
-	my $self = shift;
-	my $cursor = $self;
+	my $cursor = shift;
 	while ( my $parent = $_PARENT{refaddr $cursor} ) {
 		$cursor = $parent;
 	}
@@ -138,8 +140,7 @@ contained within a Document.
 =cut
 
 sub document {
-	my $self = shift;
-	my $top  = $self->top;
+	my $top = shift->top;
 	isa($top, 'PPI::Document') ? $top : '';
 }
 
@@ -160,10 +161,11 @@ sub next_sibling {
 	my $self     = shift;
 	my $parent   = $self->parent or return '';
 	my $key      = refaddr $self;
+	my $elements = $parent->{elements};
 	my $position = List::MoreUtils::firstidx {
 		refaddr $_ == $key
-		} @{$parent->{elements}};
-	$parent->{elements}->[$position + 1] || '';
+		} @$elements;
+	$elements->[$position + 1] || '';
 }
 
 =pod
@@ -181,10 +183,11 @@ sub previous_sibling {
 	my $self     = shift;
 	my $parent   = $self->parent or return '';
 	my $key      = refaddr $self;
+	my $elements = $parent->{elements};
 	my $position = List::MoreUtils::firstidx {
 		refaddr $_ == $key
-		} @{$parent->{elements}};
-	$position and $parent->{elements}->[$position - 1] or '';
+		} @$elements;
+	$position and $elements->[$position - 1] or '';
 }
 
 
@@ -199,12 +202,14 @@ sub previous_sibling {
 =head2 clone
 
 As per the Clone module, the C<clone> method makes a perfect copy of
-an Element object. In the generic case, the implemtation if done using
+an Element object. In the generic case, the implementation if done using
 the Clone module's mechanism itself.
 
 =cut
 
-use Clone 'clone';
+BEGIN {
+	Clone->import('clone');
+}
 
 =pod
 
@@ -274,5 +279,13 @@ sub _col  { undef }
 # Therefore we don't need to remove ourselves from our parent,
 # just the index ( just in case ).
 sub DESTROY { delete $_PARENT{refaddr shift} }
+
+# Operator overloads
+sub __equals { ref $_[1] and refaddr $_[0] == refaddr $_[1] }
+sub __eq {
+	my $self  = isa(ref $_[0], 'PPI::Element') ? shift->content : shift;
+	my $other = isa(ref $_[0], 'PPI::Element') ? shift->content : shift;
+	$self eq $other;
+}
 
 1;

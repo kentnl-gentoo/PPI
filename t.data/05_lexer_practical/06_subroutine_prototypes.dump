@@ -1,0 +1,19 @@
+PPI::Document
+  PPI::Statement::Sub
+    PPI::Token::Bareword  	'sub'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Bareword  	'RE'
+    PPI::Token::SubPrototype  	'()'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+      PPI::Token::Whitespace  	' '
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Sub
+    PPI::Token::Bareword  	'sub'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Bareword  	'foo'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::SubPrototype  	'($)'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'

@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
 
 
@@ -163,29 +163,29 @@ sub _is_an_attribute {
 	my $tokens = $t->_previous_significant_tokens( 3 ) or return undef;
 
 	# If we just had another attribute, we are also an attribute
-	if ( $tokens->[0]->is_a('Attribute') ) {
+	if ( $tokens->[0]->_isa('Attribute') ) {
 		return 1;
 	}
 
 	# If we just had a prototype, then we are an attribute
-	if ( $tokens->[0]->is_a('SubPrototype') ) {
+	if ( $tokens->[0]->_isa('SubPrototype') ) {
 		return 1;
 	}
 
 	# Other than that, we would need to have had a bareword
-	unless ( $tokens->[0]->is_a('Bareword') ) {
+	unless ( $tokens->[0]->_isa('Bareword') ) {
 		return '';
 	}
 
 	# We could be an anonymous subroutine
-	if ( $tokens->[0]->is_a('Bareword', 'sub') ) {
+	if ( $tokens->[0]->_isa('Bareword', 'sub') ) {
 		return 1;
 	}
 
 	# Or, we could be a named subroutine
-	if ( $tokens->[1]->is_a('Bareword', 'sub')
-		and ( $tokens->[2]->is_a('Structure')
-			or $tokens->[2]->is_a('Whitespace','')
+	if ( $tokens->[1]->_isa('Bareword', 'sub')
+		and ( $tokens->[2]->_isa('Structure')
+			or $tokens->[2]->_isa('Whitespace','')
 		)
 	) {
 		return 1;

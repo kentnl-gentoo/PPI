@@ -27,13 +27,14 @@ use strict;
 # Make sure everything we need is loaded, without 
 # resorting to loading all of PPI if possible.
 use base 'PPI::Base';
-use PPI::Element ();
-use PPI::Token   ();
-use File::Slurp  ();
+use List::MoreUtils ();
+use PPI::Element    ();
+use PPI::Token      ();
+use File::Slurp     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.823';
+	$VERSION = '0.825';
 }
 
 
@@ -115,7 +116,14 @@ sub new {
 	# the tokenizer hits end of file, it examines the last token to
 	# manually either remove the ' ' token, or chop it off the end of
 	# a longer one in which the space would be valid.
-	$self->{source}->[-1] .= ' ';
+	if ( List::MoreUtils::any { /^__(?:DATA|END)__\s*$/ } @{$self->{source}} ) {
+		$self->{source_eof_chop} = '';
+	} elsif ( $self->{source}->[-1] =~ /\s$/ ) {
+		$self->{source_eof_chop} = '';
+	} else {
+		$self->{source_eof_chop} = 1;
+		$self->{source}->[-1] .= ' ';
+	}
 
 	$self;
 }
@@ -341,7 +349,7 @@ sub _process_next_line {
 
 	# If there are no more source lines, then clean up
 	if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
-		$self->_clean_eof;
+		return $self->_clean_eof;
 	}
 
 	# If we have any entries in the rawinput queue process it.
@@ -370,7 +378,7 @@ sub _handle_raw_input {
 			# The Perl interpretor has the luxury of being able to
 			# destructively consume the input. We don't... so having
 			# a token that SPANS OVER a raw input is just silly, and
-			# too complicated for this little parsing to turn back
+			# too complicated for this little parser to turn back
 			# into something usefull.
 			return $self->_error( "The code is too crufty for the tokenizer.\n"
 				. "Cannot have tokens that span across rawinput lines." );
@@ -382,6 +390,11 @@ sub _handle_raw_input {
 		my $position = shift @{$self->{rawinput_queue}};
 		my $operator = $self->{tokens}->[ $position ];
 		my $terminator = $self->{tokens}->[ $position + 1 ];
+
+		# Handle a whitespace gap between the operator and terminator
+		if ( ref($terminator) eq 'PPI::Token::Whitespace' ) {
+			$terminator = $self->{tokens}->[ $position + 2 ];
+		}
 
 		# Check the terminator, and get the termination string
 		my $tString;
@@ -428,7 +441,8 @@ sub _handle_raw_input {
 		return undef unless defined $rv;
 
 		# End of file. We are a bit more leniant on errors, so
-		# we will let this slip by without mention
+		# we will let this slip by without mention. In fact, it may
+		# well actually be legal.
 
 		# Finish the token
 		push @{ $self->{tokens} }, $rawinput if $rawinput->{content} ne '';
@@ -454,11 +468,17 @@ sub _handle_raw_input {
 sub _process_next_char {
 	my $self = shift;
 
+	if ( ! defined $self->{line_cursor} or ! defined $self->{line_length} ) {
+		$DB::single = 1;
+	}
+
 	# Increment the counter and check for end of line
 	return 0 if ++$self->{line_cursor} >= $self->{line_length};
 
 	# Pass control to the token class
-	$_ = $self->{class}->_on_char( $self ) or return 1; # False == next char
+	unless ( $_ = $self->{class}->_on_char( $self ) ) {
+		return defined $_ ? 1 : undef;
+	}
 
 	# We will need the value of the current character
 	my $char = substr( $self->{line}, $self->{line_cursor}, 1 );
@@ -560,17 +580,21 @@ sub _clean_eof {
 		pop @{$self->{tokens}};
 	}
 
-	# Now, assuming the last character of the last token is a space,
+	# Now, if the last character of the last token is a space we added,
 	# chop it off, deleting the token if there's nothing else left.
-	$last_token = $self->{tokens}->[ $#{$self->{tokens}} ];
-	$last_token->{content} =~ s/ $//;
-	unless ( length $last_token->{content} ) {
-		# Popping token
-		pop @{$self->{tokens}};
+	if ( $self->{source_eof_chop} ) {
+		$last_token = $self->{tokens}->[ $#{$self->{tokens}} ];
+		$last_token->{content} =~ s/ $//;
+		unless ( length $last_token->{content} ) {
+			# Popping token
+			pop @{$self->{tokens}};
+		}
+
+		# The hack involving adding an extra space is now reversed, and
+		# now nobody will ever know. The perfect crime!
+		$self->{source_eof_chop} = '';
 	}
 
-	# The hack involving adding an extra space is now reversed, and
-	# now nobody will ever know. The perfect crime!
 	1;
 }
 
