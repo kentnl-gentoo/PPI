@@ -9,7 +9,7 @@ use Scalar::Util qw{refaddr};
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.812';
+	$VERSION = '0.813';
 	
 	# Child -> Parent links
 	%_PARENT = ()
@@ -132,7 +132,8 @@ package PPI::ParentElement;
 use UNIVERSAL 'isa';
 
 BEGIN {
-	@PPI::ParentElement::ISA = 'PPI::Element';
+	@PPI::ParentElement::VERSION = '0.813';
+	@PPI::ParentElement::ISA     = 'PPI::Element';
 }
 
 
@@ -141,20 +142,6 @@ BEGIN {
 
 #####################################################################
 # Internal tree related code
-
-# Delay the addition of an element
-sub _delay_element {
-	my $self = shift;
-	my $element = defined $_[0] ? shift : return undef;
-
-	if ( exists $self->{delayed} ) {
-		push @{$self->{delayed}}, $element;
-	} else {
-		$self->{delayed} = [ $element ];
-	}
-
-	1;
-}
 
 # Our reference count has hit zero...
 # As above, but don't call the super.
@@ -200,20 +187,11 @@ sub position {
 # This also means we add anything that was before us, and delayed.
 sub add_element {
 	my $self = shift;
-	my $element = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
-
-	# If there is anything delayed, move it to the elements
-	if ( exists $self->{delayed} ) {
-		foreach ( @{$self->{delayed}} ) {
-			$PPI::Element::_PARENT{ refaddr $_ } = $self;
-		}
-		push @{$self->{elements}}, @{$self->{delayed}};
-		delete $self->{delayed};
-	}
+	my $Element = isa( $_[0], 'PPI::Element' ) ? shift : return undef;
 
 	# Add the argument to the elements
-	push @{$self->{elements}}, $element;
-	$PPI::Element::_PARENT{ refaddr $element } = $self;
+	push @{$self->{elements}}, $Element;
+	$PPI::Element::_PARENT{ refaddr $Element } = $self;
 
 	1;
 }
@@ -232,31 +210,6 @@ sub remove_element {
 
 	# Remove it's parent entry
 	delete $PPI::Element::_PARENT{ refaddr $self };
-
-	1;
-}
-
-# Remove a given element from our
-# Remove and decrement the tokenizer cursor for anything in the delated
-# queue and for any tokens passed
-sub rollback_tokenizer {
-	my $self = shift;
-	my $tokenizer = $self->{tokenizer} or return undef;
-
-	# Handle anything passed
-	foreach ( @_ ) {
-		if ( isa( $_, 'PPI::Token' ) ) {
-			$tokenizer->decrement_cursor;
-		}
-	}
-
-	# Handle our delayed queue
-	if ( exists $self->{delayed} ) {
-		foreach ( @{$self->{delayed}} ) {
-			$tokenizer->decrement_cursor;
-		}
-		delete $self->{delayed};
-	}
 
 	1;
 }
@@ -339,24 +292,5 @@ sub tokens { map { $_->tokens } @{$_[0]->{elements}} }
 
 # Overload to merge from our children
 sub content { join '', map { $_->content } @{$_[0]->{elements}} }
-
-
-
-
-
-
-#####################################################################
-# Utilities
-
-sub _clean {
-	my $self = shift;
-
-	# Clean up everything
-	$self->rollback_tokenizer if exists $self->{delayed};
-	delete $self->{tokenizer} if exists $self->{tokenizer};
-
-	# Return with the argument passed
-	@_ and $_[0];
-}
 
 1;

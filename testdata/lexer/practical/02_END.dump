@@ -3,4 +3,4 @@ PPI::Document
   PPI::Token::Whitespace  	'\n'
   PPI::Statement
     PPI::Token::Bareword  	'__END__'
-  PPI::Token::End  	'\n\nThis is after the end of the file\n\n'
+    PPI::Token::End  	'\n\nThis is after the end of the file\n\n'

@@ -8,7 +8,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Bareword  	'sub'
     PPI::Token::Whitespace  	' '
-    PPI::Structure::AnonymousSub  	{ ... }
+    PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement
@@ -18,7 +18,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Bareword  	'sub'
     PPI::Token::SubPrototype  	'($)'
-    PPI::Structure::AnonymousSub  	{ ... }
+    PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement
@@ -30,6 +30,6 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::SubPrototype  	'(&$@)'
     PPI::Token::Whitespace  	' '
-    PPI::Structure::AnonymousSub  	{ ... }
+    PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'

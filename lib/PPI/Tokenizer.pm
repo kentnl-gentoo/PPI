@@ -39,7 +39,7 @@ use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.812';
+	$VERSION = '0.813';
 	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 

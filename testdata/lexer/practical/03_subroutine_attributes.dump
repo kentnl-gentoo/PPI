@@ -8,7 +8,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Attribute  	'bar(quax => &#"Foo")'
     PPI::Token::Whitespace  	' '
-    PPI::Structure  	{ ... }
+    PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement::Sub
@@ -20,7 +20,7 @@ PPI::Document
     PPI::Token::Operator  	':'
     PPI::Token::Attribute  	'bar(quax => &#"Foo")'
     PPI::Token::Whitespace  	' '
-    PPI::Structure  	{ ... }
+    PPI::Structure::Block  	{ ... }
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'
   PPI::Statement::Sub
@@ -41,7 +41,7 @@ PPI::Document
     PPI::Token::Whitespace  	' '
     PPI::Token::Attribute  	'bingo(blah flasd: fasdf)'
     PPI::Token::Whitespace  	' '
-    PPI::Structure  	{ ... }
+    PPI::Structure::Block  	{ ... }
       PPI::Token::Whitespace  	' '
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'

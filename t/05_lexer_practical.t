@@ -4,7 +4,7 @@
 use strict;
 use UNIVERSAL 'isa';
 use File::Spec::Functions qw{catdir catfile updir};
-use Test::More tests => 40;
+use Test::More tests => 28;
 use lib catdir( updir(), updir(), 'modules' );
 use Class::Autouse qw{:devel};
 
@@ -40,6 +40,7 @@ ok( scalar @code, 'Found at least one code file' );
 #####################################################################
 # Testing
 
+my $Lexer = PPI::Lexer->new;
 foreach my $codefile ( @code ) {
 	# Does the .code file have a matching .dump file
 	my $dumpfile = $codefile;
@@ -47,11 +48,7 @@ foreach my $codefile ( @code ) {
 	ok( (-f $dumpfile and -r $dumpfile), "$codefile: Found matching .dump file" );
 
 	# Create the lexer and get the Document object
-	my $Lexer = PPI::Lexer->new( $codefile );
-	ok( $Lexer,                             "$codefile: PPI::Lexer->new returns true" );
-	ok( isa( $Lexer, 'PPI::Lexer' ),        "$codefile: PPI::Lexer object created" );
-	ok( $Lexer->load,                       "$codefile: Lexer loads the file OK" );
-	my $Document = $Lexer->Document;
+	my $Document = $Lexer->lex_file( $codefile );
 	ok( $Document,                          "$codefile: Lexer->Document returns true" );
 	ok( isa( $Document, 'PPI::Document' ),  "$codefile: Lexer creates Document object" );
 

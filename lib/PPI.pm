@@ -8,7 +8,7 @@ package PPI;
 # the various subsystems ( tokenizer, lexer, analysis, formatting,
 # and transformation ).
 
-require 5.005;
+use 5.005;
 use strict;
 # use warnings;
 # use diagnostics;
@@ -18,7 +18,7 @@ use Class::Autouse;
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.812';
+	$VERSION = '0.813';
 
 	# If we are in a mod_perl environment, always fully load
 	# modules, in case Apache::Reload is present.
@@ -39,13 +39,13 @@ use PPI::Element ();
 use vars qw{%RE};
 BEGIN {
 	%RE = (
-		CLASS        => qr/[\w:]/o,                  # Characters anywhere in a class name
-		SYMBOL_FIRST => qr/[a-zA-Z_]/o,              # The first character in a perl symbol
-		xpnl         => qr/(?:\015\012|\015|\012)/o, # Cross-platform newline
-		blank_line   => qr/^\s*$/o,
-		comment_line => qr/^\s*#/o,
-		pod_line     => qr/^=(\w+)/o,
-		end_line     => qr/^\s*__(END|DATA)__\s*$/o,
+		CLASS        => qr/[\w:]/,                       # Characters anywhere in a class name
+		SYMBOL_FIRST => qr/[^\W\d]/,                     # The first character in a perl symbol
+		xpnl         => qr/(?:\015{1,2}\012|\015|\012)/, # Cross-platform newline
+		blank_line   => qr/^\s*$/,
+		comment_line => qr/^\s*#/,
+		pod_line     => qr/^=(\w+)/,
+		end_line     => qr/^\s*__(END|DATA)__\s*$/,
 		);
 }
 
@@ -55,7 +55,8 @@ BEGIN {
 
 # Autoload the remainder of the classes
 use Class::Autouse 'PPI::Tokenizer', 
-	'PPI::Lexer', 'PPI::Document';
+                   'PPI::Lexer',
+                   'PPI::Document';
 
 
 
@@ -66,11 +67,11 @@ use Class::Autouse 'PPI::Tokenizer',
 
 # Create a new object from scratch
 sub new {
-	my $class = shift;
+	my $class  = shift;
 	my $source = length($_[0]) ? shift : return undef;
 
 	# Create the object
-	return bless {
+	bless {
 		file      => undef,
 		source    => $source,
 		Tokenizer => undef,
@@ -89,7 +90,6 @@ sub new {
 # Create a new object loading from a file
 sub load {
 	my $class = shift;
-
 	my $filename = shift;
 
 	# Try to slurp in the file
@@ -100,7 +100,7 @@ sub load {
 	my $self = $class->new( $source );
 	$self->{file} = $filename;
 
-	return $self;
+	$self;
 }
 
 # Specify a transform to apply
@@ -120,7 +120,7 @@ sub add_transform {
 	}
 
 	push @{ $self->{transforms} }, $transform;
-	return 1;
+	1;
 }
 
 
@@ -138,7 +138,8 @@ sub document {
 	unless ( $self->{Document} ) {
 		$self->_load_source() or return undef;
 	}
-	return $self->{Document};
+
+	$self->{Document};
 }
 
 # Get's the output document
@@ -160,7 +161,7 @@ sub output {
 sub to_string {
 	my $self = shift;
 	my $Document = $self->output or return undef;
-	return $Document->to_string;
+	$Document->to_string;
 }
 
 # Get the Tokenizer object
@@ -169,7 +170,7 @@ sub tokenizer {
 	unless ( $self->{Tokenizer} ) {
 		$self->{Tokenizer} = PPI::Tokenizer->new( $self->{source} ) or return undef;
 	}
-	return $self->{Tokenizer};
+	$self->{Tokenizer};
 }
 
 # Generates the html output
@@ -180,7 +181,7 @@ sub html {
 
 	# Get the tokenizer, and generate the HTML
 	my $Tokenizer = $self->tokenizer or return undef;
-	return PPI::Format::HTML->serialize( $Tokenizer, $style, $options );
+	PPI::Format::HTML->serialize( $Tokenizer, $style, $options );
 }
 
 # Generate a complete html page
@@ -190,7 +191,7 @@ sub html_page {
 
 	# Get the html
 	my $html = $self->html( $style, @_ ) or return undef;
-	return PPI::Format::HTML->wrap_page( $style, $html );
+	PPI::Format::HTML->wrap_page( $style, $html );
 }
 
 # Generic save function.
@@ -209,7 +210,7 @@ sub save {
 
 	# Save the content
 	File::Flat->write( $saveas, $content ) or return undef;
-	return 1;
+	1;
 }
 
 
@@ -370,7 +371,7 @@ To help contribute, contact the author.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002-2003 Adam Kennedy. All rights reserved.
+Copyright (c) 2002-2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

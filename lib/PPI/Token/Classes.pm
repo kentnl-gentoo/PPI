@@ -1,12 +1,12 @@
+package PPI::Token::Whitespace;
+
 # This file contains a number of token classes
 
 # The _on_line_start and _on_line_end methods are passed the PPI::Tokenizer object
 # as an argument. The tokenizer is normally used as $t, for convenience.
 
-# Things to remember
+# Things to remember.
 # - return 0 in _on_line_start signals to go to the next line
-
-package PPI::Token::Whitespace;
 
 # The 'Whitespace' class represents the normal default state of the parser.
 # That is, the whitespace area 'outside' the code.
@@ -16,22 +16,21 @@ use strict;
 # use diagnostics;
 use PPI::Token ();
 use PPI::Token::Quote::Simple ();
-use PPI::Token::Quote::Full ();
+use PPI::Token::Quote::Full   ();
 
-use vars qw{$VERSION};
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$VERSION = '0.812';
-	@PPI::Token::Whitespace::ISA = 'PPI::Token';
+	$PPI::Token::Whitespace::VERSION = '0.813';
+	@PPI::Token::Whitespace::ISA     = 'PPI::Token';
 
 	# Build the class map
         @classmap = ();
-        foreach ( 'a' .. 'z', 'A' .. 'Z', '_' ) { $commitmap[ord $_] = 'PPI::Token::Bareword' }
+        foreach ( 'a' .. 'z', 'A' .. 'Z', '_' ) { $commitmap[ord $_] = 'PPI::Token::Bareword'  }
 	foreach ( qw!; [ ] { } )! )             { $commitmap[ord $_] = 'PPI::Token::Structure' }
-        foreach ( 0 .. 9 )                      { $classmap[ord $_]  = 'Number' }
+        foreach ( 0 .. 9 )                      { $classmap[ord $_]  = 'Number'   }
 	foreach ( qw{= ? | + < > . ! ~} )       { $classmap[ord $_]  = 'Operator' }
-	foreach ( qw{* $ @ & : - %} )           { $classmap[ord $_]  = 'Unknown' }
+	foreach ( qw{* $ @ & : - %} )           { $classmap[ord $_]  = 'Unknown'  }
 
 	# Miscellaneous remainder
         $commitmap[ord '#'] = 'PPI::Token::Comment';
@@ -98,10 +97,10 @@ sub _on_line_start {
 
 sub _on_char {
 	my $t = $_[1];
-	$_ = ord substr( $t->{line}, $t->{line_cursor}, 1 );
+	$_ = ord substr $t->{line}, $t->{line_cursor}, 1;
 
 	# Do we definately know what something is?
-	return $commitmap[$_]->_commit( $t ) if $commitmap[$_];
+	return $commitmap[$_]->_commit($t) if $commitmap[$_];
 
 	# Handle the simple option first
 	return $classmap[$_] if $classmap[$_];
@@ -110,7 +109,7 @@ sub _on_char {
 		# Finalise any whitespace token...
 		$t->_finalize_token if $t->{token};
 
-		# Is this the beginning of a sub prototype?\
+		# Is this the beginning of a sub prototype?
 		# We are a sub prototype IF
 		# 1. The previous significant token is a bareword.
 		# 2. The one before that is the word 'sub'.
@@ -165,7 +164,7 @@ sub _on_char {
 		return 'Regex::Match' if $previous->is_a( 'Structure', '{' );
 		return 'Regex::Match' if $previous->is_a( 'Structure', ';' );
 
-		# Functions that we know use regexs as an argument
+		# Functions that we know use commonly use regexs as an argument
 		return 'Regex::Match' if $previous->is_a( 'Bareword', 'split' );
 
 		# After a keyword
@@ -186,7 +185,7 @@ sub _on_char {
 
 sub _on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
 
-# Horozintal space before a newline is un-necesary.
+# Horozintal space before a newline is not needed.
 # The ->tidy method removes it.
 sub tidy {
 	my $self = shift;
@@ -204,7 +203,8 @@ sub tidy {
 package PPI::Token::Pod;
 
 BEGIN {
-	@PPI::Token::Pod::ISA = 'PPI::Token';
+	$PPI::Token::Pod::VERSION = '0.809';
+	@PPI::Token::Pod::ISA     = 'PPI::Token';
 }
 
 sub significant { 0 }
@@ -241,7 +241,8 @@ sub merge { require PPI::Token::_Pod; shift->merge( @_ ) }
 package PPI::Token::Data;
 
 BEGIN {
-	@PPI::Token::Data::ISA = 'PPI::Token';
+	$PPI::Token::Data::VERSION = '0.809';
+	@PPI::Token::Data::ISA     = 'PPI::Token';
 }
 
 sub _on_char { 1 }
@@ -255,7 +256,8 @@ sub _on_char { 1 }
 package PPI::Token::End;
 
 BEGIN {
-	@PPI::Token::End::ISA = 'PPI::Token';
+	$PPI::Token::End::VERSION = '0.809';
+	@PPI::Token::End::ISA     = 'PPI::Token';
 }
 
 sub significant { 0 }
@@ -300,7 +302,8 @@ sub _on_line_start {
 package PPI::Token::Comment;
 
 BEGIN {
-	@PPI::Token::Comment::ISA = 'PPI::Token';
+	$PPI::Token::Comment::VERSION = '0.809';
+	@PPI::Token::Comment::ISA     = 'PPI::Token';
 }
 
 sub significant { 0 }
@@ -361,8 +364,8 @@ package PPI::Token::Bareword;
 
 use vars qw{%quotelike};
 BEGIN {
-	@PPI::Token::Bareword::ISA = 'PPI::Token';
-
+	$PPI::Token::Bareword::VERSION   = '0.809';
+	@PPI::Token::Bareword::ISA       = 'PPI::Token';
 	%quotelike = (
 		'q'  => 'Quote::OperatorSingle',
 		'qq' => 'Quote::OperatorDouble',
@@ -378,7 +381,7 @@ BEGIN {
 
 sub _on_char {
 	my $class = shift;
-	my $t = shift;
+	my $t     = shift;
 
 	# Suck in till the end of the bareword
 	my $line = substr( $t->{line}, $t->{line_cursor} );
@@ -468,7 +471,7 @@ sub _commit {
 	# Check for the data section
 	if ( $word eq '__DATA__' ) {
 		# Create the token for the __DATA__ itself
-		$t->_new_token( 'Bareword', $1 );
+		$t->_new_token( 'Bareword', "$1" );
 		$t->_finalize_token;
 
 		# Change into the Data zone
@@ -501,7 +504,8 @@ sub _commit {
 package PPI::Token::Label;
 
 BEGIN {
-	@PPI::Token::Label::ISA = 'PPI::Token';
+	$PPI::Token::Label::VERSION = '0.809';
+	@PPI::Token::Label::ISA     = 'PPI::Token';
 }
 
 
@@ -514,7 +518,8 @@ BEGIN {
 package PPI::Token::Structure;
 
 BEGIN {
-	@PPI::Token::Structure::ISA = 'PPI::Token';
+	$PPI::Token::Structure::VERSION = '0.809';
+	@PPI::Token::Structure::ISA     = 'PPI::Token';
 }
 
 sub _on_char {
@@ -543,7 +548,8 @@ BEGIN {
 	}
 }
 
-sub _matching_brace { $match[ord $_[0]->{content} ] }
+# For a given brace, find it's opposing pair
+sub _opposite { $match[ord $_[0]->{content} ] }
 
 
 
@@ -565,13 +571,14 @@ package PPI::Token::Number;
 # We currently support decimal, real, and octal ( by accident :) )
 
 BEGIN {
-	@PPI::Token::Number::ISA = 'PPI::Token';
+	$PPI::Token::Number::VERSION = '0.809';
+	@PPI::Token::Number::ISA     = 'PPI::Token';
 }
 
 sub _on_char {
 	my $class = shift;
-	my $t = shift;
-	my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
+	my $t     = shift;
+	my $char  = substr( $t->{line}, $t->{line_cursor}, 1 );
 
 	# Allow underscores straight through
 	return 1 if $char eq '_';
@@ -587,7 +594,7 @@ sub _on_char {
 		} elsif ( $char eq 'b' ) {
 			$token->{_subtype} = 'bin';
 			return 1;
-		} elsif ( $char =~ /\d/o ) {
+		} elsif ( $char =~ /\d/ ) {
 			$token->{_subtype} = 'octal';
 			return 1;
 		} elsif ( $char eq '.' ) {
@@ -666,7 +673,8 @@ sub _on_char {
 package PPI::Token::Symbol;
 
 BEGIN {
-	@PPI::Token::Symbol::ISA = 'PPI::Token';
+	@PPI::Token::Symbol::VERSION = '0.809';
+	@PPI::Token::Symbol::ISA     = 'PPI::Token';
 }
 
 sub _on_char {
@@ -697,7 +705,8 @@ sub _on_char {
 package PPI::Token::ArrayIndex;
 
 BEGIN {
-	@PPI::Token::ArrayIndex::ISA = 'PPI::Token';
+	$PPI::Token::ArrayIndex::VERSION = '0.809';
+	@PPI::Token::ArrayIndex::ISA     = 'PPI::Token';
 }
 
 sub _on_char {
@@ -724,7 +733,8 @@ sub _on_char {
 package PPI::Token::Operator;
 
 BEGIN {
-	@PPI::Token::Operator::ISA = 'PPI::Token';
+	$PPI::Token::Operator::VERSION = '0.809';
+	@PPI::Token::Operator::ISA     = 'PPI::Token';
 }
 
 # Build the operator index
@@ -788,7 +798,8 @@ sub _on_char {
 package PPI::Token::Magic;
 
 BEGIN {
-	@PPI::Token::Magic::ISA = 'PPI::Token';
+	$PPI::Token::Magic::VERSION = '0.809';
+	@PPI::Token::Magic::ISA     = 'PPI::Token';
 }
 
 use vars qw{%magic};
@@ -871,7 +882,8 @@ sub _on_char {
 package PPI::Token::Cast;
 
 BEGIN {
-	@PPI::Token::Cast::ISA = 'PPI::Token';
+	$PPI::Token::Cast::VERSION = '0.809';
+	@PPI::Token::Cast::ISA     = 'PPI::Token';
 }
 
 # A cast is either % @ $ or $#
@@ -889,7 +901,8 @@ sub _on_char {
 package PPI::Token::SubPrototype;
 
 BEGIN {
-	@PPI::Token::SubPrototype::ISA = 'PPI::Token';
+	$PPI::Token::SubPrototype::VERSION = '0.809';
+	@PPI::Token::SubPrototype::ISA     = 'PPI::Token';
 }
 
 sub _on_char {
@@ -1014,7 +1027,8 @@ package PPI::Token::DashedBareword;
 # This should be a string... but I'm still musing on whether that's a good idea
 
 BEGIN {
-	@PPI::Token::DashedBareword::ISA = 'PPI::Token';
+	$PPI::Token::DashedBareword::VERSION = '0.809';
+	@PPI::Token::DashedBareword::ISA     = 'PPI::Token';
 }
 
 sub _on_char {
@@ -1041,52 +1055,100 @@ sub _on_char {
 
 # Single Quote
 package PPI::Token::Quote::Single;
-BEGIN { @PPI::Token::Quote::Single::ISA = 'PPI::Token::Quote::Simple' }
+
+BEGIN {
+	$PPI::Token::Quote::Single::VERSION = '0.809';
+	@PPI::Token::Quote::Single::ISA     = 'PPI::Token::Quote::Simple';
+}
 
 # Double Quote
 package PPI::Token::Quote::Double;
-BEGIN { @PPI::Token::Quote::Double::ISA = 'PPI::Token::Quote::Simple' }
+
+BEGIN {
+	$PPI::Token::Quote::Single::VERSION = '0.809';
+	@PPI::Token::Quote::Double::ISA     = 'PPI::Token::Quote::Simple';
+}
 
 # Back Ticks
 package PPI::Token::Quote::Execute;
-BEGIN { @PPI::Token::Quote::Execute::ISA = 'PPI::Token::Quote::Simple' }
+
+BEGIN {
+	$PPI::Token::Quote::Execute::VERSION = '0.809';
+	@PPI::Token::Quote::Execute::ISA     = 'PPI::Token::Quote::Simple';
+}
 
 # Single Quote
 package PPI::Token::Quote::OperatorSingle;
-BEGIN { @PPI::Token::Quote::OperatorSingle::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Quote::OperatorSingle::VERSION = '0.809';
+	@PPI::Token::Quote::OperatorSingle::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Double Quote
 package PPI::Token::Quote::OperatorDouble;
-BEGIN { @PPI::Token::Quote::OperatorDouble::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Quote::OperatorDouble::VERSION = '0.809';
+	@PPI::Token::Quote::OperatorDouble::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Back Ticks
 package PPI::Token::Quote::OperatorExecute;
-BEGIN { @PPI::Token::Quote::OperatorExecute::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Quote::OperatorExecute::VERSION = '0.809';
+	@PPI::Token::Quote::OperatorExecute::ISA = 'PPI::Token::Quote::Full';
+}
 
 # Quote Words
 package PPI::Token::Quote::Words;
-BEGIN { @PPI::Token::Quote::Words::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Quote::Words::VERSION = '0.809';
+	@PPI::Token::Quote::Words::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Quote Regex Expression
 package PPI::Token::Quote::Regex;
-BEGIN { @PPI::Token::Quote::Regex::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Quote::Regex::VERSION = '0.809';
+	@PPI::Token::Quote::Regex::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Operator or Non-Operator Match Regex
 package PPI::Token::Regex::Match;
-BEGIN { @PPI::Token::Regex::Match::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Regex::Match::VERSION = '0.809';
+	@PPI::Token::Regex::Match::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Operator Pattern Regex
 ### Either this of PPI::Token::Quote::Regex is probably a duplicate
 package PPI::Token::Regex::Pattern;
-BEGIN { @PPI::Token::Regex::Pattern::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Regex::Pattern::VERSION = '0.809';
+	@PPI::Token::Regex::Pattern::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Replace Regex
 package PPI::Token::Regex::Replace;
-BEGIN { @PPI::Token::Regex::Replace::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Regex::Replace::VERSION = '0.809';
+	@PPI::Token::Regex::Replace::ISA     = 'PPI::Token::Quote::Full';
+}
 
 # Transform regex
 package PPI::Token::Regex::Transform;
-BEGIN { @PPI::Token::Regex::Transform::ISA = 'PPI::Token::Quote::Full' }
+
+BEGIN {
+	$PPI::Token::Regex::Transform::VERSION = '0.809';
+	@PPI::Token::Regex::Transform::ISA     = 'PPI::Token::Quote::Full';
+}
 
 
 
@@ -1096,12 +1158,24 @@ BEGIN { @PPI::Token::Regex::Transform::ISA = 'PPI::Token::Quote::Full' }
 # Classes to support multi-line inputs
 
 package PPI::Token::RawInput::Operator;
-BEGIN { @PPI::Token::RawInput::Operator::ISA = 'PPI::Token' }
+
+BEGIN {
+	$PPI::Token::RawInput::Operator::VERSION = '0.809';
+	@PPI::Token::RawInput::Operator::ISA     = 'PPI::Token';
+}
 
 package PPI::Token::RawInput::Terminator;
-BEGIN { @PPI::Token::RawInput::Terminator::ISA = 'PPI::Token' }
+
+BEGIN {
+	$PPI::Token::RawInput::Terminator::VERSION = '0.809';
+	@PPI::Token::RawInput::Terminator::ISA     = 'PPI::Token';
+}
 
 package PPI::Token::RawInput::String;
-BEGIN { @PPI::Token::RawInput::String::ISA = 'PPI::Token' }
+
+BEGIN {
+	$PPI::Token::RawInput::String::VERSION = '0.809';
+	@PPI::Token::RawInput::String::ISA     = 'PPI::Token';
+}
 
 1;

@@ -52,3 +52,4 @@ testdata/lexer/practical/03_subroutine_attributes.code
 testdata/lexer/practical/03_subroutine_attributes.dump
 testdata/lexer/practical/04_anonymous_subroutines.code
 testdata/lexer/practical/04_anonymous_subroutines.dump
+tmon.out

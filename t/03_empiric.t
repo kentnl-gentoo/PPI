@@ -10,7 +10,7 @@ use strict;
 use lib '../../modules'; # Development testing
 use lib '../lib';           # Installation testing
 use UNIVERSAL 'isa';
-use Test::More tests => 4;
+use Test::More tests => 3;
 use PPI;
 
 # Set up any needed globals
@@ -22,15 +22,12 @@ BEGIN {
 
 
 # Get the lexer
-my $Lexer = PPI::Lexer->new( './data/test.dat' );
+my $Lexer = PPI::Lexer->new;
 ok( $Lexer, 'PPI::Lexer->new() returns true' );
 isa_ok( $Lexer, 'PPI::Lexer' );
 
-# Load the file
-ok( $Lexer->load(), 'Lexer loads the input file' );
-
-# Lex the file
-ok( $Lexer->lex(), 'Lexer lexs the input file' );
-
+# Parse a file
+my $Document = $Lexer->lex_file('./data/test.dat');
+isa_ok( $Document, 'PPI::Document' );
 
 1;
