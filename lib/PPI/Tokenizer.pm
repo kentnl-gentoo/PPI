@@ -278,18 +278,19 @@ in private methods.
 =cut
 
 use strict;
+use UNIVERSAL 'isa';
 
 # Make sure everything we need is loaded, without 
 # resorting to loading all of PPI if possible.
-use base 'PPI::Base';
 use List::MoreUtils ();
 use PPI::Element    ();
 use PPI::Token      ();
 use File::Slurp     ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.842';
+	$VERSION = '0.843';
+	$errstr  = '';
 }
 
 
@@ -314,8 +315,10 @@ ARRAY containing newline-terminated lines of source code.
 Returns a new PPI::Tokenizer object on success, or C<undef> on error.
 
 =cut
- 
+
 sub new {
+	my $class = (ref $_[0] ? ref shift : shift)->_clear;
+
 	# Create the empty tokenizer struct
 	my $self = bless {
 		# Source code
@@ -337,36 +340,37 @@ sub new {
 		tokens         => [],
 		token_cursor   => 0,
 		token_eof      => 0,
-		}, shift;
+		}, $class;
 
-	# Do we have source
-	return $self->_error( "No source passed to constructor" ) unless defined $_[0];
+	if ( ! defined $_[0] ) {
+		# We weren't given anything
+		return $self->_error( "No source provided to Tokenizer" );
 
-	# Is it straight text
-	if ( ! ref $_[0] ) {
+	} elsif ( ! ref $_[0] ) {
+		# Simple text
 		$self->{source} = shift;
 
-	} elsif ( UNIVERSAL::isa( $_[0], 'SCALAR' ) ) {
+	} elsif ( isa($_[0], 'SCALAR') ) {
 		$self->{source} = ${shift()};
 
-	} elsif ( UNIVERSAL::isa( $_[0], 'ARRAY' ) ) {
+	} elsif ( isa($_[0], 'ARRAY') ) {
 		$self->{source} = join "\n", @{shift()};
 
 	} else {
 		# We don't support whatever this is
-		return $self->_error( "Object of type " . ref($_[0]) . " is not supported as a source" );
+		return $self->_error( ref($_[0]) . " is not supported as a source provider" );
 	}
 
-	# Localise the newlines for the file
+	# Localise newlines
 	$self->{source} =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
-	# Check the size of the source
+	# We can't handle a null string
 	$self->{source_bytes} = length $self->{source};
 	unless ( $self->{source_bytes} ) {
-		return $self->_error( "Empty source argument provided to constructor" );
+		return $self->_error( "Nothing to parse" );
 	}
 
-	# Check for unusual characters
+	# Check for non-standard characters
 	if ( $self->{source} =~ /([^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789;\[\]{}()=?|+<>.!~^*\$\@&:\%#,'"`\\\/_ \n\t-])/ ) {
 		return $self->_error( "Source code contains unsupported characters (first one encountered was '$1')" );
 	}
@@ -375,19 +379,21 @@ sub new {
 	$self->{source} = [ split /(?<=\n)/, $self->{source} ];
 
 	### EVIL
-	# OK, listen up, I'm explaining this earlier than I should so you
-	# can understand why I'm about to do something that looks very
-	# strange. There's a problem with the Tokenizer, in that tokens
-	# tend to change classes as each letter is added, but they don't
-	# get allocated their definite final class until the "end" of the
-	# token, the detection of which occurs in about a hundred different
-	# places, all through various crufty code (that triples the speed).
+	# I'm explaining this earlier than I should so you can understand
+	# why I'm about to do something that looks very strange. There's
+	# a problem with the Tokenizer, in that tokens tend to change
+	# classes as each letter is added, but they don't get allocated
+	# their definite final class until the "end" of the token, the
+	# detection of which occurs in about a hundred different places,
+	# all through various crufty code (that triples the speed).
+	#
 	# However, in general, this does not apply to tokens in which a
 	# whitespace character is valid, such as comments, whitespace and
 	# big strings.
-	# So, what we do is add a space to the end of the source. This
-	# triggers "end of token" functionality for all cases. Then, once
-	# the tokenizer hits end of file, it examines the last token to
+	#
+	# So what we do is add a space to the end of the source. This
+	# triggers normal "end of token" functionality for all cases. Then,
+	# once the tokenizer hits end of file, it examines the last token to
 	# manually either remove the ' ' token, or chop it off the end of
 	# a longer one in which the space would be valid.
 	if ( List::MoreUtils::any { /^__(?:DATA|END)__\s*$/ } @{$self->{source}} ) {
@@ -985,6 +991,41 @@ sub _previous_significant_tokens {
 	}
 
 	\@tokens;
+}
+
+
+
+
+
+#####################################################################
+# Error Handling
+
+# Set the error message
+sub _error {
+	$errstr = $_[1];
+	undef;
+}
+
+# Clear the error message.
+# Returns the object as a convenience.
+sub _clear {
+	$errstr = '';
+	$_[0];
+}
+
+=pod
+
+=head2 errstr
+
+For any error that occurs, you can use the C<errstr>, as either
+a static or object method, to access the error message.
+
+If no error occurs for any particular action, C<errstr> will return false.
+
+=cut
+
+sub errstr {
+	$errstr;
 }
 
 1;

@@ -9,7 +9,7 @@ use base 'PPI::Element';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.842';
+	$VERSION = '0.843';
 }
 
 # We don't load the abstracts, they are loaded

@@ -21,7 +21,7 @@ use Class::Autouse ':devel';
 use PPI;
 use PPI::Lexer;
 
-use Test::More  (); # Plan comes later
+use Test::More; # Plan comes later
 use File::Slurp ();
 
 

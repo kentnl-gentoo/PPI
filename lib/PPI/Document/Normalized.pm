@@ -23,7 +23,7 @@ use base 'PPI::Document';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.833';
+	$VERSION = '0.843';
 }
 
 # A normalized document is a PPI document after normalisation. It's

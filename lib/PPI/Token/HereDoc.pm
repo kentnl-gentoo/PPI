@@ -90,7 +90,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.842';
+	$VERSION = '0.843';
 }
 
 
@@ -153,7 +153,7 @@ sub _on_char {
 	### FIXME - This regex, and this method in general, do not yet allow
 	### for the null here-doc, which terminates at the first
 	### empty line.
-	/^(\s*(?:"[^"]+"|'[^']+'|`[^`]+`|\w+))/ or return undef;
+	/^(\s*(?:"[^"]*"|'[^']*'|`[^`]*`|\w+))/ or return undef;
 
 	# Add the rest of the token, work out what type it is,
 	# and suck in the content until the end.
@@ -168,19 +168,19 @@ sub _on_char {
 		$token->{_mode}       = 'interpolate';
 		$token->{_terminator} = $1;
 
-	} elsif ( $content =~ /^\<\<\s*\'(.+)\'$/ ) {
+	} elsif ( $content =~ /^\<\<\s*\'(.*)\'$/ ) {
 		# ''-quoted literal
 		$token->{_mode}       = 'literal';
 		$token->{_terminator} = $1;
 		$token->{_terminator} =~ s/\\'/'/g;
 
-	} elsif ( $content =~ /^\<\<\s*\"(.+)\"$/ ) {
+	} elsif ( $content =~ /^\<\<\s*\"(.*)\"$/ ) {
 		# ""-quoted literal
 		$token->{_mode}       = 'interpolate';
 		$token->{_terminator} = $1;
 		$token->{_terminator} =~ s/\\"/"/g;
 
-	} elsif ( $content =~ /^\<\<\s*\`(.+)\`$/ ) {
+	} elsif ( $content =~ /^\<\<\s*\`(.*)\`$/ ) {
 		# ``-quoted command
 		$token->{_mode}       = 'command';
 		$token->{_terminator} = $1;

@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.842';
+	$VERSION = '0.843';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -43,13 +43,13 @@ sub _on_char {
 
 	# Check for a quote like operator
 	my $word = $t->{token}->{content};
-	if ( $QUOTELIKE{$word} and ! $class->_forced_word($word, $tokens) ) {
+	if ( $QUOTELIKE{$word} and ! $class->_forced_word($t, $word, $tokens) ) {
 		$t->_set_token_class( $QUOTELIKE{$word} );
 		return $t->{class}->_on_char( $t );
 	}
 
 	# Or one of the word operators
-	if ( $OPERATOR{$word} and ! $class->_forced_word($word, $tokens) ) {
+	if ( $OPERATOR{$word} and ! $class->_forced_word($t, $word, $tokens) ) {
 	 	$t->_set_token_class( 'Operator' );
  		return $t->_finalize_token->_on_char( $t );
 	}
@@ -159,7 +159,7 @@ sub _commit {
 		# Since its not a simple identifier...
 		$token_class = 'Word';
 
-	} elsif ( $class->_forced_word($word, $tokens) ) {
+	} elsif ( $class->_forced_word($t, $word, $tokens) ) {
 		$token_class = 'Word';
 
 	} elsif ( $QUOTELIKE{$word} ) {
@@ -199,7 +199,7 @@ sub _commit {
 # Is the word in a "forced" context, and thus cannot be either an
 # operator or a quote-like thing.
 sub _forced_word {
-	my ($class, $word, $tokens) = @_;
+	my ($class, $t, $word, $tokens) = @_;
 
 	# Is this a forced-word context?
 	# i.e. Would normally be seen as an operator.
@@ -207,17 +207,31 @@ sub _forced_word {
 		return '';
 	}
 
-	# We need to have a previous significant token
-	return '' unless $tokens;
-	my $token = $tokens->[0] or return '';
+	# Check the cases when we have previous tokens
+	my $line = substr( $t->{line}, $t->{line_cursor} );
+	if ( $tokens ) {
+		my $token = $tokens->[0] or return '';
 
-	# We are forced if we are a method name
-	return 1 if $token->{content} eq '->';
+		# We are forced if we are a method name
+		return 1 if $token->{content} eq '->';
 
-	# We are forced if we are a sub name
-	return 1 if $token->_isa('Word', 'sub');
+		# We are forced if we are a sub name
+		return 1 if $token->_isa('Word', 'sub');
 
-	# Otherwise we arn't forced
+		# If we are contained in a pair of curly braces,
+		# we are probably a bareword hash key
+		if ( $token->{content} eq '{' and $line =~ /^\s*\}/ ) {
+			return 1;
+		}
+	}
+
+	# In addition, if the word is followed by => it is probably
+	# also actually a word and not a regex.
+	if ( $line =~ /^\s*=>/ ) {
+		return 1;
+	}
+
+	# Otherwise we probably arn't forced
 	'';
 }
 

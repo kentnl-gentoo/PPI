@@ -1,5 +1,25 @@
 Revision history for Perl extension PPI
 
+0.843 Tue Jan 12 2005
+	General:
+	- Starting the process of removing PPI::Base.
+	  It only does does error handling now, which will be split up.
+	- Fixing some packaging and "play well with others" issues
+
+	Details:
+	- Randal Schwartz pointed out t/06... wouldn't working for him.
+	  It appears when Test::More bug CPAN #8385 was fixed, we broke.
+	- We now include build-time-only dependencies in the installer
+	- Although unusable, PPI::Document::Normalized's version fell out
+	  of sync with the rest of the distribution. Fixed.
+	- PPI::Tokenizer no longer inherits from PPI::Base
+	- Added class variable $PPI::Tokenizer::errstr
+	- Added class method PPI::Tokenizer->errstr
+	- Fixed Tokenizer Bug: C< y => 1 > was being seen as a regex
+	- Fixed Tokenizer Bug: C< <<''; > was dying because I expected at
+	  least one character
+	- Fixed Tokenizer Bug: C< $foo->{s} > was being seen as a regex
+
 0.842 Tue Jan 11 2005
 	General:
 	- Lots of debugging based on Tinderbox results

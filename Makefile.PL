@@ -17,6 +17,12 @@ build_requires( 'File::Spec'      => '0.82'    );
 build_requires( 'Test::More'      => '0.47'    );
 build_requires( 'Test::ClassAPI'  => '1.02'    );
 
+# Bundle rare pure-perl build-time-only modules,
+# and their non-core pure-perl dependencies.
+include       ( 'Test::ClassAPI'               );
+include       ( 'Config::Tiny'                 );
+include       ( 'Class::Inspector'             );
+
 auto_install();
 
 &WriteAll;
