@@ -33,7 +33,7 @@ use File::Slurp ();
 # Prepare
 
 # Find all of the files to be checked
-my %tests = map { $_ => $INC{$_} } grep { /^PPI\b/ } keys %INC;
+my %tests = map { $_ => $INC{$_} } grep { ! /\bXS\.pm/ } grep { /^PPI\b/ } keys %INC;
 unless ( %tests ) {
 	Test::More::plan( tests => 1 );
 	ok( undef, "Failed to find any files to test" );

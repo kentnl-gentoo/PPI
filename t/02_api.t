@@ -22,10 +22,10 @@ use PPI::Tokenizer;
 use PPI::Lexer;
 use PPI::Dumper;
 use PPI::Find;
-use PPI::Transform;
+# use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2228;
+use Test::More 'tests' => 2227;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -45,7 +45,7 @@ PPI::Tokenizer=class
 PPI::Lexer=class
 PPI::Dumper=class
 PPI::Find=class
-PPI::Transform=abstract
+# PPI::Transform=abstract
 
 # The abstract PDOM classes
 PPI::Base=abstract
@@ -387,12 +387,12 @@ match=method
 finish=method
 errstr=method
 
-[PPI::Transform]
-matches=method
-matches_file=method
-matches_source=method
-matches_document=method
-transform=method
-transform_file=method
-transform_source=method
-transform_document=method
+# [PPI::Transform]
+# matches=method
+# matches_file=method
+# matches_source=method
+# matches_document=method
+# transform=method
+# transform_file=method
+# transform_source=method
+# transform_document=method

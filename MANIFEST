@@ -22,7 +22,6 @@ lib/PPI/Document/Normalized.pm
 lib/PPI/Dumper.pm
 lib/PPI/Element.pm
 lib/PPI/Find.pm
-lib/PPI/Format/HTML.pm
 lib/PPI/Lexer.pm
 lib/PPI/Manual.pod
 lib/PPI/Node.pm

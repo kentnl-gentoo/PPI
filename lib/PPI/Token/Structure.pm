@@ -8,7 +8,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @MATCH};
 BEGIN {
-	$VERSION = '0.843';
+	$VERSION = '0.844';
 
 	# Populate the matches
 	$MATCH[ord '{'] = '}';

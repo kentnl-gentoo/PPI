@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.843';
+	$VERSION = '0.844';
 
 	# Build the class and commit maps
         @CLASSMAP = ();

@@ -1,5 +1,15 @@
 Revision history for Perl extension PPI
 
+0.844 Fri Jan 14 2005
+	General:
+	- Found a massive performance bug when parsing large perl constructs
+	- Fixed some install problems
+
+	Details:
+	- PPI::Node::schild was copying the entire of it's child array each call.
+	  This was causing massive slowdowns when ->{children} got large. Fixed.
+	- The core tests still expect Transform to be in the core. Fixed.
+
 0.843 Tue Jan 12 2005
 	General:
 	- Starting the process of removing PPI::Base.

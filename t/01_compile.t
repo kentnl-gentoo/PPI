@@ -17,7 +17,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 7;
+use Test::More tests => 11;
 use Class::Autouse ':devel';
 
 
@@ -28,11 +28,30 @@ use Class::Autouse ':devel';
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
-use_ok( 'PPI'               );
-use_ok( 'PPI::Tokenizer'    );
-use_ok( 'PPI::Lexer'        );
-use_ok( 'PPI::Dumper'       );
-use_ok( 'PPI::Find'         );
-use_ok( 'PPI::Transform'    );
+use_all_ok( qw{
+	PPI
+	PPI::Tokenizer
+	PPI::Lexer
+	PPI::Dumper
+	PPI::Find
+	} );
+
+sub use_all_ok {
+	my @modules = @_;
+
+	# Load each of the classes
+	foreach my $module ( @modules ) {
+		use_ok( $module );
+	}
+
+	# Check that all of the versions match
+	my $main_module = shift(@modules);
+	my $expected    = $main_module->VERSION;
+	ok( $expected, "Found a version for the main module ($expected)" );
+
+	foreach my $module ( @modules ) {
+		is( $module->VERSION, $expected, "$main_module->VERSION matches $module->VERSION ($expected)" );
+	}
+}
 
 exit();

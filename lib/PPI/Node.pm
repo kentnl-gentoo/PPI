@@ -58,7 +58,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.843';
+	$VERSION = '0.844';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -244,19 +244,16 @@ negative indexes used to identify a "from the end" position.
 sub schild {
 	my $self = shift;
 	my $idx  = 0 + shift;
-	unless ( defined $self->{children} ) {
-		$DB::single = 1;
-	}
-	my @el   = @{$self->{children}};
+	my $el   = $self->{children};
 	if ( $idx < 0 ) {
 		my $cursor = 0;
-		while ( exists $el[--$cursor] ) {
-			return $el[$cursor] if $el[$cursor]->significant and ++$idx >= 0;
+		while ( exists $el->[--$cursor] ) {
+			return $el->[$cursor] if $el->[$cursor]->significant and ++$idx >= 0;
 		}
 	} else {
 		my $cursor = -1;
-		while ( exists $el[++$cursor] ) {
-			return $el[$cursor] if $el[$cursor]->significant and --$idx < 0;
+		while ( exists $el->[++$cursor] ) {
+			return $el->[$cursor] if $el->[$cursor]->significant and --$idx < 0;
 		}
 	}
 	undef;

@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.843';
+	$VERSION = '0.844';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -43,13 +43,13 @@ sub _on_char {
 
 	# Check for a quote like operator
 	my $word = $t->{token}->{content};
-	if ( $QUOTELIKE{$word} and ! $class->_forced_word($t, $word, $tokens) ) {
+	if ( $QUOTELIKE{$word} and ! $class->_literal($t, $word, $tokens) ) {
 		$t->_set_token_class( $QUOTELIKE{$word} );
 		return $t->{class}->_on_char( $t );
 	}
 
 	# Or one of the word operators
-	if ( $OPERATOR{$word} and ! $class->_forced_word($t, $word, $tokens) ) {
+	if ( $OPERATOR{$word} and ! $class->_literal($t, $word, $tokens) ) {
 	 	$t->_set_token_class( 'Operator' );
  		return $t->_finalize_token->_on_char( $t );
 	}
@@ -159,7 +159,7 @@ sub _commit {
 		# Since its not a simple identifier...
 		$token_class = 'Word';
 
-	} elsif ( $class->_forced_word($t, $word, $tokens) ) {
+	} elsif ( $class->_literal($t, $word, $tokens) ) {
 		$token_class = 'Word';
 
 	} elsif ( $QUOTELIKE{$word} ) {
@@ -198,7 +198,7 @@ sub _commit {
 
 # Is the word in a "forced" context, and thus cannot be either an
 # operator or a quote-like thing.
-sub _forced_word {
+sub _literal {
 	my ($class, $t, $word, $tokens) = @_;
 
 	# Is this a forced-word context?

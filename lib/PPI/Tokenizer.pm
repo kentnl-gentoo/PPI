@@ -289,7 +289,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.843';
+	$VERSION = '0.844';
 	$errstr  = '';
 }
 
@@ -626,17 +626,10 @@ sub _fill_line {
 	}
 
 	# Populate the appropriate variables
-	$self->{line} = $line;
+	$self->{line}        = $line;
 	$self->{line_cursor} = -1;
 	$self->{line_length} = length $line;
 	$self->{line_count}++;
-
-	# Mainly to protect ourselves against the horror that is
-	# Crypt::GeneratePassword, don't allow lines longer than 
-	# 5000 characters.
-	if ( $self->{line_length} > 5000 ) {
-		return $self->_error( "Line longer than 5000 characters found ( $self->{line_length} characters )" );
-	}
 
 	1;
 }
