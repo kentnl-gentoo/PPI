@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 # Formal testing for PPI
 
@@ -9,7 +9,7 @@ use strict;
 use lib '../../modules'; # Development testing
 use lib '../lib';           # Installation testing
 use UNIVERSAL 'isa';
-use Test::More qw{no_plan};
+use Test::More tests => 3;
 use Class::Autouse qw{:devel};
 use Class::Handle;
 

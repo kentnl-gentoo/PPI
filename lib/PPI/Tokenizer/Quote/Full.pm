@@ -42,7 +42,7 @@ sub new {
 	my $self = $class->SUPER::new($zone, $init) or return undef;
 	
 	# Do we have a prototype for the intializer? If so, add the extra fields
-	my $options = $quoteTypes{$init} or return $self->andError( "Unknown quote like operator '$init'" );
+	my $options = $quoteTypes{$init} or return $self->_error( "Unknown quote like operator '$init'" );
 	$self->{$_} = $options->{$_} foreach keys %$options;
 
 	return $self;
@@ -68,7 +68,7 @@ sub fill {
 		# Is there a gap after the operator
 		if ( $t->{char} =~ /\s/ ) {
 			# Go past the gap
-			$gap = $self->_scanQuoteLikeOperatorGap( $t );
+			$gap = $self->_scan_quote_like_operator_gap( $t );
 			return undef unless defined $gap;
 			if ( ref $gap ) {
 				# End of file
@@ -98,9 +98,9 @@ sub fill {
 	# The two methods for the different paths are used
 	# just to make the code a bit easier to read.
 	if ( $self->{braced} ) {
-		$rv = $self->_fillBraced( $t ) or return $rv;
+		$rv = $self->_fill_braced( $t ) or return $rv;
 	} else {
-		$rv = $self->_fillNormal( $t ) or return $rv;
+		$rv = $self->_fill_normal( $t ) or return $rv;
 	}
 	
 	# Does the quote support modifiers ( i.e. regex )
@@ -110,7 +110,7 @@ sub fill {
 		my $len = 0;
 		while ( ($char = substr( $t->{line_buffer}, $t->{line_position} + 1, 1 )) =~ /\w/ ) {
 			if ( $char eq '_' ) {
-				return $self->andError( "Syntax error. Cannot use underscore '_' as regex modifier" );
+				return $self->_error( "Syntax error. Cannot use underscore '_' as regex modifier" );
 			} else {
 				$len++;
 				$self->{content} .= $char;
@@ -128,13 +128,13 @@ sub fill {
 }
 
 # Handle the content parsing path for normally seperated
-sub _fillNormal {
+sub _fill_normal {
 	my $self = shift;
 	my $t = shift;
 	my ($gap, $string, $rv);
 
 	# Get the content up to the seperator
-	$string = $self->_scanForUnescapedCharacter( $t, $self->{seperator} );
+	$string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file
@@ -158,7 +158,7 @@ sub _fillNormal {
 	$t->{char} = substr( $t->{line_buffer}, ++$t->{line_position}, 1 );	
 
 	# Get the content up to the end seperator
-	$string = $self->_scanForUnescapedCharacter( $t, $self->{seperator} );
+	$string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file
@@ -178,14 +178,14 @@ sub _fillNormal {
 }
 
 # Handle content parsing for matching crace seperated
-sub _fillBraced {
+sub _fill_braced {
 	my $self = shift;
 	my $t = shift;
 	my ($gap, $string, $rv);
 
 	# Get the content up to the close character
 	my $section = $self->{sections}->[0];
-	$string = $self->_scanForBraceCharacter( $t, $section->{_close} );
+	$string = $self->_scan_for_brace_character( $t, $section->{_close} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file
@@ -210,7 +210,7 @@ sub _fillBraced {
 	# Is there a gap between the sections.
 	if ( $t->{char} =~ /\s/ ) {
 		# Go past the gap
-		$gap = $self->_scanQuoteLikeOperatorGap( $t );
+		$gap = $self->_scan_quote_like_operator_gap( $t );
 		return undef unless defined $gap;
 		if ( ref $gap ) {
 			# End of file
@@ -226,7 +226,7 @@ sub _fillBraced {
 		$self->{sections}->[1] = {%{ $sectionPrototypes{$t->{char}} }};
 	} else {
 		# Error, it has to be a brace of some sort
-		return $self->andError( "Syntax error. Second section of quote does not start with an open brace" );
+		return $self->_error( "Syntax error. Second section of quote does not start with an open brace" );
 	}
 
 	# Advance into the second region
@@ -234,7 +234,7 @@ sub _fillBraced {
 
 	# Get the content up to the close character
 	$section = $self->{sections}->[1];	
-	$string = $self->_scanForBraceCharacter( $t, $section->{_close} );
+	$string = $self->_scan_for_brace_character( $t, $section->{_close} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file

@@ -20,7 +20,7 @@ sub new {
 	}
 		
 	unless ( isa( $Tree, 'PPI::Lexer::Tree' ) ) {
-		return $class->andError( "Constructor was not passed a PPI::Lexer::Tree argument" );
+		return $class->_error( "Constructor was not passed a PPI::Lexer::Tree argument" );
 	}
 	
 	# Create the object

@@ -23,7 +23,7 @@ sub fill {
 	my $self = $t->{token} or return undef;
 	
 	# Scan for the end seperator
-	my $string = $self->_scanForUnescapedCharacter( $t, $self->{seperator} );
+	my $string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file
@@ -36,7 +36,7 @@ sub fill {
 	}
 }
 
-sub getString {
+sub get_string {
 	my $self = shift;
 	return substr( $self->{content}, 1, length($self->{content}) - 2 );
 }

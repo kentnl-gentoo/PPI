@@ -66,7 +66,7 @@ BEGIN {
 #####################################################################
 # Core methods
 
-sub serializeDocument {
+sub serialize_document {
 	my $class = shift;
 	my $Document = shift;
 	my $style = shift || 'plain';
@@ -74,34 +74,34 @@ sub serializeDocument {
 
 	# Check the arguments
 	unless ( isa( $Document, 'PPI::Document' ) ) {
-		return $class->andError( "Can only serialize PPI::Document objects, not " . ref $Document );
+		return $class->_error( "Can only serialize PPI::Document objects, not " . ref $Document );
 	}
 	unless ( $style eq 'syntax' or $style eq 'debug' or $style eq 'plain' ) {
-		return $class->andError( "Invalid html format style '$style'" );
+		return $class->_error( "Invalid html format style '$style'" );
 	}
 	
 	# Hand off to the appropriate formatter
 	if ( $style eq 'syntax' or $style eq 'Ultraedit' ) {
-		return $class->_serializeDocumentSyntax( $Document, $options );
+		return $class->_serialize_document_syntax( $Document, $options );
 	} elsif ( $style eq 'debug' ) {
-		return $class->_serializeDocumentDebug( $Document, $options );
+		return $class->_serialize_document_debug( $Document, $options );
 	} elsif ( $style eq 'plain' or ! $style ) {
-		return $class->_serializeDocumentPlain( $Document, $options );
+		return $class->_serialize_document_plain( $Document, $options );
 	} else {
 		# Look for a child class
 		my $styleclass = "PPI::Format::HTML::$style";
 		if ( Class::Autouse->class_exists( $styleclass ) ) {
-			# Call the serializeDocument function for that class
+			# Call the serialize_document function for that class
 			Class::Autouse->load( $styleclass ) 
-				or return $class->andError( "Error loading class $styleclass to format Document" );
-			return $styleclass->_serializeDocumentSyntax( $Document, $options );	
+				or return $class->_error( "Error loading class $styleclass to format Document" );
+			return $styleclass->_serialize_document_syntax( $Document, $options );	
 		} else {
-			return $class->andError( "Error looking for style '$style'. The class $styleclass foes not exist" );
+			return $class->_error( "Error looking for style '$style'. The class $styleclass foes not exist" );
 		}
 	}
 }
 
-sub _serializeDocumentSyntax {
+sub _serialize_document_syntax {
 	my $class = shift;
 	my $Document = shift or return undef;
 	my $options = shift;
@@ -110,9 +110,9 @@ sub _serializeDocumentSyntax {
 	
 	# Reset the cursor, and loop through
 	my $current = '';
-	foreach $token ( @{ $Document->getTokenArray } ) {
+	foreach $token ( @{ $Document->get_token_array } ) {
 		unless ( defined $token->{class} ) {
-			die "Token '$token->{content}' missing class at " . $Document->getLineCharText( $token );
+			die "Token '$token->{content}' missing class at " . $Document->get_position_text( $token );
 		}
 		if ( $token->{class} eq 'Base' ) {
 			if ( $token->{content} !~ /^\s*$/ ) {
@@ -125,7 +125,7 @@ sub _serializeDocumentSyntax {
 		}
 		
 		# Get the color for the token
-		$color = $class->_getTokenColor( $token );
+		$color = $class->_get_token_color( $token );
 		
 		if ( $color ne $current ) {
 			# End the previous color
@@ -173,7 +173,7 @@ sub _serializeDocumentSyntax {
 
 # Determine the appropriate color for a token.
 # This is the method you should overload to make a new html syntax highlighter
-sub _getTokenColor {
+sub _get_token_color {
 	my $token = $_[1] or return '';
 	my $class = $token->{class};
 	my $content = $token->{content};
@@ -203,7 +203,7 @@ sub _getTokenColor {
 	return 'black';
 }
 		
-sub _serializeDocumentDebug {
+sub _serialize_document_debug {
 	my $class = shift;
 	my $Document = shift or return undef;
 	my $options = shift;
@@ -212,7 +212,7 @@ sub _serializeDocumentDebug {
 	# Reset the cursor and loop
 	my $lineCounter = 0;
 	my $bgcolor = '#EEEEEE';
-	foreach $token ( @{ $Document->getTokenArray } ) {
+	foreach $token ( @{ $Document->get_token_array } ) {
 		$class = $token->{class} eq 'Comment' ?
 			$token->{tags}
 				? ("Comment (" . join( ', ', map { ucfirst $_ } keys %{$token->{tags}}) . ")")
@@ -236,13 +236,13 @@ sub _serializeDocumentDebug {
 		~;	
 }
 
-sub _serializeDocumentPlain {
+sub _serialize_document_plain {
 	my $class = shift;
 	my $Document = shift;
 	my $options = shift;
 
 	# Get the content
-	my $plain = escape_html( $Document->toString );
+	my $plain = escape_html( $Document->to_string );
 	
 	# Optionally add line numbers
 	if ( $options->{linenumbers} ) {
@@ -292,7 +292,7 @@ sub escape_debug_html {
 }
 
 # Wrap source code in a minamilist page
-sub wrapPage {
+sub wrap_page {
 	my $class = shift;
 	my $style = shift;
 	my $content = shift;
@@ -374,7 +374,7 @@ sub syntax_string {
 sub syntax_page {
 	shift if $_[0] eq 'PPI::HTML::Format';
 	my $Perl = Perl->new( $_[1] ) or return undef;
-	return $Perl->htmlPage('syntax');
+	return $Perl->html_page('syntax');
 }
 
 sub debug_string {
@@ -386,7 +386,7 @@ sub debug_string {
 sub debug_page {
 	shift if $_[0] eq 'PPI::HTML::Format';
 	my $Perl = Perl->new( $_[1] ) or return undef;
-	return $Perl->htmlPage('debug');
+	return $Perl->html_page('debug');
 }
 
 1;

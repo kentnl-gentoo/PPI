@@ -36,14 +36,14 @@ sub tidyTree {
 	my $class = shift;
 	my $Tree = shift;
 	unless ( isa( $Tree, 'PPI::Lexer::Tree' ) ) {
-		return $class->andError( "You did not pass a Lexer Tree to tidy" );
+		return $class->_error( "You did not pass a Lexer Tree to tidy" );
 	}
 	
 	# Create the instance
 	my $Tidier = $class->new( $Tree );
 	
 	# First remove all the whitespace
-	$Tidier->{Tree}->removeWhitespace or return undef;
+	$Tidier->{Tree}->remove_whitespace or return undef;
 	
 	# Start the actual tidy
 	$Tidier->{tmp}->{depth} = 0;
@@ -246,8 +246,8 @@ sub _getJoinRule {
 	my $self = shift;
 	my $left = shift;
 	my $right = shift;
-	$left = $left->getSummaryStrings();
-	$right = $right->getSummaryStrings();
+	$left = $left->get_summary_strings();
+	$right = $right->get_summary_strings();
 
 	# Get the rules
 	my $rules = $self->getJoinRuleSet() or return undef;
@@ -285,7 +285,7 @@ sub _tidyTreeApplyRule {
 		} elsif ( $_ eq 'n' ) {
 			$self->_tidyTreeAddTokens( $Block, $self->newBlockNewline() );			
 		} else {
-			return $self->andError( "Unknown rule character '$rule'" );
+			return $self->_error( "Unknown rule character '$rule'" );
 		}
 	}
 	return 1;

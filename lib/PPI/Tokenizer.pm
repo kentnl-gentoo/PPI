@@ -37,16 +37,14 @@ use Class::Autouse;
 # Import the regexs
 use PPI::RegexLib qw{%RE};
 
-# Force the loading of some stuff ( so it happens in order )
-BEGIN {
-	Class::Autouse->load( 'PPI::Tokenizer::Token' );
-
-	# Quote engine must be loaded before classes.
-	# This is _important_, but I can't remember why
-	Class::Autouse->load( 'PPI::Tokenizer::Quote' );
-	Class::Autouse->load( 'PPI::Tokenizer::Classes' );
-	Class::Autouse->load( 'PPI::Tokenizer::Token::Unknown' );
-}
+# Load our children.
+# The order is important, the main classes must load last.
+use PPI::Tokenizer::Token;
+use PPI::Tokenizer::Quote;
+use PPI::Tokenizer::Quote::Full;
+use PPI::Tokenizer::Quote::Simple;
+use PPI::Tokenizer::Token::Unknown;
+use PPI::Tokenizer::Classes;
  
 # Constructor
 # Returns the new object on success
@@ -62,7 +60,7 @@ sub new {
 	} elsif ( scalar @_ ) {
 		%options = @_;
 	} else {
-		return $class->andError( "Invalid constructor argument" );
+		return $class->_error( "Invalid constructor argument" );
 	}
 	
 	# Create the emtpy tokenizer struct
@@ -105,16 +103,16 @@ sub new {
 	bless $self, $class;
 	
 	# Set the source. They MUST have this.
-	$self->setSource( $options{source} ) 
-	or return $self->andError( "Failed to set the source during creation of Tokenizer" );
+	$self->set_source( $options{source} ) 
+	or return $self->_error( "Failed to set the source during creation of Tokenizer" );
 
 	# Set the starting class
-	$self->setClass( $options{startclass} || "Base" )
-	or return $self->andError( "Failed to set initial code class during creation of Tokenizer" );
+	$self->set_class( $options{startclass} || "Base" )
+	or return $self->_error( "Failed to set initial code class during creation of Tokenizer" );
 	
 	# Set the starting zone
-	$self->setZone( $options{startzone} || "Base" )
-	or return $self->andError( "Failed to set initial code zone during creation of Tokenizer" );
+	$self->set_zone( $options{startzone} || "Base" )
+	or return $self->_error( "Failed to set initial code zone during creation of Tokenizer" );
 	
 	return $self;
 }
@@ -126,18 +124,18 @@ sub new {
 #####################################################################
 # Basic getters and setters
 
-sub setClass {
+sub set_class {
 	my $self = shift;
 	my $name = shift;
-	my $class = $self->resolveClass( $name ) or return undef;
+	my $class = $self->_resolve_class( $name ) or return undef;
 	$self->{class} = $class;
 	return 1;
 }
 	
-sub setZone {
+sub set_zone {
 	my $self = shift;
 	my $name = shift;
-	my $class = $self->resolveClass( $name ) or return undef;
+	my $class = $self->_resolve_class( $name ) or return undef;
 	$self->{zone} = $class;
 	return 1;
 }
@@ -147,7 +145,7 @@ BEGIN { %resolve = () }
 
 # Resolve a short token class into it's full class name.
 # Make's sure it exists.
-sub resolveClass {
+sub _resolve_class {
 	my $class = shift;
 	my $name = shift or return undef;
 	unless ( defined $resolve{$name} ) {
@@ -157,25 +155,25 @@ sub resolveClass {
 		$resolve{$name} = Class::Autouse->class_exists( $full ) ? $full : 0;
 	}
 	return $resolve{$name}
-	       or $class->andError( "The token class '$name' does not exist" );
+	       or $class->_error( "The token class '$name' does not exist" );
 }
 	
 
 #####################################################################
 # Source buffer
 
-sub setSource {
+sub set_source {
 	my $self = shift;
 	my $source = shift;
 	
 	# Make sure we are allowed to set the source
 	if ( $self->{stats}->{source_bytes} ) {
-		return $self->andError( "It is too late to set the source" );
+		return $self->_error( "It is too late to set the source" );
 	}
 	
 	# Did they give us something
 	unless ( defined $source ) {
-		return $self->andError( "You did not pass a source" );
+		return $self->_error( "You did not pass a source" );
 	}
 	
 	# Is it straight text
@@ -184,10 +182,10 @@ sub setSource {
 	}
 	if ( ! ref $source ) {
 		unless ( length $source ) {
-			return $self->andError( "You passed the constructor a zero length string" );
+			return $self->_error( "You passed the constructor a zero length string" );
 		}			
 		# Get the file lines for the scalar
-		$self->{source_handle} = $self->getFileLines( $source );
+		$self->{source_handle} = $self->_get_file_lines( $source );
 		$self->{source_type} = 'ARRAY';
 		return 1;
 	}
@@ -196,10 +194,10 @@ sub setSource {
 	if ( isa( $source, 'IO::Handle' ) ) {
 		# Check the handle
 		unless ( $source->opened ) {
-			return $self->andError( "The IO Handle you passed is not a valid, open, io handle" );
+			return $self->_error( "The IO Handle you passed is not a valid, open, io handle" );
 		}
 		if ( $source->eof ) {
-			return $self->andError( "You passed an empty handle" );
+			return $self->_error( "You passed an empty handle" );
 		}
 		
 		# We assume for now that we have permissions
@@ -213,22 +211,22 @@ sub setSource {
 	# Is it an array of content
 	if ( isa( $source, 'ARRAY' ) ) {
 		if ( scalar @$source == 0 ) {
-			return $self->andError( "You passed an empty array reference" );
+			return $self->_error( "You passed an empty array reference" );
 		}
 		# Get the file lines from the array
-		$self->{source_handle} = $self->getFileLines( join '', @$source );
+		$self->{source_handle} = $self->_get_file_lines( join '', @$source );
 		$self->{source_type} = 'ARRAY';
 		return 1;
 	}
 
 	# We don't support this
-	return $self->andError( "Object of type " . ref( $source ) . " is not supported as a source" );
+	return $self->_error( "Object of type " . ref( $source ) . " is not supported as a source" );
 }
 
 # Fetches a reference to a line of source, including ( cleaned up ) trailing slash
 # Returns 0 on eof
 # Returns undef on error
-sub getSourceLine {
+sub _get_source_line {
 	my $self = shift;
 	return 0 unless $self->{source_handle};
 	
@@ -272,11 +270,11 @@ sub getSourceLine {
 # Returns 1 on success
 # Returns 0 on EOF
 # Returns undef on error
-sub fillNextLine {
+sub _fill_next_line {
 	my $self = shift;
 	
 	# Get a new line
-	my $line = $self->getSourceLine;
+	my $line = $self->_get_source_line;
 	if ( $line ) {
 		$self->{line_buffer} = $$line;
 		$self->{line_position} = -1;
@@ -291,7 +289,7 @@ sub fillNextLine {
 	} else {
 		# Must be an error
 		# Add a comment for us, and pass the error along
-		return $self->andError( "Error getting line " . ($self->{stats}->{lines} + 1) );
+		return $self->_error( "Error getting line " . ($self->{stats}->{lines} + 1) );
 	}
 }
 
@@ -299,41 +297,41 @@ sub fillNextLine {
 # Returns 1 on success completion
 # Returns 0 if EOF
 # Returns undef on error
-sub processNextLine {
+sub _process_next_line {
 	my $self = shift;
 
 	# If we have an entry in the rawinput queue process it
 	if ( scalar @{ $self->{rawinput_queue} } ) {
-		return $self->handleRawInput();
+		return $self->_handle_raw_input();
 	}
 	
 	# Fill the line buffer
-	my $rv = $self->fillNextLine();
+	my $rv = $self->_fill_next_line();
 	return undef unless defined $rv;
 	unless ( $rv ) {
 		# Finalize the last token, then exit
-		$self->finalizeToken if $self->{token};
+		$self->_finalize_token if $self->{token};
 		return 0;
 	}
 		
-	# Run the onLineStart
-	$rv = $self->{class}->onLineStart( $self );
+	# Run the on_line_start
+	$rv = $self->{class}->on_line_start( $self );
 	unless ( defined $rv ) {
-		return $self->andError( "Error during $self->{class}\->onLineStart on line $self->{stats}->{lines}->{total}" );
+		return $self->_error( "Error during $self->{class}\->on_line_start on line $self->{stats}->{lines}->{total}" );
 	}
 	return 1 if ! $rv; # Handle "next line" signal
 	
 	# Process each of the characters in the line
-	while ( $rv = $self->processNextChar ) {}
+	while ( $rv = $self->_process_next_char ) {}
 	unless ( defined $rv ) {
 		# Error while processing			
-		return $self->andError( "Error at character $self->{line_position} on line $self->{stats}->{lines}->{total}" );
+		return $self->_error( "Error at character $self->{line_position} on line $self->{stats}->{lines}->{total}" );
 	}
 
-	# Trigger the onLineEnd hook if required
-	$rv = $self->{class}->onLineEnd( $self );
+	# Trigger the on_line_end hook if required
+	$rv = $self->{class}->on_line_end( $self );
 	unless ( defined $rv ) {
-		return $self->andError( "Error during $self->{class}\::onLineEnd on line $self->{stats}->{lines}->{total}" );
+		return $self->_error( "Error during $self->{class}\::on_line_end on line $self->{stats}->{lines}->{total}" );
 	}
 	
 	return 1;
@@ -343,14 +341,14 @@ sub processNextLine {
 # Returns 1 on success
 # Returns 0 on EOF
 # Returns undef on error
-sub handleRawInput {
+sub _handle_raw_input {
 	my $self = shift;
 	
 	# Is there a half finished token?
 	if ( defined $self->{token} ) {
 		if ( $self->{token}->{class} eq 'Base' ) {
 			# Finish the whitespace token
-			$self->finalizeToken();
+			$self->_finalize_token();
 		} else {
 			# This is just a little too complicated to tokenize.
 			# The Perl interpretor has the luxury of being able to 
@@ -358,7 +356,7 @@ sub handleRawInput {
 			# a token that SPANS OVER a raw input is just silly, and
 			# too complicated for this little parsing to turn back 
 			# into something usefull.
-			return $self->andError( "The code is too crufty for the tokenizer.\n"
+			return $self->_error( "The code is too crufty for the tokenizer.\n"
 				. "Cannot have tokens that span across rawinput lines." );
 		}
 	}
@@ -373,15 +371,15 @@ sub handleRawInput {
 	if ( $terminator->{class} eq 'Bareword' ) {
 		$tString = $terminator->{content};
 	} elsif ( $terminator->{class} =~ /^Quote::(Single|Double)$/ ) {
-		$tString = $terminator->getString;
+		$tString = $terminator->get_string;
 		return undef unless defined $tString;
 	} else {
-		return $self->andError( "Syntax error. The raw input << operator must be followed by a bare word, or a single or double quoted string" );
+		return $self->_error( "Syntax error. The raw input << operator must be followed by a bare word, or a single or double quoted string" );
 	}
 	$tString .= "\n";
 	
 	# Change the class of the terminator token to the appropriate one ( for later )
-	$terminator->setClass( 'RawInput::Terminator' ) or return undef;
+	$terminator->set_class( 'RawInput::Terminator' ) or return undef;
 	
 	# Create the token
 	my $rawinput = PPI::Tokenizer::Token::RawInput::String->new( $self->{zone}, '' ) or return undef;
@@ -393,7 +391,7 @@ sub handleRawInput {
 	
 	# Start looking at lines, and pull new ones until we find
 	my $rv;
-	while ( $rv = $self->fillNextLine ) {
+	while ( $rv = $self->_fill_next_line ) {
 		# Add to the token
 		$rawinput->{content} .= $self->{line_buffer};
 		
@@ -427,7 +425,7 @@ sub handleRawInput {
 # Note that due the the high number of times this get's 
 # called, it has been fairly heavily in-lined, so the code
 # might look a bit ugly and duplicated.
-sub processNextChar {
+sub _process_next_char {
 	my $self = shift;
 	
 	# Increment the counter and check for end of line
@@ -437,9 +435,9 @@ sub processNextChar {
 	$self->{char} = substr( $self->{line_buffer}, $self->{line_position}, 1 );
 	
 	# Add the character to the token
-	my $rv = $self->{class}->onChar( $self );
+	my $rv = $self->{class}->on_char( $self );
 	
-	# If onChar returns 1, it is signalling that it thinks that
+	# If on_char returns 1, it is signalling that it thinks that
 	# the character is part of it.
 	if ( $rv eq '1' ) {
 		# Add the character
@@ -460,14 +458,14 @@ sub processNextChar {
 				$self->{token} = $self->{class}->new( $self->{zone}, $self->{char} ) or return undef;
 			}
 		} else {
-			$self->newToken( $rv, $self->{char} );
+			$self->_new_token( $rv, $self->{char} );
 		}
 	}
 	
 	return 1;
 }
 
-sub onChar { $_[0]->{class}->onChar( $_[0] ) }
+sub on_char { $_[0]->{class}->on_char( $_[0] ) }
 
 
 
@@ -478,7 +476,7 @@ sub onChar { $_[0]->{class}->onChar( $_[0] ) }
 # Methods called by the above
 
 # Finish the end of a token
-sub finalizeToken {
+sub _finalize_token {
 	my $self = shift;
 	return 1 unless $self->{token};
 	
@@ -493,14 +491,14 @@ sub finalizeToken {
 }
 
 # Creates a new token and sets it in the tokenizer
-sub newToken {
+sub _new_token {
 	my $self = shift;
 
 	# Get and check the class
-	my $class = $self->resolveClass( shift ) or return undef;
+	my $class = $self->_resolve_class( shift ) or return undef;
 		
 	# Finalize any existing token
-	$self->finalizeToken;
+	$self->_finalize_token;
 	
 	# Create the new token
 	$self->{token} = $class->new( $self->{zone}, $_[0] ) or return undef;
@@ -510,7 +508,7 @@ sub newToken {
 }
 
 # Add a single character to the current token
-sub addChar {
+sub _add_char {
 	my $self = shift;
 	
 	# Create a token if we don't have one
@@ -523,22 +521,22 @@ sub addChar {
 }
 
 # Changes the token class
-sub setTokenClass {
+sub _set_token_class {
 	my $self = shift;
 	my $name = shift;
-	return $self->andError( "No token to change" ) unless $self->{token};
+	return $self->_error( "No token to change" ) unless $self->{token};
 	
 	if ( $name =~ /^(?:Quote|Regex)::/ ) {
-		# Special setClass. 
+		# Special set_class. 
 		# We need to create a new one from the content of the old
 		my $class = "PPI::Tokenizer::Token::$name";
 		my $new = $class->new( $self->{token}->{zone}, $self->{token}->{content} );
-		return $self->andError( "Failed to setTokenClass to quote like class '$name'" ) unless $new;
+		return $self->_error( "Failed to _set_token_class to quote like class '$name'" ) unless $new;
 		
 		$self->{token} = $new;
 	} else {
 		# Or just change it's class the normal way
-		$self->{token}->setClass( $name ) or return undef;
+		$self->{token}->set_class( $name ) or return undef;
 	}
 	
 	$self->{class} = ref $self->{token};
@@ -552,7 +550,7 @@ sub setTokenClass {
 # Returns a PPI::Tokenizer::Token on success
 # Returns 0 on EOF
 # Returns undef on error
-sub nextToken {
+sub get_token {
 	my $self = shift;
 	
 	# Shortcut for EOF
@@ -571,7 +569,7 @@ sub nextToken {
 	
 	# No token, we need to get some more
 	my $rv;
-	while ( defined ($rv = $self->processNextLine) ) {
+	while ( defined ($rv = $self->_process_next_line) ) {
 		# If there is something in the buffer, return i
 		my $token = $self->{tokens}->[ $self->{token_cursor} ];
 		if ( $token ) {
@@ -595,17 +593,17 @@ sub nextToken {
 # Returns reference to array of tokens on success
 # Returns 0 if no tokens before EOF
 # Returns undef on error
-sub allTokens {
+sub all_tokens {
 	my $self = shift;
 	
 	# Process lines until we get EOF
 	my $rv;
 	unless ( $self->{token_eof} ) {
-		while ( $rv = $self->processNextLine ) {}
+		while ( $rv = $self->_process_next_line ) {}
 	
 		# Check for error
 		unless ( defined $rv ) {
-			return $self->andError( "Error while processing source" );
+			return $self->_error( "Error while processing source" );
 		}
 	}
 	
@@ -625,7 +623,7 @@ sub allTokens {
 #####################################################################
 # Handy methods
 
-sub makeIndex {
+sub _make_index {
 	my $class = shift;
 	my $hash = {};
 	foreach ( @_ ) { $hash->{$_} = 1 }
@@ -633,8 +631,8 @@ sub makeIndex {
 }
 
 # Context 
-sub lastToken { $_[0]->{tokens}->[-1] }
-sub lastSignificantToken {
+sub _last_token { $_[0]->{tokens}->[-1] }
+sub _last_significant_token {
 	my $self = shift;
 	my $cursor = $#{ $self->{tokens} };
 	while ( $cursor >= 0 ) {
@@ -646,14 +644,14 @@ sub lastSignificantToken {
 	}
 
 	# Nothing...
-	return $self->emptyToken;
+	return $self->empty_token;
 }
 
 # Get an array ref of previous significant tokens.
-# Like lastSignificantToken except it get's more than just one token
+# Like _last_significant_token except it get's more than just one token
 # Returns array ref on success.
 # Returns 0 on not enough tokens
-sub previousSignificantTokens {
+sub _previous_significant_tokens {
 	my $self = shift;
 	my $count = shift || 1;
 	my $cursor = $#{ $self->{tokens} };
@@ -668,17 +666,17 @@ sub previousSignificantTokens {
 	}
 	
 	# Pad with empties
-	push @tokens, ($self->emptyToken) x ($count - scalar @tokens);
+	push @tokens, ($self->empty_token) x ($count - scalar @tokens);
 	return \@tokens;
 }
 
 # Create an empty base token
-sub emptyToken { PPI::Tokenizer::Token->new( 'Base', '' ) }
+sub empty_token { PPI::Tokenizer::Token->new( 'Base', '' ) }
 
 # Split function that acts similarly to the normal split, 
 # except that the safeSplit can also handle empty end splits.
 # Also, returns a reference to the split string, for speed reasons.
-sub getFileLines {
+sub _get_file_lines {
 	my $self = shift;
 	my $string = shift;
 

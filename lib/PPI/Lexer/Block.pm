@@ -37,21 +37,21 @@ sub new {
 	my $openToken = shift;
 	my $content = $openToken->{content};
 	unless ( UNIVERSAL::isa( $openToken, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "You did not pass an open token." );
+		return $self->_error( "You did not pass an open token." );
 	}
 	unless ( $openToken->{class} eq 'Structure' ) {
-		return $self->andError( "Must create block with a structure token" );
+		return $self->_error( "Must create block with a structure token" );
 	}
 	unless ( $PPI::Lexer::openOrClose->{ $content } eq 'open' ) {
-		return $self->andError( "Token is not an opening brace" );
+		return $self->_error( "Token is not an opening brace" );
 	}
 	
 	# Set the type and open token
-	unless ( $self->setType( $typeMap->{ $content } ) ) {
-		return $self->andError( "Error setting type during Block creation" );
+	unless ( $self->set_type( $typeMap->{ $content } ) ) {
+		return $self->_error( "Error setting type during Block creation" );
 	}
-	unless ( $self->setOpenToken( $openToken ) ) {
-		return $self->andError( "Error setting open Token" );
+	unless ( $self->set_open_token( $openToken ) ) {
+		return $self->_error( "Error setting open Token" );
 	}
 	
 	return $self;
@@ -95,52 +95,52 @@ BEGIN {
 		};
 }
 
-sub setType {
+sub set_type {
 	my $self = shift;
 	my $type = shift;
 	unless ( $valid->{$type} ) {
-		return $self->andError( "'$type' is not a valid block type" );
+		return $self->_error( "'$type' is not a valid block type" );
 	}
 	$self->{type} = $type;
 	return 1;
 }
-sub getType { $_[0]->{type} }
+sub get_type { $_[0]->{type} }
 sub type { $_[0]->{type} }
 
-sub setClass {
+sub set_class {
 	my $self = shift;
 	my $class = shift;
 	unless ( $valid->{ $self->{type} }->{$class} ) {
-		return $self->andError( "Bad class '$class' for block type '$self->{type}'" );
+		return $self->_error( "Bad class '$class' for block type '$self->{type}'" );
 	}
 	$self->{class} = $class;
 	return 1;
 }
 
-sub getOpenToken { $_[0]->{tokens}->{open} }
-sub setOpenToken {
+sub get_open_token { $_[0]->{tokens}->{open} }
+sub set_open_token {
 	my $self = shift;
 	my $token = shift;
 	unless ( UNIVERSAL::isa( $token, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "Cannot set open token to a non PPI::Lexer::Token" );
+		return $self->_error( "Cannot set open token to a non PPI::Lexer::Token" );
 	}
 	$self->{tokens}->{open} = $token;
 	return 1;
 }
 
-sub getCloseToken { $_[0]->{tokens}->{close} }
-sub setCloseToken {
+sub get_close_token { $_[0]->{tokens}->{close} }
+sub set_close_token {
 	my $self = shift;
 	my $token = shift;
 	unless ( UNIVERSAL::isa( $token, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "->closeBlock was not passed a PPI::Lexer::Token" );
+		return $self->_error( "->closeBlock was not passed a PPI::Lexer::Token" );
 	}
 	unless ( $token->class eq 'Structure' ) {
-		return $self->andError( "Cannot close a block with a non Structure token" );
+		return $self->_error( "Cannot close a block with a non Structure token" );
 	}
 	my $required = $PPI::Lexer::matching->{ $self->{tokens}->{open}->{content} } or return undef;
 	unless ( $token->{content} eq $required ) {
-		return $self->andError( "Cannot close '$self->{tokens}->{open}->{content}' block with "
+		return $self->_error( "Cannot close '$self->{tokens}->{open}->{content}' block with "
 			. "'$token->{content}', expected '$required'" );
 	}
 	$self->{tokens}->{close} = $token;
@@ -156,28 +156,28 @@ sub setCloseToken {
 
 # Blocks cannot contain significant tokens directly, they can only contain
 # PPI::Lexer::Element objects
-sub addElement {
+sub add_element {
 	my $self = shift;
 	my $Element = shift;
 	unless ( UNIVERSAL::isa( $Element, 'PPI::Lexer::Element' ) ) {
-		return $self->andError( "You passed a non-element to addElement" );
+		return $self->_error( "You passed a non-element to add_element" );
 	}
 	
 	# Add the element to the array
 	push @{ $self->{elements} }, $Element;
 	
 	# Set the element's parent as us
-	$Element->setParent( $self );
+	$Element->set_parent( $self );
 	return 1;
 }
 
 # The only thing other than an element that can be added to a block is either
 # direct whitespace, or a comment.
-sub addToken {
+sub add_token {
 	my $self = shift;
 	my $Token = shift;
 	unless ( isa( $Token, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "You passed a non-token to addToken" );
+		return $self->_error( "You passed a non-token to add_token" );
 	}
 	push @{ $self->{elements} }, $Token;
 	return 1;
@@ -225,13 +225,13 @@ sub flatten {
 }
 
 # Remove all whitespace
-sub removeWhitespace {
+sub remove_whitespace {
 	my $self = shift;
 	my @cleaned = ();
 	foreach my $element ( @{ $self->{elements} } ) {
 		# Recurse
 		if ( exists $element->{elements} ) {
-			$element->removeWhitespace;
+			$element->remove_whitespace;
 			push @cleaned, $element;
 			next;
 		}

@@ -1,10 +1,10 @@
 # This file contains a number of token classes
 
-# The onLineStart and onLineEnd methods are passed the PPI::Tokenizer object
+# The on_line_start and on_line_end methods are passed the PPI::Tokenizer object
 # as an argument. The tokenizer is normally used as $t, for convenience.
 
 # Things to remember
-# - return 0 in onLineStart signals to go to the next line
+# - return 0 in on_line_start signals to go to the next line
 
 package PPI::Tokenizer::Token::Base;
 
@@ -15,7 +15,7 @@ use strict;
 use base 'PPI::Tokenizer::Token';
 use PPI::RegexLib qw{%RE};
 
-sub onLineStart {
+sub on_line_start {
 	my $t = $_[1];
 	
 	# Can we classify the entire line in one go
@@ -23,28 +23,28 @@ sub onLineStart {
 	$_ = $t->{line_buffer};
 	if ( /$RE{perl}{line}{pod}/ ) {
 		# A Pod tag... change to pod mode
-		$t->newToken( 'Pod', $t->{line_buffer} ) or return undef;
+		$t->_new_token( 'Pod', $t->{line_buffer} ) or return undef;
 		if ( $1 eq 'cut' ) {
 			# This is an error, but one we'll ignore
 			# Don't go into Pod mode, since =cut normally
 			# signals the end of Pod mode
 		} else {
-			$t->setClass( 'Pod' ) or return undef;
+			$t->set_class( 'Pod' ) or return undef;
 		}
 		$t->{stats}->{lines}->{pod}++;		
 		return 0;
 
 	} elsif ( /$RE{perl}{line}{blank}/ ) {
 		# A whitespace line
-		$t->newToken( 'Base', $t->{line_buffer} ) or return undef;
+		$t->_new_token( 'Base', $t->{line_buffer} ) or return undef;
 		$t->{stats}->{lines}->{whitespace}++;
 		return 0;
 
 	} elsif ( /$RE{perl}{line}{comment}/ ) {
 		# Add the comment token, and finalize it immediately
-		$t->newToken( 'Comment', $_ ) or return undef;
+		$t->_new_token( 'Comment', $_ ) or return undef;
 		$t->{token}->tag( 'line' );
-		$t->finalizeToken or return undef;
+		$t->_finalize_token or return undef;
 		$t->{stats}->{lines}->{comment}++;
 		return 0;
 	
@@ -52,15 +52,15 @@ sub onLineStart {
 		# Preprocessor end of file signal
 		if ( $1 eq 'END' ) {
 			# Content off the end of the file
-			$t->newToken( 'End', $t->{line_buffer} );
-			$t->setClass( 'End' );
-			$t->setZone( 'End' );
+			$t->_new_token( 'End', $t->{line_buffer} );
+			$t->set_class( 'End' );
+			$t->set_zone( 'End' );
 			return 0;
 		} else {
 			# Data at the end of the file
-			$t->newToken( 'Data', $t->{line_buffer} );
-			$t->setClass( 'Data' );
-			$t->setZone( 'Data' );
+			$t->_new_token( 'Data', $t->{line_buffer} );
+			$t->set_class( 'Data' );
+			$t->set_zone( 'Data' );
 			return 0;
 		}
 	}
@@ -112,7 +112,7 @@ BEGIN {
 	$charMap{$_} = 'Bareword' foreach ( 'A' .. 'Z' );
 	$charMap{$_} = 'Number' foreach ( 0 .. 9 );
 }
-sub onChar {
+sub on_char {
 	my $t = $_[1];
 	$_ = $t->{char};
 	
@@ -127,7 +127,7 @@ sub onChar {
 		# 3. The one before that is a 'structure'
 		
 		# Get the three previous significant tokens
-		my $tokens = $t->previousSignificantTokens( 3 );
+		my $tokens = $t->_previous_significant_tokens( 3 );
 		if ( $tokens
 		     and $tokens->[0]->{class} eq 'Bareword'
 		     and $tokens->[1]->is_a( 'Bareword', 'sub' )
@@ -147,7 +147,7 @@ sub onChar {
 		# This is either a "divided by" or a "start regex"
 		# Do some context stuff to guess ( ack ) which.
 		# Hopefully the guess will be good enough.
-		my $previous = $t->lastSignificantToken;
+		my $previous = $t->_last_significant_token;
 		
 		# Explicit regex
 		return 'Regex::Match' if $previous->is_a( 'Operator', '=~' );
@@ -165,6 +165,7 @@ sub onChar {
 		# After going into scope/brackets
 		return 'Regex::Match' if $previous->is_a( 'Structure', '(' );
 		return 'Regex::Match' if $previous->is_a( 'Structure', '{' );
+		return 'Regex::Match' if $previous->is_a( 'Structure', ';' );
 	
 		# Functions that use regexs as an argument
 		return 'Regex::Match' if $previous->is_a( 'Bareword', 'split' );
@@ -197,7 +198,7 @@ use base 'PPI::Tokenizer::Token';
 # Import the regex
 use PPI::RegexLib qw{%RE};
 
-sub onLineStart {
+sub on_line_start {
 	my $t = $_[1];
 	
 	# Add the line to the token
@@ -208,7 +209,7 @@ sub onLineStart {
 	if ( /$RE{perl}{line}{pod}/ ) {
 		if ( lc $1 eq 'cut' ) {
 			# End of the token
-			$t->finalizeToken;
+			$t->_finalize_token;
 		}
 	}
 	
@@ -228,7 +229,7 @@ package PPI::Tokenizer::Token::Data;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar { 1 }
+sub on_char { 1 }
 
 
 
@@ -242,9 +243,9 @@ use strict;
 use base 'PPI::Tokenizer::Token';
 use PPI::RegexLib qw{%RE};
 
-sub onChar { 1 }
+sub on_char { 1 }
 
-sub onLineStart {
+sub on_line_start {
 	my $t = $_[1];
 	
 	# Can we classify the entire line in one go
@@ -252,20 +253,20 @@ sub onLineStart {
 	$_ = $t->{line_buffer};
 	if ( /$RE{perl}{line}{pod}/ ) {
 		# A Pod tag... change to pod mode
-		$t->newToken( 'Pod', $_ ) or return undef;
+		$t->_new_token( 'Pod', $_ ) or return undef;
 		if ( $1 eq 'cut' ) {
 			# This is an error, but one we'll ignore
 			# Don't go into Pod mode, since =cut normally
 			# signals the end of Pod mode
 		} else {
-			$t->setClass( 'Pod' ) or return undef;
+			$t->set_class( 'Pod' ) or return undef;
 		}
 		$t->{stats}->{lines}->{pod}++;		
 	} else {
 		if ( defined $t->{token} ) {
 			$t->{token}->{content} .= $t->{line_buffer};
 		} else {
-			$t->newToken( 'End', $t->{line_buffer} );
+			$t->_new_token( 'End', $t->{line_buffer} );
 		}
 	}
 	return 0;
@@ -283,13 +284,13 @@ package PPI::Tokenizer::Token::Comment;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar { 1 }
+sub on_char { 1 }
 
 # Comments end at the end of the line
-sub onLineEnd {
+sub on_line_end {
 	my $t = $_[1];
 	if ( defined $t->{token} ) {
-		$t->finalizeToken() or return undef;
+		$t->_finalize_token() or return undef;
 	}
 	return 1;
 }
@@ -329,7 +330,7 @@ BEGIN {
 		'y'  => 'Regex::Transform',
 		};
 }
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	
@@ -341,20 +342,41 @@ sub onChar {
 	my $bareword = $t->{token}->{content};
 	if ( $quotelike->{$bareword} ) {
 		# Turn it into the appropriate class
-		$t->setTokenClass( $quotelike->{$bareword} );
+		$t->_set_token_class( $quotelike->{$bareword} );
 	
+	# Or one of the word operators
 	} elsif ( $PPI::Tokenizer::Token::Operator::operators->{$bareword} ) {
-	 	# Turn it into an operator
-	 	$t->setTokenClass( 'Operator' );
+	 	$t->_set_token_class( 'Operator' );
+		$t->_finalize_token();
 	 	
+	# Or is it a label
+	} elsif ( $bareword =~ /[A-Za-z_]\w*:/ ) {
+		$t->_set_token_class( 'Label' );
+		$t->_finalize_token();
+		  
 	} else {
 		# Normal bareword. Finalize it
-		$t->finalizeToken();
+		$t->_finalize_token();
 	}
-	return $t->onChar();
+
+	return $t->on_char();
 }
 
+
 	
+
+#####################################################################
+# A Label
+
+package PPI::Tokenizer::Token::Label;
+
+use strict;
+use base 'PPI::Tokenizer::Token::Bareword';
+sub DUMMY { 1 }
+
+
+
+
 
 #####################################################################
 # Characters used to create heirachal structure
@@ -364,11 +386,11 @@ package PPI::Tokenizer::Token::Structure;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
-	$t->finalizeToken() or return undef;
-	return $t->onChar();
+	$t->_finalize_token() or return undef;
+	return $t->on_char();
 }
 
 
@@ -404,7 +426,7 @@ BEGIN {
 	$hexidecimal{$_} = 1 foreach 'A' .. 'F';
 }
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	my $char = $t->{char};
@@ -430,8 +452,8 @@ sub onChar {
 			return 1;
 		} else {
 			# End of the number... it's just 0
-			$t->finalizeToken();
-			return $t->onChar();
+			$t->_finalize_token();
+			return $t->on_char();
 		}
 	}
 
@@ -445,7 +467,7 @@ sub onChar {
 				# Take the . off the end of the token..
 				# and finish it, then make the .. operator.
 				chop $t->{token}->{content};
-				$t->newToken( 'Operator', '..' ) or return undef;
+				$t->_new_token( 'Operator', '..' ) or return undef;
 				return 0;
 			} else {
 				# Will this be the first .?
@@ -462,7 +484,7 @@ sub onChar {
 	} elsif ( $token->{_subtype} eq 'octal' ) {
 		# You cannot have 9s on octals
 		if ( $char eq '9' ) {
-			return $class->andError( "Illegal 9 in octal number" );
+			return $class->_error( "Illegal 9 in octal number" );
 		}
 		
 		# Any other number is ok
@@ -473,7 +495,7 @@ sub onChar {
 		
 		# Error on other word chars
 		if ( $char =~ /\w/ ) {
-			return $class->andError( "Illegal character in hexidecimal" );
+			return $class->_error( "Illegal character in hexidecimal" );
 		}
 				
 	} elsif ( $token->{_subtype} eq 'binary' ) {
@@ -484,17 +506,17 @@ sub onChar {
 		
 		# Other bad characters
 		if ( $char =~ /[\w\d]/ ) {
-			return $class->andError( "Illegal character in binary number" );
+			return $class->_error( "Illegal character in binary number" );
 		}
 
 	} else {
-		return $class->andError( "Unknown number type '$token->{_subtype}'" );
+		return $class->_error( "Unknown number type '$token->{_subtype}'" );
 	}
 	
 	# Doesn't fit a special case, or is in the token.
 	# End of token.
-	$t->finalizeToken();
-	return $t->onChar();	
+	$t->_finalize_token();
+	return $t->on_char();	
 }
 
 
@@ -509,7 +531,7 @@ package PPI::Tokenizer::Token::Symbol;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	
@@ -523,11 +545,11 @@ sub onChar {
 	  or $content eq '$_'
 	  # or $content eq       # etc
 	) {
-		$t->setTokenClass( 'Magic' );
+		$t->_set_token_class( 'Magic' );
 	}
 	
-	$t->finalizeToken() or return undef;
-	return $t->onChar();
+	$t->_finalize_token() or return undef;
+	return $t->on_char();
 }
 	
 
@@ -541,7 +563,7 @@ package PPI::Tokenizer::Token::ArrayIndex;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	
@@ -550,8 +572,8 @@ sub onChar {
 	return 1 if /[a-zA-Z0-9_:]/;
 	
 	# End of token
-	$t->finalizeToken() or return undef;
-	return $t->onChar();
+	$t->_finalize_token() or return undef;
+	return $t->on_char();
 }
 
 
@@ -570,7 +592,7 @@ use vars qw{$operators};
 INIT {
 	# Make the operator index.
 	# Comma added seperately to avoid warning
-	$operators = PPI::Tokenizer->makeIndex( qw{
+	$operators = PPI::Tokenizer->_make_index( qw{
 		-> ++ -- ** ! ~ + - 
 		=~ !~ * / % x + - . << >> 
 		< > <= >= lt gt le ge
@@ -582,7 +604,7 @@ INIT {
 		}, ',' );
 	
 }		
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	if ( $operators->{ $t->{token}->{content} . $t->{char} } ) {
@@ -594,8 +616,8 @@ sub onChar {
 		) {
 			# OK, so this is a raw input string type thing.
 			# Finalize the operator under a different class...
-			$t->setTokenClass( 'RawInput::Operator' );
-			$t->finalizeToken() or return undef;
+			$t->_set_token_class( 'RawInput::Operator' );
+			$t->_finalize_token() or return undef;
 
 			# ... and add a marker to the multiline input queue
 			push @{ $t->{rawinput_queue} }, $#{ $t->{tokens} };
@@ -605,18 +627,18 @@ sub onChar {
 			
 			# Now deal with what will ( hopefully )be either a 
 			# normal single quoted string, or a bareword, normally.
-			return $t->onChar();
+			return $t->on_char();
 			
 		} else {
 			# Handle normally
-			$t->finalizeToken() or return undef;
-			return $t->onChar();
+			$t->_finalize_token() or return undef;
+			return $t->on_char();
 		}
 	}
 }
 
 # Method for other packages to use
-sub isAnOperator { $operators->{$_[1]} }
+sub is_an_operator { $operators->{$_[1]} }
 
 
 
@@ -650,7 +672,7 @@ BEGIN {
 		$magic{$_} = 1;
 	}		
 }
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	my $current = $t->{token}->{content};
@@ -660,7 +682,7 @@ sub onChar {
 	# Some will need special parse rules. Let's do them now.
 	if ( $current eq '$_' and /$RE{CLASS}/ ) {
 		# It's actually a normal symbol
-		$t->setTokenClass( 'Symbol' );
+		$t->_set_token_class( 'Symbol' );
 		return 1;
 	}
 	if ( $current eq '$^' and /[A-Z]/ ) {
@@ -672,32 +694,32 @@ sub onChar {
 			# This is really a referenced scalar ref.
 			# Add the current token as the cast...
 			$t->{token}->{content} = '$';
-			$t->setTokenClass( 'Cast' );
-			$t->finalizeToken();
+			$t->_set_token_class( 'Cast' );
+			$t->_finalize_token();
 			
 			# ... and create a new token for the symbol
-			$t->newToken( 'Symbol', '$' ) or return undef;
+			$t->_new_token( 'Symbol', '$' ) or return undef;
 			return 1;
 		}	
 	}
 	if ( $current eq '$#' ) {
 		if ( /$RE{SYMBOL}{FIRST}/ ) {
 			# This is really an array index thingy
-			$t->setTokenClass( 'ArrayIndex' );
+			$t->_set_token_class( 'ArrayIndex' );
 			return 1;
 		}
 	}
 	if ( $current eq '$:' ) {
 		if ( $_ eq ':' ) {
 			# This is really a $::foo style symbol
-			$t->setTokenClass( 'Symbol' );
+			$t->_set_token_class( 'Symbol' );
 			return 1;
 		}
 	}
 
 	# Normal magic token finished
-	$t->finalizeToken();
-	return $t->onChar();
+	$t->_finalize_token();
+	return $t->on_char();
 }
 
 
@@ -713,11 +735,11 @@ use strict;
 use base 'PPI::Tokenizer::Token';
 
 # A cast is always a single character
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
-	$t->finalizeToken() or return undef;
-	return $t->onChar();
+	$t->_finalize_token() or return undef;
+	return $t->on_char();
 }
 
 
@@ -732,18 +754,18 @@ package PPI::Tokenizer::Token::SubPrototype;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	
 	# Keep going until we find a close round bracket ')'.
-	# We can use the fast _scanForCharacter for this.
-	my $string = $class->_scanForCharacterOnThisLine( $t, ')' );
+	# We can use the fast _scan_for_character for this.
+	my $string = $class->_scan_for_character_on_current_line( $t, ')' );
 	return undef unless defined $string;
 	
 	# Finish off the token
 	$t->{token}->{content} .= $string;
-	$t->finalizeToken();
+	$t->_finalize_token();
 	
 	# Go to the next character
 	return 0;
@@ -751,7 +773,7 @@ sub onChar {
 
 # Scan for a single character on the same line.
 # Expect to find something after a low number of characters.
-sub _scanForCharacterOnThisLine {
+sub _scan_for_character_on_current_line {
 	my $class = shift;
 	my $t = shift;
 	my $lookFor = shift;
@@ -775,7 +797,7 @@ sub _scanForCharacterOnThisLine {
 	}
 	
 	# End of the line, we should have found this by now
-	return $class->andError( "Sub prototype pattern not terminated by end of line" );
+	return $class->_error( "Sub prototype pattern not terminated by end of line" );
 }
 
 
@@ -791,7 +813,7 @@ package PPI::Tokenizer::Token::DashedBareword;
 use strict;
 use base 'PPI::Tokenizer::Token';
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	$_ = $t->{char};
@@ -801,9 +823,9 @@ sub onChar {
 		return 1;
 	} else {
 		# Finish the dashed bareword
-		$t->setTokenClass( 'Bareword' ) or return undef;
-		$t->finalizeToken() or return undef;
-		return $t->onChar();
+		$t->_set_token_class( 'Bareword' ) or return undef;
+		$t->_finalize_token() or return undef;
+		return $t->on_char();
 	}
 }
 
@@ -884,16 +906,16 @@ sub DUMMY { 1 }
 package PPI::Tokenizer::Token::RawInput::Operator;
 use strict;
 use base 'PPI::Tokenizer::Token';
-sub dummy { 1 }
+sub DUMMY { 1 }
 
 package PPI::Tokenizer::Token::RawInput::Terminator;
 use strict;
 use base 'PPI::Tokenizer::Token';
-sub dummy { 1 }
+sub DUMMY { 1 }
 
 package PPI::Tokenizer::Token::RawInput::String;
 use strict;
 use base 'PPI::Tokenizer::Token';
-sub dummy { 1 }
+sub DUMMY { 1 }
 
 1;

@@ -30,7 +30,7 @@ sub load {
 	
 	# Add any pending transforms
 	foreach ( @{ $self->{transforms} } ) {
-		$PSP->addTransform( $_ ) or return undef;
+		$PSP->add_transform( $_ ) or return undef;
 	}
 	
 	# Add the PSP to the batch
@@ -39,10 +39,10 @@ sub load {
 	return 1;
 }
 
-sub loadDirectory {
+sub load_directory {
 	my $self = shift;
 	my $directory = shift;
-	return $self->andError( "You did not specify a directory" ) unless $directory;
+	return $self->_error( "You did not specify a directory" ) unless $directory;
 	
 	# Get the list of files from the directory
 	my $files = File::Flat->list( $directory, {
@@ -50,14 +50,14 @@ sub loadDirectory {
 		custom => '\.p(?:m|l)$',
 		} );
 	unless ( defined $files ) {
-		return $self->andError( "Error getting files for directory '$directory'" );
+		return $self->_error( "Error getting files for directory '$directory'" );
 	}
 	return 1 unless $files;
 	
 	# Add the files
 	foreach my $file ( @$files ) {
 		$self->load( "$directory/$file" )
-		  or return $self->andError( "Error loading file '$file'" );
+		  or return $self->_error( "Error loading file '$file'" );
 	}
 	
 	# Done
@@ -65,11 +65,11 @@ sub loadDirectory {
 }
 
 # Specify a transform to apply
-sub addTransform {
+sub add_transform {
 	my $self = shift;
 	my $transform = shift;
 	unless ( $transform eq 'tidy' ) {
-		return $self->andError( "Invalid transform '$transform'" );
+		return $self->_error( "Invalid transform '$transform'" );
 	}
 	
 	# If effects have already been applied, remove them
@@ -84,17 +84,17 @@ sub addTransform {
 	# Add the transform
 	push @{ $self->{transforms} }, $transform;
 	foreach ( keys %{$self->{files}} ) {
-		$self->{files}->{$_}->addTransform( $_ );
+		$self->{files}->{$_}->add_transform( $_ );
 	}
 	
 	return 1;
 }
 
-sub setCallback {
+sub set_callback {
 	my $self = shift;
 	my $code = shift;
 	unless ( isa( $code, 'CODE' ) ) {
-		return $self->andError( "Callback must be a CODE reference" );
+		return $self->_error( "Callback must be a CODE reference" );
 	}
 	
 	$self->{callback} = $code;
@@ -123,7 +123,7 @@ sub _multicommand {
 			# Pass through the command
 			return $self->{files}->{$filename}->$command();
 		} else {
-			return $self->andError( "Filename '$filename' does not exist in the batch" );
+			return $self->_error( "Filename '$filename' does not exist in the batch" );
 		}
 	}
 		
@@ -133,7 +133,7 @@ sub _multicommand {
 		# Trigger the callback if required
 		if ( $self->{callback} ) {
 			unless ( &{ $self->{callback} }( $self, $command, $filename ) ) {
-				return $self->andError( "Command cancelled" );
+				return $self->_error( "Command cancelled" );
 			}
 		}
 		
@@ -147,9 +147,9 @@ sub _multicommand {
 sub document { shift->_multicommand( 'document', @_ ) }
 sub tree     { shift->_multicommand( 'tree', @_ ) }
 sub output   { shift->_multicommand( 'output', @_ ) }
-sub toString { shift->_multicommand( 'toString', @_ ) }
+sub to_string { shift->_multicommand( 'to_string', @_ ) }
 sub html     { shift->_multicommand( 'html', @_ ) }
-sub htmlPage { shift->_multicommand( 'htmlPage', @_ ) }
+sub html_page { shift->_multicommand( 'html_page', @_ ) }
 
 
 # Save the batch somewhere
@@ -158,7 +158,7 @@ sub save {
 	my $root = shift;
 	my $filename = shift;
 	unless ( isa( $filename, 'CODE' ) ) {
-		return $self->andError( "For batch jobs, filename should be expressed as a code reference" );
+		return $self->_error( "For batch jobs, filename should be expressed as a code reference" );
 	}
 	my $command = shift or return undef;
 	my @args = @_;
@@ -170,19 +170,19 @@ sub save {
 	foreach my $key ( @files ) {
 		$saveas->{$key} = &{ $filename }( $key );
 		unless ( defined $saveas->{$key} ) {
-			return $self->andError( "Error getting location to save file '$key' to" );
+			return $self->_error( "Error getting location to save file '$key' to" );
 		}
 
 		# Trigger the callback if required
 		if ( $self->{callback} ) {
 			unless ( &{ $self->{callback} }( $self, $command, $key ) ) {
-				return $self->andError( "Command cancelled" );
+				return $self->_error( "Command cancelled" );
 			}
 		}
 	
 		$content->{$key} = $self->{files}->{$key}->$command( @args );
 		unless ( defined $content->{$key} ) {
-			return $self->andError( "Error getting content for file '$key'" );
+			return $self->_error( "Error getting content for file '$key'" );
 		}
 		
 		# Remove the Processor to recover memory
@@ -190,21 +190,21 @@ sub save {
 	}
 
 	# Create and save the index file
-	my $indexContent = $self->generateIndexPage( $saveas );
+	my $indexContent = $self->generate_index_page( $saveas );
 	my $rv = File::Flat->save( "$root/index.html", $indexContent );
-	return $self->andError( "Error saving index file" ) unless defined $rv;
+	return $self->_error( "Error saving index file" ) unless defined $rv;
 	
 	# Go through and save the content
 	foreach my $key ( @files ) {
 		$rv = File::Flat->save( "$root/$saveas->{$key}", $content->{$key} );
-		return $self->andError( "Error saving output for file '$key'" ) unless defined $rv;
+		return $self->_error( "Error saving output for file '$key'" ) unless defined $rv;
 	}
 	
 	# Done
 	return 1;
 }		
 
-sub generateIndexPage {
+sub generate_index_page {
 	my $self = shift;
 	my $saveas = shift or return undef;
 	

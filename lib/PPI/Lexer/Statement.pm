@@ -25,13 +25,13 @@ sub new {
 	
 	# Check the statement contents
 	unless ( scalar @tokens ) {
-		return $self->andError( "Statement must contain at least 1 token" );
+		return $self->_error( "Statement must contain at least 1 token" );
 	}
 	unless ( $tokens[0]->significant ) {
-		return $self->andError( "Statement must start with a significant token" );
+		return $self->_error( "Statement must start with a significant token" );
 	}
 	unless ( $tokens[-1]->significant ) {
-		return $self->andError( "Statement must end with a significant token" );
+		return $self->_error( "Statement must end with a significant token" );
 	}
 	
 	# Set the tokens in the statement
@@ -78,7 +78,7 @@ sub _classify {
 }
 
 # Get the tokens in the statement
-sub getTokens {
+sub get_tokens {
 	my $self = shift;
 	
 	# Returns as a list
@@ -86,19 +86,19 @@ sub getTokens {
 }
 
 # Change the tokens
-sub setTokens {
+sub set_tokens {
 	my $self = shift;
 	my @tokens = ref $_[0] ? @{$_[0]} : @_;
 
 	# Check the statement contents
 	unless ( scalar @tokens ) {
-		return $self->andError( "Statement must contain at least 1 token" );
+		return $self->_error( "Statement must contain at least 1 token" );
 	}
 	unless ( $tokens[0]->significant ) {
-		return $self->andError( "Statement must start with a significant token" );
+		return $self->_error( "Statement must start with a significant token" );
 	}
 	unless ( $tokens[-1]->significant ) {
-		return $self->andError( "Statement must end with a significant token" );
+		return $self->_error( "Statement must end with a significant token" );
 	}
 	
 	# Re-set the tokens

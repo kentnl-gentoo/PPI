@@ -15,7 +15,7 @@ sub new {
 	my $content = shift;	
 	
 	# Check the class
-	PPI::Tokenizer->resolveClass( $type ) or return undef;	
+	PPI::Tokenizer->_resolve_class( $type ) or return undef;	
 	
 	# Create the object
 	my $self = {
@@ -33,7 +33,7 @@ sub convert {
 	my $class = shift;
 	my $token = shift;	
 	unless ( UNIVERSAL::isa( $token, 'PPI::Tokenizer::Token' ) ) {
-		return $class->andError( "Argument is not a PPI::Tokenizer::Token" );
+		return $class->_error( "Argument is not a PPI::Tokenizer::Token" );
 	}
 	
 	# Do the conversion
@@ -48,23 +48,23 @@ sub is_a {
 }
 
 # Is the token an open bracket
-sub openBracket {
+sub open_bracket {
 	my $self = shift;
 	return 0 unless $self->class eq 'Structure';
 	return ($PPI::Lexer::openOrClose->{$self->content} eq 'open') ? 1 : 0;
 }
 
 # Is the token a close bracket
-sub closeBracket {
+sub close_bracket {
 	my $self = shift;
 	return 0 unless $self->class eq 'Structure';
 	return ($PPI::Lexer::openOrClose->{$self->content} eq 'close') ? 1 : 0;
 }
 
 # Create an empty token
-sub emptyToken { $_[0]->new( 'Base', '' ) }
+sub empty_token { $_[0]->new( 'Base', '' ) }
 
-sub getSummaryStrings {
+sub get_summary_strings {
 	my $self = shift;
 	if ( $self->{class} eq 'Operator'
 	  or $self->{class} eq 'Structure'

@@ -9,7 +9,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 0.3;
+	$VERSION = 0.4;
 }
 
 use UNIVERSAL 'isa';
@@ -18,9 +18,16 @@ use Class::Autouse qw{:devel
 	File::Flat
 	};
 
-# Autoload everything below us
-Class::Autouse->autouse_recursive( 'PPI' );
-
+# Autoload the main componants
+use Class::Autouse qw{
+	PPI::Tokenizer
+	PPI::Document
+	PPI::Lexer
+	PPI::Format::HTML
+	PPI::Transform::Obfuscate
+	PPI::Transform::Tidy
+	PPI::Analyze
+	};
 
 
 
@@ -60,7 +67,7 @@ sub load {
 	
 	# Try to slurp in the file
 	my $source = File::Flat->slurp( $filename );
-	return $class->andError( "Error loading file" ) unless $source;
+	return $class->_error( "Error loading file" ) unless $source;
 	
 	# Create the new object and set the source
 	my $self = $class->new( $source );
@@ -70,11 +77,11 @@ sub load {
 }
 
 # Specify a transform to apply
-sub addTransform {
+sub add_transform {
 	my $self = shift;
 	my $transform = shift;
 	unless ( $transform eq 'tidy' ) {
-		return $self->andError( "Invalid transform '$transform'" );
+		return $self->_error( "Invalid transform '$transform'" );
 	}
 	
 	# If effects have already been applied, remove them
@@ -98,7 +105,7 @@ sub addTransform {
 sub document {
 	my $self = shift;
 	unless ( $self->{Document} ) {
-		$self->_loadSource() or return undef;
+		$self->_load_source() or return undef;
 	}
 	return $self->{Document};
 }
@@ -109,10 +116,10 @@ sub tree {
 	if ( $self->{Tree} ) {
 		if ( $self->{transforms_applied} ) {
 			$self->{Tree} = undef;
-			$self->_loadTree() or return undef;
+			$self->_load_tree() or return undef;
 		}
 	} else {
-		$self->_loadTree() or return undef;
+		$self->_load_tree() or return undef;
 	}
 	return $self->{Tree};
 }
@@ -122,7 +129,7 @@ sub output {
 	my $self = shift;
 	if ( scalar @{ $self->{transforms} } ) {
 		unless ( $self->{transforms_applied} ) {
-			$self->_applyTransforms() or return undef;
+			$self->_apply_transforms() or return undef;
 		}
 		return $self->{Tree}->Document;
 	} else {
@@ -131,10 +138,10 @@ sub output {
 }
 
 # Generate the code
-sub toString {
+sub to_string {
 	my $self = shift;
 	my $Document = $self->output or return undef;
-	return $Document->toString;
+	return $Document->to_string;
 }
 
 # Generates the html output
@@ -145,24 +152,24 @@ sub html {
 	
 	# Get the document and pass through the html formatter
 	my $Document = $self->output or return undef;
-	return PPI::Format::HTML->serializeDocument( $Document, $style, $options );
+	return PPI::Format::HTML->serialize_document( $Document, $style, $options );
 }
 
 # Generate a complete html page
-sub htmlPage {
+sub html_page {
 	my $self = shift;
 	my $style = shift || 'plain';
 	
 	# Get the html
 	my $html = $self->html( $style, @_ ) or return undef;
-	return PPI::Format::HTML->wrapPage( $style, $html );
+	return PPI::Format::HTML->wrap_page( $style, $html );
 }
 
 # Generic save function.
 # Arguments are the filename and method to get the output from.
 # Any additional arguments are passed through to the content generating
 # method call.
-# Example: $PSP->save( 'filename.html', 'htmlPage', 'syntax' );
+# Example: $PSP->save( 'filename.html', 'html_page', 'syntax' );
 sub save {
 	my $self = shift;
 	my $saveas = shift;
@@ -185,23 +192,23 @@ sub save {
 #####################################################################
 # Main functional methods
 
-sub _loadSource {
+sub _load_source {
 	my $self = shift;
 	
 	# Create the tokenizer
 	my $Tokenizer = PPI::Tokenizer->new( source => $self->{source} );
-	return $self->andError( "Error creating tokenizer" ) unless $Tokenizer;
+	return $self->_error( "Error creating tokenizer" ) unless $Tokenizer;
 	
 	# Create the Document object using the Tokenizer
 	my $Document = PPI::Document->new( $Tokenizer );
-	return $self->andError( "Error turning Tokenizer into Lexer document" ) unless $Document;
+	return $self->_error( "Error turning Tokenizer into Lexer document" ) unless $Document;
 	
 	# Set the document
 	$self->{Document} = $Document;
 	return 1;
 }
 
-sub _loadTree {
+sub _load_tree {
 	my $self = shift;
 	
 	# Get the raw document
@@ -209,13 +216,13 @@ sub _loadTree {
 	
 	# Lex the document into a tree
 	my $Lexer = PPI::Lexer->new( $Document ) or return undef;
-	my $Tree = $Lexer->getTree or return undef;
+	my $Tree = $Lexer->get_tree or return undef;
 	
 	$self->{Tree} = $Tree;
 	return 1;
 }
 
-sub _applyTransforms {
+sub _apply_transforms {
 	my $self = shift;
 	
 	# Get the tree

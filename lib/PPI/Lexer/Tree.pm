@@ -30,21 +30,21 @@ sub new {
 # Coping with our inheritage
 
 # Overload methods from PPI::Lexer::Element
-sub getParent { $_[0] }
+sub get_parent { $_[0] }
 sub parent { $_[0] }
 
 # Overload methods from PPI::Lexer::Block
-sub getType { 'top' }
-sub getOpenToken { PPI::Lexer::Token->emptyToken }
-sub getCloseToken { PPI::Lexer::Token->emptyToken }
+sub get_type { 'top' }
+sub get_open_token { PPI::Lexer::Token->empty_token }
+sub get_close_token { PPI::Lexer::Token->empty_token }
 sub detach { 1 }
-sub setLexer { $_[0]->{lexer} = $_[1] }
+sub set_lexer { $_[0]->{lexer} = $_[1] }
 	
 # Attach errors to methods that can't be used
-sub setParent { $_[0]->lexError( "Cannot set parent for PPI::Lexer::Tree" ) }
-sub setType { $_[0]->lexError( "Cannot set type for PPI::Lexer::Tree" ) }
-sub setOpenToken { $_[0]->lexError( "Cannot set open token for PPI::Lexer::Tree" ) }
-sub setCloseToken { $_[0]->lexError( "Cannot set close token for PPI::Lexer::Tree" ) }
+sub set_parent { $_[0]->_lex_error( "Cannot set parent for PPI::Lexer::Tree" ) }
+sub set_type { $_[0]->_lex_error( "Cannot set type for PPI::Lexer::Tree" ) }
+sub set_open_token { $_[0]->_lex_error( "Cannot set open token for PPI::Lexer::Tree" ) }
+sub set_close_token { $_[0]->_lex_error( "Cannot set close token for PPI::Lexer::Tree" ) }
 
 
 
@@ -71,6 +71,6 @@ sub Document { PPI::Document->new( $_[0]->flatten ) }
 #####################################################################
 # Special error handler
 
-sub lexError { $_[0]->{lexer}->lexError( $_[1] ) }
+sub _lex_error { $_[0]->{lexer}->_lex_error( $_[1] ) }
 
 1;

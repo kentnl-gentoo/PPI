@@ -39,12 +39,12 @@ sub zone {
 sub class { $_[0]->{class} }
 	
 # Provide defaults for methods
-sub onLineStart { 1 }
-sub onLineEnd { 1 }
-sub onChar { 'Unknown' }
+sub on_line_start { 1 }
+sub on_line_end { 1 }
+sub on_char { 'Unknown' }
 
-sub setClass {
-	my $class = PPI::Tokenizer->resolveClass( $_[1] ) or return undef;
+sub set_class {
+	my $class = PPI::Tokenizer->_resolve_class( $_[1] ) or return undef;
 
 	# Rebless the token
 	bless $_[0], $class;
@@ -52,7 +52,7 @@ sub setClass {
 	return 1;
 }
 
-sub setContent { $_[0]->{content} = $_[1] }
+sub set_content { $_[0]->{content} = $_[1] }
 sub length { &CORE::length( $_[0]->{content} ) }
 sub is_a {
 	my $self = shift;
@@ -74,8 +74,8 @@ BEGIN {
 }
 sub significant { $notSignificant->{ $_[0]->{class} } ? 0 : 1 }
 
-# Putting in the ever expected toString method
-sub toString { $_[0]->{content} }
+# Putting in the ever expected to_string method
+sub to_string { $_[0]->{content} }
 
 # Deep copy a token
 sub copy { 

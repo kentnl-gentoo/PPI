@@ -5,7 +5,7 @@ package PPI::Tokenizer::Token::Unknown;
 # different things.
 #
 # All the unknown cases are character by character problems,
-# so this class only needs to implement onChar()
+# so this class only needs to implement on_char()
 
 use strict;
 use base 'PPI::Tokenizer::Token';
@@ -13,7 +13,7 @@ use base 'PPI::Tokenizer::Token';
 # Import the regexs
 use PPI::RegexLib qw{%RE};
 
-sub onChar {
+sub on_char {
 	my $class = shift;
 	my $t = shift;                  # Tokenizer object
 	my $c = $t->{token}->{content}; # Current token contents
@@ -26,20 +26,20 @@ sub onChar {
 	if ( $c eq '*' ) {
 		# Is it a symbol?	
 		if ( /$RE{SYMBOL}{FIRST}/ or $_ eq ':' ) {
-			$t->setTokenClass( 'Symbol' ) or return undef;
+			$t->_set_token_class( 'Symbol' ) or return undef;
 			return 1;
 		}
 		
 		if ( $_ eq '{' or $_ eq '$' ) {
 			# GLOB cast
-			$t->setTokenClass( 'Cast' ) or return undef;
-			$t->finalizeToken();
-			return $t->onChar();
+			$t->_set_token_class( 'Cast' ) or return undef;
+			$t->_finalize_token();
+			return $t->on_char();
 
 		} else {
-			$t->setTokenClass( 'Operator' ) or return undef;
-			$t->finalizeToken();
-			return $t->onChar();
+			$t->_set_token_class( 'Operator' ) or return undef;
+			$t->_finalize_token();
+			return $t->on_char();
 		}		
 	
 	
@@ -47,19 +47,19 @@ sub onChar {
 	} elsif ( $c eq '$' ) {
 		# Is it a symbol?	
 		if ( /$RE{SYMBOL}{FIRST}/ ) {
-			$t->setTokenClass( 'Symbol' ) or return undef;
+			$t->_set_token_class( 'Symbol' ) or return undef;
 			return 1;
 			
 		} elsif ( $PPI::Tokenizer::Token::Magic::magic{ $t->{token}->{content} . $_ } ) {
 			# Magic variable
-			$t->setTokenClass( 'Magic' ) or return undef;
+			$t->_set_token_class( 'Magic' ) or return undef;
 			return 1;
 			
 		} else {
 			# It can't be anything other than a cast now...?
-			$t->setTokenClass( 'Cast' ) or return undef;
-			$t->finalizeToken() or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Cast' ) or return undef;
+			$t->_finalize_token() or return undef;
+			return $t->on_char();
 		}		
 		
 		
@@ -67,19 +67,19 @@ sub onChar {
 	} elsif ( $c eq '@' ) {
 		# Is it a symbol?	
 		if ( /$RE{SYMBOL}{FIRST}/ or $_ eq ':' ) {
-			$t->setTokenClass( 'Symbol' ) or return undef;
+			$t->_set_token_class( 'Symbol' ) or return undef;
 			return 1;
 			
 		} elsif ( /-+/ ) {
 			# Magic variable
-			$t->setTokenClass( 'Magic' ) or return undef;
+			$t->_set_token_class( 'Magic' ) or return undef;
 			return 1;
 		
 		} else {
 			# Can this be anything other than a cast...?
-			$t->setTokenClass( 'Cast' ) or return undef;
-			$t->finalizeToken() or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Cast' ) or return undef;
+			$t->_finalize_token() or return undef;
+			return $t->on_char();
 		}		
 
 
@@ -87,19 +87,19 @@ sub onChar {
 	} elsif ( $c eq '%' ) {
 		# Is it a symbol?	
 		if ( /$RE{SYMBOL}{FIRST}/ or $_ eq ':' ) {
-			$t->setTokenClass( 'Symbol' ) or return undef;
+			$t->_set_token_class( 'Symbol' ) or return undef;
 			return 1;
 			
 		} elsif ( /[\$@%{]/ ) {
 			# Percent is a cast
-			$t->setTokenClass( 'Cast' ) or return undef;
-			$t->finalizeToken() or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Cast' ) or return undef;
+			$t->_finalize_token() or return undef;
+			return $t->on_char();
 			
 		} else {
 			# The mod operator?
-			$t->setTokenClass( 'Operator' ) or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Operator' ) or return undef;
+			return $t->on_char();
 		}
 
 
@@ -107,19 +107,19 @@ sub onChar {
 	} elsif ( $c eq '&' ) {
 		# Is it a symbol
 		if ( /$RE{SYMBOL}{FIRST}/ or $_ eq ':' ) {
-			$t->setTokenClass( 'Symbol' ) or return undef;
+			$t->_set_token_class( 'Symbol' ) or return undef;
 			return 1;
 			
 		} elsif ( /[\$@%{]/ ) {
 			# And is a cast...?
-			$t->setTokenClass( 'Cast' ) or return undef;
-			$t->finalizeToken() or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Cast' ) or return undef;
+			$t->_finalize_token() or return undef;
+			return $t->on_char();
 
 		} else {
 			# Operator?
-			$t->setTokenClass( 'Operator' ) or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Operator' ) or return undef;
+			return $t->on_char();
 		}
 
 
@@ -127,16 +127,16 @@ sub onChar {
 	} elsif ( $c eq '-' ) {
 		# Is it a number
 		if ( /\d/ ) {
-			$t->setTokenClass( 'Number' ) or return undef;
+			$t->_set_token_class( 'Number' ) or return undef;
 			return 1;
 			
 		} elsif ( /[a-zA-Z]/ ) {
-			$t->setTokenClass( 'DashedBareword' ) or return undef;
+			$t->_set_token_class( 'DashedBareword' ) or return undef;
 			return 1;
 			
 		} else {
-			$t->setTokenClass( 'Operator' ) or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Operator' ) or return undef;
+			return $t->on_char();
 		}
 
 
@@ -144,13 +144,13 @@ sub onChar {
 	} elsif ( $c eq ':' ) {
 		if ( $_ eq ':' ) {
 			# ::foo style bareword
-			$t->setTokenClass( 'Bareword' ) or return undef;
+			$t->_set_token_class( 'Bareword' ) or return undef;
 			return 1;
 		
 		} else {
 			# It's an operator
-			$t->setTokenClass( 'Operator' ) or return undef;
-			return $t->onChar();
+			$t->_set_token_class( 'Operator' ) or return undef;
+			return $t->on_char();
 		}
 
 

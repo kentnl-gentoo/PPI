@@ -22,21 +22,21 @@ sub new {
 	my $arg = shift;
 	my $tokens;
 	if ( isa( $arg, 'PPI::Tokenizer' ) ) {
-		$tokens = $arg->allTokens;
-		return $class->andError( "Error while getting tokens" ) unless defined $tokens;
-		return $class->andError( "Tokenizer did not provide any tokens" ) unless $tokens;
+		$tokens = $arg->all_tokens;
+		return $class->_error( "Error while getting tokens" ) unless defined $tokens;
+		return $class->_error( "Tokenizer did not provide any tokens" ) unless $tokens;
 		
 		# Convert from PPI::Tokenizer::Token sub class -> PPI::Lexer::Token
 		$tokens = [ map { bless $_, 'PPI::Lexer::Token' } @$tokens ];
 	
 	} elsif ( isa( $arg, 'ARRAY' ) ) {
 		if ( scalar @$arg and ! isa( $arg->[0], 'PPI::Lexer::Token' ) ) {
-			return $class->andError( "Array does not contain PPI::Lexer::Token's" );
+			return $class->_error( "Array does not contain PPI::Lexer::Token's" );
 		}
 		$tokens = $arg;
 		
 	} else {
-		return $class->andError( "Constructor was not passed a valid argumetn" );
+		return $class->_error( "Constructor was not passed a valid argumetn" );
 	
 	}
 
@@ -53,13 +53,13 @@ sub new {
 	bless $self, $class;
 
 	# Turn on the indexing
-	$self->enableIndex;
+	$self->enable_index;
 	
 	return $self;
 }
 
 # Build the main index from scratch
-sub buildIndex {
+sub _build_index {
 	my $self = shift;
 	return undef unless $self->{index};
 	
@@ -87,7 +87,7 @@ sub d_push {
 	my $self = shift;
 	my $token = shift;
 	unless ( isa( $token, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "Can't push a non PPI::Lexer::Token" );
+		return $self->_error( "Can't push a non PPI::Lexer::Token" );
 	}
 	
 	# Add the token
@@ -133,7 +133,7 @@ sub d_unshift {
 	my $self = shift;
 	my $token = shift;
 	unless ( isa( $token, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "Can't unshift non PPI::Lexer::Token" );
+		return $self->_error( "Can't unshift non PPI::Lexer::Token" );
 	}
 	
 	if ( $self->{index} ) {
@@ -214,13 +214,13 @@ sub splice {
 }
 
 # Get the entire token array
-sub getTokenArray {
+sub get_token_array {
 	my $self = shift;
 	return $self->{tokens};
 }
 
 # Completely replace the token array
-sub setTokenArray {
+sub set_token_array {
 	my $self = shift;
 	my $token_ref = shift;
 	return undef unless isa( $token_ref, 'ARRAY' );
@@ -229,7 +229,7 @@ sub setTokenArray {
 	$self->{tokens} = $token_ref;
 	
 	# Rebuild the index
-	$self->buildIndex();
+	$self->_build_index();
 	return 1;
 }
 
@@ -242,7 +242,7 @@ sub setTokenArray {
 
 # Stringifies the document back into something suitable for writing
 # into a file
-sub toString {
+sub to_string {
 	my $self = shift;
 	return join '', map { $_->{content} } @{ $self->{tokens} };
 }
@@ -250,14 +250,14 @@ sub toString {
 # Find the line/column position for an arbitrary token
 # Return [ $line, $col ] on success
 # Returns 0 if $token isn't in document
-sub getLineChar {
+sub get_position {
 	my $self = shift;
 	my $token = shift;
 	unless ( isa( $token, 'PPI::Lexer::Token' ) ) {
-		return $self->andError( "Non PPI::Lexer::Token passed to getLineColumn" );
+		return $self->_error( "Non PPI::Lexer::Token passed to getLineColumn" );
 	}	
 	unless ( $self->{index} ) {
-		return $self->andError( "Cannot getLineChar while index is turned off" );
+		return $self->_error( "Cannot get_position while index is turned off" );
 	}
 	
 	# Is it in the index
@@ -281,24 +281,23 @@ sub getLineChar {
 	return [ $line, $char ];
 }
 
-sub getLineCharText {
+sub get_position_text {
 	my $self = shift;
-	my $lineChar = $self->getLineChar( shift ) or return undef;
+	my $lineChar = $self->get_position( shift ) or return undef;
 	return "line $lineChar->[0], character $lineChar->[1]";
 }
 
 # Return the token at a particular position
-sub getToken { $_[0]->{tokens}->[ $_[1] ] }
 sub token { $_[0]->{tokens}->[ $_[1] ] }
 
 # Get the first token
-sub getFirstToken { $_[0]->{tokens}->[0] }
+sub get_first_token { $_[0]->{tokens}->[0] }
 
 # Get the last token
-sub getLastToken { $_[0]->{tokens}->[-1] }
+sub get_last_token { $_[0]->{tokens}->[-1] }
 
 # Get the position or a particular token
-sub getPosition { 
+sub get_index { 
 	my $self = shift;
 	return undef unless $self->{index};
 	return $self->{index}->{$_[0]};
@@ -308,7 +307,7 @@ sub getPosition {
 # Returns the token if found
 # Returns 0 if no token there
 # Returns token on succes
-sub relativeToken {
+sub relative_token {
 	my $self = shift;
 	my $token = shift;
 	my $change = shift;
@@ -331,16 +330,16 @@ sub relativeToken {
 # Give the Document a cursor
 
 # Reset the cursor
-sub resetCursor { $_[0]->{cursor} = 0 }
+sub reset_cursor { $_[0]->{cursor} = 0 }
 
 # Get the next token for the cursor
-sub nextToken {
+sub get_token {
 	my $self = shift;
 	return $self->{tokens}->[ $self->{cursor}++ ];
 }
 
 # As above, but just return the position, not the token itself
-sub nextPosition { 
+sub next_index { 
 	my $self = shift;
 	if ( defined $self->{tokens}->[ $self->{cursor} ] ) {
 		return $self->{cursor}++;
@@ -356,15 +355,15 @@ sub nextPosition {
 #####################################################################
 # Index enable/disable
 
-sub enableIndex {
+sub enable_index {
 	my $self = shift;
 	unless ( $self->{index} ) {
 		$self->{index} = {};
-		$self->buildIndex();
+		$self->_build_index();
 	}
 	return 1;
 }
-sub disableIndex {
+sub disable_index {
 	my $self = shift;
 	$self->{index} = undef;
 	return 1;

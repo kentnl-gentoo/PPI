@@ -38,26 +38,26 @@ sub new {
 	
 	# Get the tokens
 	unless ( defined $source ) {
-		return $class->andError( "You did pass anything to create the obfuscate from" );
+		return $class->_error( "You did pass anything to create the obfuscate from" );
 	}
 	if ( ! ref $source and length $source ) {
 		# It's a string.
 		# Create the tokenizer for it
 		$source = PPI::Tokenizer->new( source => $source );
 		unless ( $source ) {
-			return $class->andError( "Error creating tokenizer for obfuscate" );
+			return $class->_error( "Error creating tokenizer for obfuscate" );
 		}
 	}
 		
 	if ( isa( $source, 'PPI::Tokenizer' ) ) {
 		# Get the tokens
-		my $tokens = $source->allTokens;
+		my $tokens = $source->all_tokens;
 		unless ( $tokens ) {
-			return $class->andError( "Error getting tokens from tokenizer" );
+			return $class->_error( "Error getting tokens from tokenizer" );
 		}
 		$self->{tokens} = $tokens;
 	} else {
-		return $class->andError( "Bad argument" );
+		return $class->_error( "Bad argument" );
 	}
 	
 	return $self;
@@ -110,8 +110,8 @@ sub doObfuscation {
 	my %op = ( ',' => 1, '=' => 1, '.' => 1 );
 	for( my $i = 0;$i < scalar @stage1; $i++ ) {
 		$token = $stage1[$i];
-		$last = $stage1[$i-1] || $self->emptyToken;
-		$next = $stage1[$i+1] || $self->emptyToken;
+		$last = $stage1[$i-1] || $self->empty_token;
+		$next = $stage1[$i+1] || $self->empty_token;
 
 		if ( $token->{class} eq 'Base' ) {
 			# Remove un-needed whitespace
@@ -161,6 +161,6 @@ sub obfuscate {
 # Create a new, empty token to use as a default.
 # This ensures that methods like this, previous, etc will always
 # return something. This should make the context scanning code easier
-sub emptyToken { PPI::Tokenizer::Token->new( 'Base', '' ) }
+sub empty_token { PPI::Tokenizer::Token->new( 'Base', '' ) }
 
 1;

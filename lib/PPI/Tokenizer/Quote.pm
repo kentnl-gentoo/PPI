@@ -16,22 +16,16 @@ package PPI::Tokenizer::Quote;
 # and then call the 'fill' method, which will cause the specialised
 # parser to parse the quote to it's end point.
 #
-# If ->fill returns true, should should then ->finalizeToken to 
+# If ->fill returns true, should should then ->_finalize_token to 
 # commit the token.
 
 use strict;
 use Class::Autouse;
 
-# Force the loading of our children
-BEGIN {
-	Class::Autouse->load( 'PPI::Tokenizer::Quote::Simple' );
-	Class::Autouse->load( 'PPI::Tokenizer::Quote::Full' );
-}
 use base 'PPI::Tokenizer::Token';
 
-
-# Hook for the onChar token call
-sub onChar {
+# Hook for the on_char token call
+sub on_char {
 	my $class = shift;
 	my $t = shift;
 	return undef unless $t->{token};
@@ -41,7 +35,7 @@ sub onChar {
 	return undef unless defined $rv;
 	
 	# Finalize the token
-	$t->finalizeToken();
+	$t->_finalize_token();
 		
 	# Done, return 0 to tell the tokenizer to go to the next character
 	return 0;
@@ -63,7 +57,7 @@ sub onChar {
 # and super fast regex based methods, but these will do for now.
 
 # An outright scan, raw and fast
-sub _scanForCharacter {
+sub _scan_for_character {
 	my $class = shift;
 	my $t = shift;
 	my $lookFor = shift;
@@ -90,7 +84,7 @@ sub _scanForCharacter {
 		$string .= substr( $line, $start );
 	
 		# Load the next line
-		$rv = $t->fillNextLine;
+		$rv = $t->_fill_next_line;
 		unless ( $rv ) {
 			# Handle end and error states
 			return defined $rv ? \$string : undef;
@@ -100,7 +94,7 @@ sub _scanForCharacter {
 }
 
 # Scan for a character, but not if it is escaped
-sub _scanForUnescapedCharacter {
+sub _scan_for_unescaped_character {
 	my $class = shift;
 	my $t = shift;
 	my $lookFor = shift;
@@ -134,7 +128,7 @@ sub _scanForUnescapedCharacter {
 		$string .= substr( $line, $start );
 	
 		# Load the next line
-		$rv = $t->fillNextLine;
+		$rv = $t->_fill_next_line;
 		unless ( $rv ) {
 			# Handle end and error states
 			return defined $rv ? \$string : undef;
@@ -155,7 +149,7 @@ BEGIN {
 
 # Scan for a close braced, and take into account both escaping,
 # and open close bracket pairs in the string.
-sub _scanForBraceCharacter {
+sub _scan_for_brace_character {
 	my $class = shift;
 	my $t = shift;
 	my $lookFor = shift;
@@ -193,7 +187,7 @@ sub _scanForBraceCharacter {
 		$string .= substr( $line, $start );
 	
 		# Load the next line
-		$rv = $t->fillNextLine;
+		$rv = $t->_fill_next_line;
 		unless ( $rv ) {
 			# Handle end and error states
 			return defined $rv ? \$string : undef;
@@ -207,7 +201,7 @@ sub _scanForBraceCharacter {
 #
 # Although it doesn't return it, it leaves the cursor
 # on the character following the gap
-sub _scanQuoteLikeOperatorGap {	
+sub _scan_quote_like_operator_gap {	
 	my $class = shift;
 	my $t = shift;
 	my ($len, $char, $p, $rv, $line);
@@ -238,7 +232,7 @@ sub _scanQuoteLikeOperatorGap {
 		$string .= substr( $line, $start );
 	
 		# Load the next line
-		$rv = $t->fillNextLine;
+		$rv = $t->_fill_next_line;
 		unless ( $rv ) {
 			# Handle end and error states
 			return defined $rv ? \$string : undef;

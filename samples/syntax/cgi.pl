@@ -97,12 +97,12 @@ sub cmdProcess {
 	
 	# Step 2 - Transforms
 	if ( $fin->{transform} eq 'tidy' ) {
-		$PPI->addTransform( 'tidy' ) or Error( "Error adding tidy transform command" );
+		$PPI->add_transform( 'tidy' ) or Error( "Error adding tidy transform command" );
 	} elsif ( $fin->{transform} eq 'passthrough' ) {
 		# Run the Document through the lexer/delexer to test it
 		my $Lexer = PPI::Lexer->new( $PPI->document )
 			or Error( "Error creating lexer" );
-		my $Tree = $Lexer->getTree
+		my $Tree = $Lexer->get_tree
 			or Error( "Failed to get parse tree" );
 		my $Document = $Tree->Document
 			or Error( "Failed to convert Tree into Document" );
@@ -143,7 +143,7 @@ sub cmdProcess {
 		Error( "Error getting html page version of Perl Source Document" ) unless $output;
 		
 		# Wrap in a page
-		$output = PPI::Format::HTML->wrapPage( $fin->{display}, $output );
+		$output = PPI::Format::HTML->wrap_page( $fin->{display}, $output );
 		$output =~ s/^\s+//gm;
 	} else {
 		Error( "Unknown display format '$fin->{display}'" );
@@ -233,7 +233,7 @@ sub show_page {
 
 # Handle errors
 sub Error {
-	my $message = join "<br>", ( @_, PPI->errstrConsole );
+	my $message = join "<br>", ( @_, PPI->errstr_console );
 	$message =~ s/\n/<br>/g;
 	
 	# Try to show the error page

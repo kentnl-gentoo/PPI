@@ -7,6 +7,13 @@ use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Common';
 
+# Load our children
+use PPI::Lexer::Token;
+use PPI::Lexer::Block;
+use PPI::Lexer::Statement;
+use PPI::Lexer::Element;
+use PPI::Lexer::Tree;
+
 sub new {
 	my $class = shift;
 	
@@ -31,7 +38,7 @@ sub new {
 #####################################################################
 # Basic getters and setters
 
-sub getDocument { $_[0]->{Document} }
+sub get_document { $_[0]->{Document} }
 sub top { $_[0]->{tree} }
 
 
@@ -48,19 +55,19 @@ sub init {
 	if ( isa( $createFrom, 'PPI::Tokenizer' ) ) {
 		# Build a Lexer Document from the Tokenizer
 		my $Document = PPI::Document->new( $self->{tokenizer} )
-			or return $self->andError( "Error building Document from Tokenizer" );
+			or return $self->_error( "Error building Document from Tokenizer" );
 		$self->{Document} = $Document;
 
 	} elsif ( isa( $createFrom, 'PPI::Document' ) ) {
 		$self->{Document} = $createFrom;
 		
 	} else {
-		return $self->andError( "You passed an invalid argument to initialise the lexer with." );
+		return $self->_error( "You passed an invalid argument to initialise the lexer with." );
 	}
 
 	# Init the Lexer tree
 	$self->{tree} = PPI::Lexer::Tree->new();
-	$self->{tree}->setLexer( $self );
+	$self->{tree}->set_lexer( $self );
 
 	return 1;
 }
@@ -72,25 +79,25 @@ sub init {
 #####################################################################
 # Tree parser
 
-sub getTree {
+sub get_tree {
 	my $self = shift;
 	unless ( $self->{treeloaded} ) {
-		$self->_loadTree() or return undef;
+		$self->_load_tree() or return undef;
 	}
 	return $self->top;
 }
 
-sub _loadTree {
+sub _load_tree {
 	my $self = shift;
 
 	# Classify the comments
-	$self->_loadTreeClassifyComments() or return undef;
+	$self->_load_tree_classify_comments() or return undef;
 	
 	# Do the initial block scanning and tree building
-	$self->_loadTreeInitialBlockParse() or return undef;
+	$self->_load_tree_initial_block_parse() or return undef;
 	
 	# Next, go through and classify the blocks
-	$self->_loadTreeClassifyBlocksWithin( $self->{tree} ) or return undef;
+	$self->_load_tree_classify_blocks_within( $self->{tree} ) or return undef;
 	
 	# Done
 	$self->{treeloaded} = 1;
@@ -99,14 +106,14 @@ sub _loadTree {
 
 # Tag some additional meta-data on comments so we will know how to
 # better lay them out later
-sub _loadTreeClassifyComments {
+sub _load_tree_classify_comments {
 	my $self = shift;
 	my $d = $self->{Document};
 
 	# Iterate over the tokens
-	$d->enableIndex; 
-	$d->resetCursor;
-	while ( my $token = $d->nextToken ) {
+	$d->enable_index; 
+	$d->reset_cursor;
+	while ( my $token = $d->get_token ) {
 		# Is this a comment
 		next unless $token->{class} eq 'Comment';
 		
@@ -114,7 +121,7 @@ sub _loadTreeClassifyComments {
 		next unless $token->{tags}->{line};
 		
 		# Is it a comment at the top of a set of comments
-		my $before = $d->relativeToken( $token, -1 );
+		my $before = $d->relative_token( $token, -1 );
 		return undef unless defined $before;
 		unless ( $before 
 		     and $before->{class} eq 'Comment' 
@@ -123,7 +130,7 @@ sub _loadTreeClassifyComments {
 		}
 
 		# Is there a gap below it
-		my $after = $d->relativeToken( $token, 1 );
+		my $after = $d->relative_token( $token, 1 );
 		return undef unless defined $after;
 		if ( $after 
 		 and $after->{class} eq 'Base'
@@ -156,7 +163,7 @@ BEGIN {
 		')' => '(',
 		};
 }
-sub _loadTreeInitialBlockParse {
+sub _load_tree_initial_block_parse {
 	my $self = shift;
 	my $d = $self->{Document};
 	
@@ -164,20 +171,20 @@ sub _loadTreeInitialBlockParse {
 	$self->{treecursor} = $self->{tree};
 	
 	my ($token, $type, $Block);
-	$d->resetCursor;
-	while ( $token = $d->nextToken ) {
+	$d->reset_cursor;
+	while ( $token = $d->get_token ) {
 		# Handle a normal token ( most likely )
 		unless ( $token->{class} eq 'Structure' ) {
 			# Add token to current block
-			$self->{treecursor}->addToken( $token ) or
-				return $self->lexError( $token, "Error adding token to block" );
+			$self->{treecursor}->add_token( $token ) or
+				return $self->_lex_error( $token, "Error adding token to block" );
 			next;
 		}
 		
 		if ( $token->{content} eq ';' ) {
 			### Just add normally for now
-			$self->{treecursor}->addToken( $token ) or
-				return $self->lexError( $token, "Error adding token to block" );
+			$self->{treecursor}->add_token( $token ) or
+				return $self->_lex_error( $token, "Error adding token to block" );
 			next;
 		}			
 		
@@ -188,24 +195,24 @@ sub _loadTreeInitialBlockParse {
 			
 			# Create a new block
 			$Block = PPI::Lexer::Block->new( $token )
-				or return $self->lexError( $token, "Error creating block" );
+				or return $self->_lex_error( $token, "Error creating block" );
 
 			# Add it to the current block, and update the cursor
-			$self->{treecursor}->addElement( $Block )
-				or return $self->lexError( $token, "Error creating block" );
+			$self->{treecursor}->add_element( $Block )
+				or return $self->_lex_error( $token, "Error creating block" );
 			$self->{treecursor} = $Block;
 			
 		} elsif ( $type eq 'close' ) {
 			unless ( $matching->{ $token->{content} } ) {
-				return $self->lexError( $token, "Unexpected closing '$token->{content}'" );				
+				return $self->_lex_error( $token, "Unexpected closing '$token->{content}'" );				
 			}
 			
 			# Close the current block and update the cursor
-			$self->{treecursor}->setCloseToken( $token )
-				or return $self->lexError( $token, "Failed to close block" );
+			$self->{treecursor}->set_close_token( $token )
+				or return $self->_lex_error( $token, "Failed to close block" );
 			$self->{treecursor} = $self->{treecursor}->parent;
 		} else {
-			return $self->lexError( $token, "Unknown Structure token content '$token->{content}'" );
+			return $self->_lex_error( $token, "Unknown Structure token content '$token->{content}'" );
 		}
 	}
 
@@ -213,7 +220,7 @@ sub _loadTreeInitialBlockParse {
 }
 
 # Classify the blocks based on their surroundings
-sub _loadTreeClassifyBlocksWithin {
+sub _load_tree_classify_blocks_within {
 	my $self = shift;
 	my $container = shift;
 	
@@ -228,8 +235,8 @@ sub _loadTreeClassifyBlocksWithin {
 		
 		# It's a block
 		$type = $element->{type};
-		$previous = $elements[$p-1] || PPI::Lexer::Token->emptyToken;
-		$previous2 = $elements[$p-2] || PPI::Lexer::Token->emptyToken;
+		$previous = $elements[$p-1] || PPI::Lexer::Token->empty_token;
+		$previous2 = $elements[$p-2] || PPI::Lexer::Token->empty_token;
 		if ( $type eq '()' ) {
 			if ( $previous->is_a( 'Bareword' )
 			 and $previous2->is_a( 'Bareword', 'sub' ) ) {
@@ -252,7 +259,7 @@ sub _loadTreeClassifyBlocksWithin {
 			} elsif ( $previous->is_a( '{}' ) ) {
 				$class = 'Arguments';
 			} else {
-				my $previous3 = $elements[$p-3] || PPI::Lexer::Token->emptyToken;
+				my $previous3 = $elements[$p-3] || PPI::Lexer::Token->empty_token;
 				if ( 
 					( $previous3->is_a( 'Bareword', 'for' ) or $previous3->is_a( 'Bareword', 'foreach' ) )
 					and 
@@ -326,30 +333,30 @@ sub _loadTreeClassifyBlocksWithin {
 			}
 		} else {
 			# Huh?
-			return $self->andError( "Unexpected block type '$type'" );
+			return $self->_error( "Unexpected block type '$type'" );
 		}
 		
-		unless ( $element->setClass( $class ) ) {
-			return $self->andError( "Error setting class for Block at position $p" );
+		unless ( $element->set_class( $class ) ) {
+			return $self->_error( "Error setting class for Block at position $p" );
 		}
 		
 		# Now do inside the block itself
-		unless ( $self->_loadTreeClassifyBlocksWithin( $element ) ) {
-			return $self->andError( "Error classifying within Block $p" );
+		unless ( $self->_load_tree_classify_blocks_within( $element ) ) {
+			return $self->_error( "Error classifying within Block $p" );
 		}
 	}
 	return 1;
 }
 
-sub lexError {
+sub _lex_error {
 	my $self = shift;
 	my $element = shift;
 	my $message = shift;
 	
 	if ( isa( $element, 'PPI::Lexer::Block' ) ) {
-		$element = $element->getOpenToken;
+		$element = $element->get_open_token;
 	}
-	return $self->andError( "$message at " . $self->{Document}->getLineCharText( $element ) );
+	return $self->_error( "$message at " . $self->{Document}->get_position_text( $element ) );
 }
 
 1;

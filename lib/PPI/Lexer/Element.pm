@@ -17,14 +17,14 @@ use base 'PPI::Common';
 sub new { return bless { parent => undef, class => undef }, $_[0] }
 
 # Parent
-sub setParent {
+sub set_parent {
 	return undef unless isa( $_[1], 'PPI::Lexer::Block' );
 	$_[0]->{parent} = $_[1];
 }
 sub parent { $_[0]->{parent} }
 
 # Class
-sub setClass { $_[0]->{class} = $_[1] }
+sub set_class { $_[0]->{class} = $_[1] }
 sub class { $_[0]->{class} }
 
 # Detach an element from it's parent
@@ -34,6 +34,6 @@ sub detach { delete $_[0]->{parent}; 1 }
 sub significant { 1 }
 
 # Get the rule match string
-sub getSummaryStrings { [ $_[0]->{class}, undef ] }
+sub get_summary_strings { [ $_[0]->{class}, undef ] }
 
 1;
