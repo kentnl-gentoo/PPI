@@ -21,7 +21,7 @@ use PPI::Token::Quote::Full   ();
 use vars qw{@classmap @commitmap};
 use vars qw{$pod $blank $comment $end};
 BEGIN {
-	$PPI::Token::Whitespace::VERSION = '0.815';
+	$PPI::Token::Whitespace::VERSION = '0.816';
 	@PPI::Token::Whitespace::ISA     = 'PPI::Token';
 
 	# Build the class map

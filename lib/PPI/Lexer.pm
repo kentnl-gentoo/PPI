@@ -12,7 +12,7 @@ use base 'PPI::Common';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.815';
+	$VERSION = '0.816';
 }
 
 
@@ -544,7 +544,7 @@ sub _get_token {
 	}
 
 	# Then from the Tokenizer
-	$self->{Tokenizer}->get_token;	
+	$self->{Tokenizer}->get_token;
 }
 
 # Delay the addition of a insignificant elements

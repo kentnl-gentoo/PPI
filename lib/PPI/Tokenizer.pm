@@ -39,7 +39,7 @@ use PPI::Token   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.815';
+	$VERSION = '0.816';
 	@PPI::Tokenizer::ISA = 'PPI::Common';
 }
 
@@ -113,9 +113,26 @@ sub new {
 	}
 
 	# Clean up it's newlines and split into an array
-	$self->{source} =~ s/(?:\015\012|\015|\012)/\n/g;
+	$self->{source} =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 	my @source = split /(?<=\n)/, $self->{source};
 	$self->{source} = \@source;
+
+	# OK, listen up, I'm explaining this earlier than I should so you
+	# can understand why I'm about to do something that looks very
+	# strange. There's a problem with the Tokenizer, in that tokens
+	# tend to change classes as each letter is added, but they don't
+	# get allocated their definate final class until the "end" of the
+	# token, the detection of which occurs in about a hundred different
+	# places, all through various crufty code.
+	# However, in general, this does not apply to tokens in which a
+	# whitespace character is valid, such as comments, whitespace and
+	# big strings.
+	# So, what we do is add a space to the end of the source. This
+	# triggers "end of token" functionality for all cases. Then, once
+	# the tokenizer hits end of line, it examines the last token to
+	# manually either remove the ' ' token, or chip it off the end of
+	# a longer one.
+	$self->{source}->[-1] .= ' ';
 
 	$self;
 }
@@ -171,6 +188,7 @@ sub get_token {
 		}
 	}
 
+
 	if ( defined $_ ) {
 		# End of file, but we can still return things from the buffer
 		if ( $_ = $self->{tokens}->[ $self->{token_cursor} ] ) {
@@ -199,6 +217,9 @@ sub all_tokens {
 		my $rv;
 		while ( $rv = $self->_process_next_line ) {}
 		return $self->_error( "Error while processing source" ) unless defined $rv;
+
+		# Clean up the end of the tokenizer
+		$self->_clean_eof;
 	}
 
 	# End of file, return a copy of the token array.
@@ -341,6 +362,10 @@ sub _process_next_line {
 	# Run the _on_line_start
 	$rv = $self->{class}->_on_line_start( $self );
 	unless ( $rv ) {
+		# If there are no more source lines, then clean up
+		if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
+			$self->_clean_eof;
+		}
 		return defined $_ ? 1 # Defined but false signals "go to next line"
 			: $self->_error( "Error at line $self->{line_count}" );
 	}
@@ -354,13 +379,17 @@ sub _process_next_line {
 	# Trigger any action that needs to happen at the end of a line
 	$self->{class}->_on_line_end( $self );
 
+	# If there are no more source lines, then clean up
+	if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
+		$self->_clean_eof;
+	}
+
 	# If we have any entries in the rawinput queue process it.
-	# This should happen at the END of the line, not the beginning,
-	# because Tokenizer->get_token, may retrieve the RawInput terminator
-	# and process it before we get a chance to rebless it from a bareword
-	# or a string that it was originally.
-	# Note also that _handle_raw_input has the same return conditions as
-	# this method.
+	# This should happen at the END of this line, not the beginning of
+	# the next one, because Tokenizer->get_token, may retrieve the RawInput
+	# terminator and process it before we get a chance to rebless it from
+	# a bareword or a string that it was originally. Note also that
+	# _handle_raw_input has the same return conditions as this method.
 	$self->{rawinput_queue} ? $self->_handle_raw_input : 1;
 }
 
@@ -554,6 +583,35 @@ sub _set_token_class {
 	1;
 }
 
+# At the end of the file, we need to clean up the results of the erroneous
+# space that we inserted at the beginning of the process.
+sub _clean_eof {
+	my $self = shift;
+
+	# Finish any partially completed token
+	$self->_finalize_token if $self->{token};
+
+	# Find the last token, and if it has no content, kill it.
+	# There appears to be some evidence that such "null tokens" are
+	# somehow getting created accidentally.
+	my $last_token = $self->{tokens}->[ $#{$self->{tokens}} ];
+	unless ( length $last_token->{content} ) {
+		pop @{$self->{tokens}};
+	}
+
+	# Now, assuming the last character of the last token is a space,
+	# chop it off, deleting the token if there's nothing else left.
+	$last_token = $self->{tokens}->[ $#{$self->{tokens}} ];
+	$last_token->{content} =~ s/ $//;
+	unless ( length $last_token->{content} ) {
+		# Popping token
+		pop @{$self->{tokens}};
+	}
+
+	# The hack involving adding an extra space is now reversed, and
+	# now nobody will ever know. The perfect crime!
+	1;
+}
 
 
 

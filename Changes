@@ -1,5 +1,8 @@
 Revision history for Perl extension PPI
 
+0.816 Tue Jun 29 2004
+	- Solved the "last token in file parses wrong" bug
+
 0.815 Sun Jun 27 2004
 	- Fixed a bug with the detection of @- and @+
 	- Added support for @*
