@@ -5,7 +5,7 @@ use base 'PPI::Transform';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 # PPI::Transform::Object provides a mechanism for building complex transforms

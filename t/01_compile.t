@@ -17,7 +17,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 use Class::Autouse ':devel';
 
 
@@ -28,10 +28,11 @@ use Class::Autouse ':devel';
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
-use_ok( 'PPI' );
-use_ok( 'PPI::Tokenizer' );
-use_ok( 'PPI::Lexer' );
-use_ok( 'PPI::Lexer::Dump' );
-use_ok( 'PPI::Format::HTML' );
+use_ok( 'PPI'               );
+use_ok( 'PPI::Tokenizer'    );
+use_ok( 'PPI::Lexer'        );
+use_ok( 'PPI::Dumper'       );
+use_ok( 'PPI::Find'         );
+use_ok( 'PPI::Transform'    );
 
 exit();

@@ -19,7 +19,7 @@ BEGIN {
 # Load the code to test
 use Class::Autouse ':devel';
 use PPI::Lexer;
-use PPI::Lexer::Dump;
+use PPI::Dumper;
 
 
 
@@ -65,10 +65,10 @@ foreach my $codefile ( @code ) {
 	ok( isa( $Document, 'PPI::Document' ),  "$codefile: Lexer creates Document object" );
 
 	# Get the dump array ref for the Document object
-	my $Dumper = PPI::Lexer::Dump->new( $Document );
-	ok( isa( $Dumper, 'PPI::Lexer::Dump' ), "$codefile: Dumper created" );
-	my $array_ref = $Dumper->dump_array_ref;
-	ok( isa( $array_ref, 'ARRAY' ),         "$codefile: Got dump array ref from dumper" );
+	my $Dumper = PPI::Dumper->new( $Document );
+	ok( isa( $Dumper, 'PPI::Dumper' ), "$codefile: Dumper created" );
+	my @dump_list = $Dumper->list;
+	ok( scalar @dump_list, "$codefile: Got dump content from dumper" );
 
 	# Try to get the .dump file array
 	open( DUMP, $dumpfile ) or die "open: $!";
@@ -77,7 +77,7 @@ foreach my $codefile ( @code ) {
 	chomp @content;
 
 	# Compare the two
-	is_deeply( $array_ref, \@content,      "$codefile: Generated dump matches stored dump" );
+	is_deeply( \@dump_list, \@content, "$codefile: Generated dump matches stored dump" );
 
 	# Also, do a round-trip check
 	my $source = File::Slurp::read_file( $codefile );

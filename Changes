@@ -1,5 +1,25 @@
 Revision history for Perl extension PPI
 
+0.840 Tue Dev 21 2004
+	- Perl Foundation Funding Commences
+	- Complete re-organisation of the quote-like token classes.
+	  Any and all code that works with quotes will be broken.
+	- Gave up on the old PPI::Query code and wrote a complete new and
+	  much thinner implementation based roughly on the API of
+	  File::Find::Rule.
+	  PPI::Find uses the &wanted function (which also has a slightly
+	  different API to the old one) but has the ->in style search methods.
+	  It should be relatively easy for someone to write PPI::Find::Rule
+	  on top of it.
+	- PPI::Transform is thus temporarily stale
+	- Introduced a bug for C< foreach $foo () > and caught/fixed it
+	  during the changeover.
+	- Changed PPI::Lexer::Dump to PPI::Dumper
+	- API Freeze PPI::Find
+	- API Freeze PPI::Dumper
+	- Documented PPI::Find
+	- Documented PPI::Dumper
+
 0.831 Fri Nov  5 2004
 	- Overloaded PPI::Document bool => true
 	- Overloaded PPI::Document ""   => content

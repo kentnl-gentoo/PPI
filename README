@@ -8,6 +8,9 @@ DESCRIPTION
 
     For more information, see the PPI Manual
 
+    The PPI itself provides the primary mechanism for loading the PPI
+    library, as the full library contains over 50 classes.
+
 SUPPORT
     Although this is pre-beta, what code is there should actually work. So
     if you find any bugs, they should be submitted via the CPAN bug tracker,
@@ -15,9 +18,10 @@ SUPPORT
 
     <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
-    For other issues, contact the author. In particular, if you want to make
-    a CPAN or private module that uses PPI, it would be best to stay in
-    direct contact with the author until PPI goes beta.
+    For other issues, or commercial enhancement or support, contact the
+    author.. In particular, if you want to make a CPAN or private module
+    that uses PPI, it would be best to stay in direct contact with the
+    author until PPI goes beta.
 
 AUTHOR
     Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as

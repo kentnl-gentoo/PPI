@@ -12,7 +12,7 @@ samples.
 
 =head2 Background
 
-The ability to read, and understand perl (programmatically) other than with
+The ability to read, and manipulate perl (programmatically) other than with
 the perl executable is one that has caused difficulty for a long time.
 
 The root cause of this problem is perl's dynamic grammar. Although there
@@ -302,16 +302,84 @@ have been added wherever possible to help people working with PDOM trees do
 normal tasks relatively efficiently. These act like a DWIM layer above the
 large trees.
 
-=head1 CLASS INDEX
+=head1 CLASSES
 
-The following provides a list of all the primary classes contained in the
+This section has two parts.
+
+Firstly a large tree of all the classes contained in the PPI core. They are
+listed only by name, with no description.
+
+And second, a shorter list with descriptions for the primary classes in the
 core PPI distribution. The list is in alphabetical order. Anything with its
 own POD documentation can be considered stable, as the POD is only written
 after the API is largely finalised and frozen. Still, don't rely on anything
 here until after PPI official becomes a beta, in the 0.9xx versions.
 
-Please note that this does B<not> contain the 50 or so classes of the PDOM,
-but only the "main players" within it.
+=head2 PPI Data Class Full Listing
+
+  PPI::Base
+     PPI::Element
+        PPI::Node
+           PPI::Document
+              PPI::Document::Fragment
+           PPI::Statement
+              PPI::Statement::Scheduled
+              PPI::Statement::Package
+              PPI::Statement::Include
+              PPI::Statement::Sub
+              PPI::Statement::Variable
+              PPI::Statement::Compound
+              PPI::Statement::Break
+              PPI::Statement::Data
+              PPI::Statement::End
+              PPI::Statement::Expression
+              PPI::Statement::Null
+              PPI::Statement::UnmatchedBrace
+              PPI::Statement::Unknown
+           PPI::Structure
+              PPI::Structure::Block
+              PPI::Structure::Subscript
+              PPI::Structure::Constructor
+              PPI::Structure::Condition
+              PPI::Structure::List
+              PPI::Structure::ForLoop
+              PPI::Structure::Unknown
+        PPI::Token
+           PPI::Token::Whitespace
+           PPI::Token::Comment
+           PPI::Token::Pod
+           PPI::Token::Number
+           PPI::Token::Word
+           PPI::Token::DashedWord
+           PPI::Token::Symbol
+              PPI::Token::Magic
+           PPI::Token::ArrayIndex
+           PPI::Token::Quote
+              PPI::Token::Quote::Single
+              PPI::Token::Quote::Double
+              PPI::Token::Quote::Literal
+              PPI::Token::Quote::Interpolate
+           PPI::Token::QuoteLike
+              PPI::Token::QuoteLike::Backtick
+              PPI::Token::QuoteLike::Command
+              PPI::Token::QuoteLike::Regexp
+              PPI::Token::QuoteLike::Words
+           PPI::Token::Regexp
+              PPI::Token::Regexp::Match
+              PPI::Token::Regexp::Substitute
+              PPI::Token::Regexp::Transliterate
+           PPI::Token::Operator
+           PPI::Token::Cast
+           PPI::Token::Structure
+           PPI::Token::Label
+           PPI::Token::Separator
+           PPI::Token::Data
+           PPI::Token::End
+           PPI::Token::Prototype
+           PPI::Token::Attribute
+           PPI::Token::Unknown
+
+=head2 Class Summary
 
 =over 4
 
@@ -344,7 +412,7 @@ May also be removed from the core.
 
 The PPI Lexer. Converts Token streams into PDOM trees.
 
-=item PPI::Lexer::Dump
+=item L<PPI::Dumper|PPI::Dumper>
 
 A simple class for dumping readable debugging version of PDOM structures
 
@@ -380,7 +448,7 @@ cases).
 See the PPI::Token documentation (not yet written) for a description and
 list of all of the different Token types/classes
 
-=item PPI::Token::Quote
+=item PPI::Token::_QuoteEngine
 
 The PPI::Token::Quote class provides an abstract base class for the many and
 varied types of quote and quote-like things in perl. Classes that inherit
@@ -440,10 +508,10 @@ contact with the author until PPI goes beta.
 
 Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
 
-=head1 COPYRIGHT
-
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
+
+=head1 COPYRIGHT
 
 Copyright (c) 2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute

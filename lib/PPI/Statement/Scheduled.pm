@@ -54,7 +54,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 sub __LEXER__normal { '' }
@@ -94,6 +94,8 @@ sub block {
 }
 
 1;
+
+=pod
 
 =head1 TO DO
 

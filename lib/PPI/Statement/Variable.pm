@@ -1,5 +1,20 @@
 package PPI::Statement::Variable;
 
+=pod
+
+=head1 NAME
+
+PPI::Statement::Variable - Variable declaration statements
+
+=head1 DESCRIPTION
+
+The main intent of the PPI::Statement::Variable class is to describe
+simple statements that explicitly declare new local or global variables.
+
+=head1 METHODS
+
+=cut
+
 # Explicit variable decleration ( my, our, local )
 
 use strict;
@@ -8,7 +23,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 # What type of variable declaration is it? ( my, local, our )

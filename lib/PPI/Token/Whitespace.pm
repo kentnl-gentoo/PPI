@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
@@ -24,7 +24,7 @@ BEGIN {
         $CLASSMAP[ord ',']  = 'PPI::Token::Operator';
 	$CLASSMAP[ord "'"]  = 'Quote::Single';
 	$CLASSMAP[ord '"']  = 'Quote::Double';
-	$CLASSMAP[ord '`']  = 'Quote::Execute';
+	$CLASSMAP[ord '`']  = 'QuoteLike::Execute';
 	$CLASSMAP[ord '\\'] = 'Cast';
 	$CLASSMAP[ord '_']  = 'Word';
 	$CLASSMAP[32]       = 'Whitespace'; # A normal space
@@ -126,7 +126,7 @@ sub _on_char {
 		# .. - The second condition in a flip flop
 		# =~ - A bound regex
 		# !~ - Ditto
-		return 'Regex::Match' if $previous->_isa( 'Operator' );
+		return 'Regexp::Match' if $previous->_isa( 'Operator' );
 
 		# After a symbol
 		return 'Operator' if $previous->_isa( 'Symbol' );
@@ -137,24 +137,24 @@ sub _on_char {
 		return 'Operator' if $previous->_isa( 'Number' );
 
 		# After going into scope/brackets
-		return 'Regex::Match' if $previous->_isa( 'Structure', '(' );
-		return 'Regex::Match' if $previous->_isa( 'Structure', '{' );
-		return 'Regex::Match' if $previous->_isa( 'Structure', ';' );
+		return 'Regexp::Match' if $previous->_isa( 'Structure', '(' );
+		return 'Regexp::Match' if $previous->_isa( 'Structure', '{' );
+		return 'Regexp::Match' if $previous->_isa( 'Structure', ';' );
 
 		# Functions that we know use commonly use regexs as an argument
-		return 'Regex::Match' if $previous->_isa( 'Word', 'split' );
+		return 'Regexp::Match' if $previous->_isa( 'Word', 'split' );
 
 		# After a keyword
-		return 'Regex::Match' if $previous->_isa( 'Word', 'if' );
-		return 'Regex::Match' if $previous->_isa( 'Word', 'unless' );
-		return 'Regex::Match' if $previous->_isa( 'Word', 'grep' );
+		return 'Regexp::Match' if $previous->_isa( 'Word', 'if' );
+		return 'Regexp::Match' if $previous->_isa( 'Word', 'unless' );
+		return 'Regexp::Match' if $previous->_isa( 'Word', 'grep' );
 
 		# What about the char after the slash? There's some things
 		# that would be highly illogical to see if its an operator.
 		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
 		if ( defined $next_char and length $next_char ) {
 			if ( $next_char =~ /(?:\^|\[|\\)/ ) {
-				return 'Regex::Match';
+				return 'Regexp::Match';
 			}
 		}
 

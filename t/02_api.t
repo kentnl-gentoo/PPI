@@ -18,12 +18,14 @@ BEGIN {
 # Load the API to test
 use Class::Autouse ':devel';
 use PPI;
+use PPI::Tokenizer;
 use PPI::Lexer;
-use PPI::Lexer::Dump;
-use PPI::Format::HTML;
+use PPI::Dumper;
+use PPI::Find;
+use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2092;
+use Test::More 'tests' => 2050;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -38,26 +40,37 @@ exit(0);
 __DATA__
 
 # Explicitly list the core classes
+PPI=class
+PPI::Tokenizer=class
+PPI::Lexer=class
+PPI::Dumper=class
+PPI::Find=class
+PPI::Transform=abstract
+
+# The abstract PDOM classes
 PPI::Base=abstract
 PPI::Element=abstract
 PPI::Node=abstract
-PPI::Document=class
-PPI::Document::Fragment=class
-PPI::Tokenizer=class
-PPI::Lexer=class
-PPI::Lexer::Dump=class
-PPI::Format::HTML=class
-PPI::Transform=abstract
-
-# Only list the non-classes for data objects
 PPI::Token=abstract
-PPI::Token::Quote::Simple=abstract
-PPI::Token::Quote::Full=abstract
+PPI::Token::_QuoteEngine=abstract
+PPI::Token::_QuoteEngine::Simple=abstract
+PPI::Token::_QuoteEngine::Full=abstract
+PPI::Token::Quote=abstract
+PPI::Token::QuoteLike=abstract
+PPI::Token::Regexp=abstract
 PPI::Structure=abstract
+PPI::Statement=abstract
 
 
 
 
+
+
+
+
+
+#####################################################################
+# PDOM Classes
 
 [PPI::Base]
 err_stack=method
@@ -82,6 +95,7 @@ insert_before=method
 insert_after=method
 remove=method
 delete=method
+replace=method
 content=method
 tokens=method
 significant=method
@@ -102,61 +116,6 @@ find=method
 find_any=method
 remove_child=method
 prune=method
-
-[PPI::Document]
-PPI::Node=isa
-load=method
-save=method
-index_locations=method
-flush_locations=method
-
-[PPI::Document::Fragment]
-PPI::Document=isa
-
-[PPI::Tokenizer]
-new=method
-load=method
-get_token=method
-all_tokens=method
-increment_cursor=method
-decrement_cursor=method
-
-[PPI::Lexer]
-new=method
-lex_file=method
-lex_source=method
-lex_tokenizer=method
-
-[PPI::Lexer::Dump]
-new=method
-print=method
-dump_string=method
-dump_array=method
-dump_array_ref=method
-
-[PPI::Format::HTML]
-PPI::Base=isa
-Exporter=isa
-serialize=method
-escape_html=method
-escape_whitespace=method
-escape_debug_html=method
-wrap_page=method
-line_label=method
-syntax_string=method
-syntax_page=method
-debug_string=method
-debug_page=method
-
-[PPI::Transform]
-matches=method
-matches_file=method
-matches_source=method
-matches_document=method
-transform=method
-transform_file=method
-transform_source=method
-transform_document=method
 
 [PPI::Token]
 PPI::Element=isa
@@ -230,70 +189,63 @@ PPI::Token=isa
 identifier=method
 parameters=method
 
-[PPI::Token::Quote::Dashed]
+[PPI::Token::DashedWord]
 PPI::Token=isa
 
-[PPI::Token::Quote::Simple]
-PPI::Token=isa
-PPI::Token::Quote=isa
-get_string=method
+[PPI::Token::_QuoteEngine]
 
-[PPI::Token::Quote::Full]
+[PPI::Token::_QuoteEngine::Simple]
+PPI::Token::_QuoteEngine=isa
+string=method
+
+[PPI::Token::_QuoteEngine::Full]
+PPI::Token::_QuoteEngine=isa
+
+[PPI::Token::Quote]
 PPI::Token=isa
-PPI::Token::Quote=isa
-sections=method
 
 [PPI::Token::Quote::Single]
 PPI::Token=isa
 PPI::Token::Quote=isa
-PPI::Token::Quote::Simple=isa
 
 [PPI::Token::Quote::Double]
 PPI::Token=isa
 PPI::Token::Quote=isa
-PPI::Token::Quote::Simple=isa
 interpolations=method
 simplify=method
 
-[PPI::Token::Quote::Execute]
-PPI::Token=isa
-PPI::Token::Quote=isa
-
-[PPI::Token::Quote::OperatorSingle]
-PPI::Token=isa
-PPI::Token::Quote=isa
-
-[PPI::Token::Quote::OperatorDouble]
-PPI::Token=isa
-PPI::Token::Quote=isa
-
-[PPI::Token::Quote::OperatorExecute]
-PPI::Token=isa
-PPI::Token::Quote=isa
-
-[PPI::Token::Quote::Words]
-PPI::Token=isa
-PPI::Token::Quote=isa
-
-[PPI::Token::Quote::Regex]
-PPI::Token=isa
-PPI::Token::Quote=isa
-
-[PPI::Token::Regex::Match]
+[PPI::Token::Quote::Literal]
 PPI::Token=isa
 
-[PPI::Token::Regex::Replace]
+[PPI::Token::Quote::Interpolate]
 PPI::Token=isa
 
-[PPI::Token::Regex::Transform]
+[PPI::Token::QuoteLike]
 PPI::Token=isa
 
-[PPI::Token::Regex::Pattern]
+[PPI::Token::QuoteLike::Backtick]
 PPI::Token=isa
 
+[PPI::Token::QuoteLike::Command]
+PPI::Token=isa
 
+[PPI::Token::QuoteLike::Words]
+PPI::Token=isa
 
+[PPI::Token::QuoteLike::Regexp]
+PPI::Token=isa
 
+[PPI::Token::Regexp]
+PPI::Token=isa
+
+[PPI::Token::Regexp::Match]
+PPI::Token=isa
+
+[PPI::Token::Regexp::Substitute]
+PPI::Token=isa
+
+[PPI::Token::Regexp::Transliterate]
+PPI::Token=isa
 
 [PPI::Statement]
 PPI::Node=isa
@@ -377,3 +329,61 @@ PPI::Structure=isa
 
 [PPI::Structure::Unknown]
 PPI::Structure=isa
+
+[PPI::Document]
+PPI::Node=isa
+load=method
+save=method
+index_locations=method
+flush_locations=method
+
+[PPI::Document::Fragment]
+PPI::Document=isa
+
+
+
+
+
+#####################################################################
+# Non-PDOM Classes
+
+[PPI]
+
+[PPI::Tokenizer]
+new=method
+load=method
+get_token=method
+all_tokens=method
+increment_cursor=method
+decrement_cursor=method
+
+[PPI::Lexer]
+new=method
+lex_file=method
+lex_source=method
+lex_tokenizer=method
+
+[PPI::Dumper]
+new=method
+print=method
+string=method
+list=method
+
+[PPI::Find]
+new=method
+clone=method
+in=method
+start=method
+match=method
+finish=method
+errstr=method
+
+[PPI::Transform]
+matches=method
+matches_file=method
+matches_source=method
+matches_document=method
+transform=method
+transform_file=method
+transform_source=method
+transform_document=method

@@ -1,13 +1,13 @@
-package PPI::Token::Quote::Simple;
+package PPI::Token::_QuoteEngine::Simple;
 
 # Simple quote engine
 
 use strict;
-use base 'PPI::Token::Quote';
+use base 'PPI::Token::_QuoteEngine';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 
@@ -15,11 +15,14 @@ BEGIN {
 
 
 sub new {
-	my $class = shift;
+	my $class     = shift;
 	my $seperator = shift or return undef;
 
 	# Create a new token containing the seperator
-	my $self = $class->SUPER::new( $seperator ) or return undef;
+	### This manual SUPER'ing ONLY works because none of
+	### Token::Quote, Token::QuoteLike and Token::Regexp
+	### implement a new function of their own.
+	my $self = PPI::Token::new( $class, $seperator ) or return undef;
 	$self->{seperator} = $seperator;
 
 	$self;
@@ -27,8 +30,8 @@ sub new {
 
 sub _fill {
 	my $class = shift;
-	my $t = shift;
-	my $self = $t->{token} or return undef;
+	my $t     = shift;
+	my $self  = $t->{token} or return undef;
 
 	# Scan for the end seperator
 	my $string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
@@ -44,7 +47,7 @@ sub _fill {
 	}
 }
 
-sub get_string {
+sub string {
 	my $self = shift;
 	substr( $self->{content}, 1, length($self->{content}) - 2 );
 }

@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 
@@ -123,7 +123,7 @@ sub _on_char {
 		}
 
 		if ( /[a-zA-Z]/ ) {
-			return $t->_set_token_class( 'Quote::Dashed' ) ? 1 : undef;
+			return $t->_set_token_class( 'DashedWord' ) ? 1 : undef;
 		}
 
 		# The numeric negative operator

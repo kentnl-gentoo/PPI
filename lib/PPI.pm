@@ -1,12 +1,22 @@
 package PPI;
 
-# PPI, short for Parse::Perl::Isolated, provides a set of APIs for working
-# with reasonably correct perl code, without having to load, read or run
-# anything outside of the code you wish to work with. i.e. "Isolated" code.
+=pod
 
-# The PPI class itself provides an overall top level module for working
-# with the various subsystems ( tokenizer, lexer, analysis, formatting,
-# and transformation ).
+=head1 NAME
+
+PPI - Parse and manipulate Perl code non-destructively, without using perl itself
+
+=head1 DESCRIPTION
+
+This is PPI, originally short for Parse::Perl::Isolated, a package for parsing
+and manipulating Perl documents.
+
+For more information, see the L<PPI Manual|PPI::Manual>
+
+The PPI itself provides the primary mechanism for loading the PPI library,
+as the full library contains over 50 classes.
+
+=cut
 
 use 5.005;
 use strict;
@@ -15,21 +25,17 @@ use strict;
 use UNIVERSAL 'isa';
 use Class::Autouse;
 
+# Load the essentials
+use base 'PPI::Base';
+use PPI::Token     ();
+use PPI::Statement ();
+use PPI::Structure ();
+
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
-
-	# If we are in a mod_perl environment, always fully load
-	# modules, in case Apache::Reload is present, and also to
-	# let copy-on-write do its work and save us gobs of memory.
-	Class::Autouse->devel(1) if $ENV{MOD_PERL};
+	$VERSION = '0.840_01';
 }
-
-# Load the essentials
-use base 'PPI::Base';
-use PPI::Element ();
-use PPI::Node ();
 
 
 
@@ -56,181 +62,13 @@ BEGIN {
 
 
 # Autoload the remainder of the classes
-use Class::Autouse 'PPI::Tokenizer', 
-                   'PPI::Lexer',
-                   'PPI::Document',
-                   'PPI::Transform';
-
-
-
-
-
-#####################################################################
-# Constructors
-
-# Create a new object from scratch
-sub new {
-	my $class  = shift;
-	my $source = (defined $_[0] and length $_[0]) ? shift : return undef;
-
-	# Create the object
-	bless {
-		file      => undef,
-		source    => $source,
-		Tokenizer => undef,
-
-		# The object works by collecting transform requests.
-		# When a request to serialize ( ->html ->save etc ) is made
-		# the source is tokenized and turned into a PPI::Document
-		# and the transforms are applied to the Document.
-
-		### Transforms are disabled...
-		#transforms => [],
-		#transforms_applied => 0,
-		}, $class;
-}
-
-# Create a new object loading from a file
-sub load {
-	my $class = shift;
-	my $filename = shift;
-
-	# Try to slurp in the file
-	my $source = File::Slurp::read_file( $filename );
-	return $class->_error( "Error loading file" ) unless $source;
-
-	# Create the new object and set the source
-	my $self = $class->new( $source );
-	$self->{file} = $filename;
-
-	$self;
-}
-
-# Specify a transform to apply
-sub add_transform {
-	die "Method ->add_transform disabled";
-
-	my $self = shift;
-	my $transform = shift;
-	unless ( $transform eq 'tidy' ) {
-		return $self->_error( "Invalid transform '$transform'" );
-	}
-
-	# If effects have already been applied, remove them
-	if ( $self->{transforms_applied} ) {
-		$self->{Tree} = undef;
-		$self->{transforms_applied} = 0;
-	}
-
-	push @{ $self->{transforms} }, $transform;
-	1;
-}
-
-
-
-
-
-#####################################################################
-# Main interface methods
-
-# Gets the input document
-sub document {
-	die "Method ->document disabled";
-
-	my $self = shift;
-	unless ( $self->{Document} ) {
-		$self->_load_source or return undef;
-	}
-
-	$self->{Document};
-}
-
-# Gets the output document
-sub output {
-	die "Method ->output disabled";
-
-	my $self = shift;
-	if ( scalar @{ $self->{transforms} } ) {
-		unless ( $self->{transforms_applied} ) {
-			$self->_apply_transforms() or return undef;
-		}
-		return $self->{Tree}->Document;
-	} else {
-		return $self->document;
-	}
-}
-
-# Generate the code
-sub to_string {
-	my $self = shift;
-	my $Document = $self->output or return undef;
-	$Document->to_string;
-}
-
-# Get the Tokenizer object
-sub tokenizer {
-	my $self = shift;
-	unless ( $self->{Tokenizer} ) {
-		$self->{Tokenizer} = PPI::Tokenizer->new( $self->{source} ) or return undef;
-	}
-	$self->{Tokenizer};
-}
-
-# Generates the html output
-sub html {
-	my $self = shift;
-	my $style = shift || 'plain';
-	my $options = shift || {};
-
-	# Get the tokenizer, and generate the HTML
-	my $Tokenizer = $self->tokenizer or return undef;
-	PPI::Format::HTML->serialize( $Tokenizer, $style, $options );
-}
-
-# Generate a complete html page
-sub html_page {
-	my $self = shift;
-	my $style = shift || 'plain';
-
-	# Get the html
-	my $html = $self->html( $style, @_ ) or return undef;
-	PPI::Format::HTML->wrap_page( $style, $html );
-}
-
-# Generic save function.
-# Arguments are the filename and method to get the output from.
-# Any additional arguments are passed through to the content generating
-# method call.
-# Example: $PSP->save( 'filename.html', 'html_page', 'syntax' );
-sub save {
-	my $self = shift;
-	my $saveas = shift;
-	my $from = shift;
-
-	# Get the generated content
-	my $content = $self->$from( @_ );
-	return undef unless defined $content;
-
-	# Save the content
-	File::Slurp::write_file( $saveas,
-		{ err_mode => 'quiet' }, $content,
-		) ? 1 : undef;
-}
+use Class::Autouse 'PPI::Document',
+                   'PPI::Tokenizer',
+                   'PPI::Lexer';
 
 1;
 
-=pod
-
-=head1 NAME
-
-PPI - Parse and manipulate Perl code non-destructively, without using perl itself
-
-=head1 DESCRIPTION
-
-This is PPI, originally short for Parse::Perl::Isolated, a package for parsing
-and manipulating Perl documents.
-
-For more information, see the L<PPI Manual|PPI::Manual>
+=cut
 
 =head1 SUPPORT
 
@@ -239,7 +77,7 @@ find any bugs, they should be submitted via the CPAN bug tracker, located at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
-For other issues, contact the author. In particular, if you want to make a
+For other issues, or commercial enhancement or support, contact the author.. In particular, if you want to make a
 CPAN or private module that uses PPI, it would be best to stay in direct
 contact with the author until PPI goes beta.
 

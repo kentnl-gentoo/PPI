@@ -5,18 +5,18 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %quotelike};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 
 	%quotelike = (
-		'q'  => 'Quote::OperatorSingle',
-		'qq' => 'Quote::OperatorDouble',
-		'qx' => 'Quote::OperatorExecute',
-		'qw' => 'Quote::Words',
-		'qr' => 'Quote::Regex',
-		'm'  => 'Regex::Match',
-		's'  => 'Regex::Replace',
-		'tr' => 'Regex::Transform',
-		'y'  => 'Regex::Transform',
+		'q'  => 'Quote::Literal',
+		'qq' => 'Quote::Interpolate',
+		'qx' => 'QuoteLike::Command',
+		'qw' => 'QuoteLike::Words',
+		'qr' => 'QuoteLike::Regexp',
+		'm'  => 'Regexp::Match',
+		's'  => 'Regexp::Substitute',
+		'tr' => 'Regexp::Transliterate',
+		'y'  => 'Regexp::Transliterate',
 		);
 }
 

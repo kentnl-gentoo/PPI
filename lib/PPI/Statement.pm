@@ -35,16 +35,23 @@ use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
 use PPI ();
-use PPI::Statement::Sub       ();
-use PPI::Statement::Include   ();
-use PPI::Statement::Package   ();
-use PPI::Statement::Variable  ();
-use PPI::Statement::Compound  ();
-use PPI::Statement::Scheduled ();
+use PPI::Statement::Break          ();
+use PPI::Statement::Compound       ();
+use PPI::Statement::Data           ();
+use PPI::Statement::End            ();
+use PPI::Statement::Expression     ();
+use PPI::Statement::Include        ();
+use PPI::Statement::Null           ();
+use PPI::Statement::Package        ();
+use PPI::Statement::Scheduled      ();
+use PPI::Statement::Sub            ();
+use PPI::Statement::UnmatchedBrace ();
+use PPI::Statement::Unknown        ();
+use PPI::Statement::Variable       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 # "Normal" statements end at a statement terminator ;
@@ -210,107 +217,6 @@ insufficient clues, or it might be more than one thing.
 You should never encounter these in a fully parsed PDOM tree.
 
 =cut
-
-#####################################################################
-package PPI::Statement::Expression;
-
-# A "normal" expression of some sort
-
-BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.831';
-	@PPI::Statement::Expression::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Break;
-
-# Break out of a flow control block.
-# next, last, return.
-
-BEGIN {
-	$PPI::Statement::Break::VERSION = '0.831';
-	@PPI::Statement::Break::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Null;
-
-# A null statement is a useless statement.
-# Usually, just an extra ; on its own.
-
-BEGIN {
-	$PPI::Statement::Null::VERSION = '0.831';
-	@PPI::Statement::Null::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Data;
-
-# The section of a file containing data
-
-BEGIN {
-	$PPI::Statement::Data::VERSION = '0.831';
-	@PPI::Statement::Data::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::End;
-
-# The useless stuff (although maybe containing POD) at the end of a file
-
-BEGIN {
-	$PPI::Statement::End::VERSION = '0.831';
-	@PPI::Statement::End::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::UnmatchedBrace;
-
-# An unattached structural code such as ) ] } found incorrectly at
-# the root level of a Document. We create a separate statement for it
-# so that we can continue parsing the code.
-
-BEGIN {
-	$PPI::Statement::UnmatchedBrace::VERSION = '0.831';
-	@PPI::Statement::UnmatchedBrace::ISA     = 'PPI::Statement';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Statement::Unknown;
-
-# We are unable to definitely categorize the statement from the first
-# token alone. Do additional checks when adding subsequent tokens.
-
-# Currently, the only time this happens is when we start with a label
-
-BEGIN {
-	$PPI::Statement::Unknown::VERSION = '0.831';
-	@PPI::Statement::Unknown::ISA     = 'PPI::Statement';
-}
 
 1;
 

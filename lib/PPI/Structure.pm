@@ -5,13 +5,18 @@ package PPI::Structure;
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
-use PPI          ();
-use PPI::Element ();
 use Scalar::Util ();
+use PPI::Structure::Block       ();
+use PPI::Structure::Condition   ();
+use PPI::Structure::Constructor ();
+use PPI::Structure::ForLoop     ();
+use PPI::Structure::List        ();
+use PPI::Structure::Subscript   ();
+use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -129,100 +134,6 @@ sub content {
 	my $self = shift;
 	join '', map { $_->content }
 	( $self->{start} || (), @{$self->{children}}, $self->{finish} || () );
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::Block;
-
-# The general block curly braces
-
-BEGIN {
-	$PPI::Structure::Block::VERSION = '0.831';
-	@PPI::Structure::Block::ISA     = 'PPI::Structure';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::Subscript;
-
-BEGIN {
-	$PPI::Structure::Subscript::VERSION = '0.831';
-	@PPI::Structure::Subscript::ISA     = 'PPI::Structure';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::Constructor;
-
-# The else block
-BEGIN {
-	$PPI::Structure::Constructor::VERSION = '0.831';
-	@PPI::Structure::Constructor::ISA     = 'PPI::Structure';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::Condition;
-
-# The round-braces condition structure from an if, elsif or unless
-# if ( ) { ... }
-
-BEGIN {
-	$PPI::Structure::Condition::VERSION = '0.831';
-	@PPI::Structure::Condition::ISA     = 'PPI::Structure';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::List;
-
-BEGIN {
-	$PPI::Structure::List::VERSION = '0.831';
-	@PPI::Structure::List::ISA     = 'PPI::Structure';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::ForLoop;
-
-BEGIN {
-	$PPI::Structure::ForLoop::VERSION = '0.831';
-	@PPI::Structure::ForLoop::ISA     = 'PPI::Structure';
-}
-
-
-
-
-
-#####################################################################
-package PPI::Structure::Unknown;
-
-# The Unknown class has been added to handle situations where we do
-# not immediately know the class we are, and need to wait for more
-# clues.
-
-BEGIN {
-	$PPI::Structure::Unknown::VERSION = '0.831';
-	@PPI::Structure::Unknown::ISA     = 'PPI::Structure';
 }
 
 1;

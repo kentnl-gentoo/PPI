@@ -20,9 +20,8 @@ BEGIN {
 use Class::Autouse ':devel';
 use PPI;
 use PPI::Lexer;
-use PPI::Lexer::Dump;
 
-use Test::More (); # Plan comes later
+use Test::More  (); # Plan comes later
 use File::Slurp ();
 
 

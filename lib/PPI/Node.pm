@@ -58,7 +58,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -79,7 +79,7 @@ sub new {
 
 
 #####################################################################
-# Public tree related methods
+# PDOM Methods
 
 =pod
 
@@ -203,7 +203,7 @@ returns the number of significant children.
 =cut
 
 sub schildren {
-	my $self = shift;
+	my $self      = shift;
 	my @schildren = grep { $_->significant } $self->children;
 	wantarray ? @schildren : scalar(@schildren);
 }
@@ -278,7 +278,7 @@ on error.
 =cut
 
 sub contains {
-	my $self = shift;
+	my $self    = shift;
 	my $Element = isa(ref $_[0], 'PPI::Element') ? shift : return undef;
 
 	# Iterate up the Element's parent chain until we either run out
@@ -292,7 +292,7 @@ sub contains {
 
 =pod
 
-=head2 find $class | \&condition
+=head2 find $class | \&wanted
 
 The C<find> method is used to search within a code tree for PPI::Element
 objects that meet a particular condition.
@@ -323,8 +323,8 @@ Node you are searching in and the current Element that the condition is
 testing. The anonymous subroutine should return a simple true/false
 value indicating match or no match.
 
-Note that the same condition logic is used for all methods documented to
-have a C<\&condition> parameter, as this one does.
+Note that the same wanted logic is used for all methods documented to
+have a C<\&wanted> parameter, as this one does.
 
 The C<find> method returns a reference to an array of PPI::Element objects
 that match the condition, false (but defined) if no Elements match the
@@ -336,24 +336,37 @@ In the case of a bad condition, a warning will be emitted as well.
 =cut
 
 sub find {
-	my $self = shift;
-	my $condition = $self->_condition(shift) or return undef;
+	my $self      = shift;
+	my $wanted = $self->_wanted(shift) or return undef;
 
 	# Use a queue based search, rather than a recursive one
 	my @found = ();
 	my @queue = $self->children;
-	while ( my $Element = shift @queue ) {
-		push @found, $Element if &$condition( $self, $Element );
+	eval {
+		while ( my $Element = shift @queue ) {
+			my $rv = &$wanted( $self, $Element );
+			push @found, $Element if $rv;
 
-		# Depth-first keeps the queue size down and provides a
-		# better logical order.
-		if ( $Element->isa('PPI::Structure') ) {
-			unshift @queue, $Element->finish if $Element->finish;
-			unshift @queue, $Element->children;
-			unshift @queue, $Element->start if $Element->start;
-		} elsif ( $Element->isa('PPI::Node') ) {
-			unshift @queue, $Element->children;
+			# Support "don't descend on undef return"
+			next unless defined $rv;
+
+			# Skip if the Element doesn't have any children
+			next unless $Element->isa('PPI::Node');
+
+			# Depth-first keeps the queue size down and provides a
+			# better logical order.
+			if ( $Element->isa('PPI::Structure') ) {
+				unshift @queue, $Element->finish if $Element->finish;
+				unshift @queue, $Element->children;
+				unshift @queue, $Element->start if $Element->start;
+			} else {
+				unshift @queue, $Element->children;
+			}
 		}
+	};
+	if ( $@ ) {
+		# Caught exception thrown from the wanted function
+		return undef;
 	}
 
 	@found ? \@found : '';
@@ -361,7 +374,7 @@ sub find {
 
 =pod
 
-=head2 find_any $class | \&condition
+=head2 find_any $class | \&wanted
 
 The C<find_any> is a short-circuiting true/false method that behaves like
 the normal C<find> method, but returns true as soon as it finds any Elements
@@ -375,23 +388,36 @@ not, or C<undef> if given an invalid condition, or an error occurs.
 =cut
 
 sub find_any {
-	my $self = shift;
-	my $condition = $self->_condition(shift) or return undef;
+	my $self      = shift;
+	my $wanted = $self->_wanted(shift) or return undef;
 
 	# Use a queue based search, rather than a recursive one
 	my @queue = $self->children;
-	while ( my $Element = shift @queue ) {
-		return 1 if &$condition( $self, $Element );
+	eval {
+		while ( my $Element = shift @queue ) {
+			my $rv = &$wanted( $self, $Element );
+			return 1 if $rv;
 
-		# Depth-first keeps the queue size down and provides a
-		# better logical order.
-		if ( $Element->isa('PPI::Structure') ) {
-			unshift @queue, $Element->finish if $Element->finish;
-			unshift @queue, $Element->children;
-			unshift @queue, $Element->start if $Element->start;
-		} elsif ( $Element->isa('PPI::Node') ) {
-			unshift @queue, $Element->children;
+			# Support "don't descend on undef return"
+			next unless defined $rv;
+
+			# Skip if the Element doesn't have any children
+			next unless $Element->isa('PPI::Node');
+
+			# Depth-first keeps the queue size down and provides a
+			# better logical order.
+			if ( $Element->isa('PPI::Structure') ) {
+				unshift @queue, $Element->finish if $Element->finish;
+				unshift @queue, $Element->children;
+				unshift @queue, $Element->start  if $Element->start;
+			} else {
+				unshift @queue, $Element->children;
+			}
 		}
+	};
+	if ( $@ ) {
+		# Caught exception thrown from the wanted function
+		return undef;
 	}
 
 	'';
@@ -427,38 +453,50 @@ sub remove_child {
 
 =pod
 
-=head2 prune $class | \&condition
+=head2 prune $class | \&wanted
 
 The C<prune> method is used to strip PPI::Element objects out of a code tree.
 The argument is the same as for the C<find> method, either a class name, or
 an anonymous subroutine which returns true/false. Any Element that matches
-the class|condition will be deleted from the code tree, along with any
+the class|wanted will be deleted from the code tree, along with any
 of its children.
 
 The C<prune> method returns the number of Element objects that matched and
 were removed, B<NOT> including the child Elements of those that matched
-the condition. This might also be zero, so avoid a simple true/false test
+the wanted. This might also be zero, so avoid a simple true/false test
 on the return false of the C<prune> method. It returns C<undef> on error,
 which you probably B<SHOULD> test for.
 
 =cut
 
 sub prune {
-	my $self = shift;
-	my $condition = $self->_condition(shift) or return undef;
+	my $self      = shift;
+	my $wanted = $self->_wanted(shift) or return undef;
 
 	# Use a depth-first queue search
 	my $pruned = 0;
-	my @queue = $self->children;
-	while ( my $element = shift @queue ) {
-		if ( &$condition( $self, $element ) ) {
-			# Delete the child
-			$element->delete or return undef;
-			$pruned++;
-		} elsif ( isa($element, 'PPI::Node') ) {
-			# Depth-first keeps the queue size down
-			unshift @queue, $element->children;
+	my @queue  = $self->children;
+	eval {
+		while ( my $element = shift @queue ) {
+			my $rv = &$wanted( $self, $element );
+			if ( $rv ) {
+				# Delete the child
+				$element->delete or return undef;
+				$pruned++;
+			}
+
+			# Support the undef == "don't descend"
+			next unless defined $rv;
+
+			if ( isa($element, 'PPI::Node') ) {
+				# Depth-first keeps the queue size down
+				unshift @queue, $element->children;
+			}
 		}
+	};
+	if ( $@ ) {
+		# Caught exception thrown from the wanted function
+		return undef;		
 	}
 
 	$pruned;
@@ -466,33 +504,60 @@ sub prune {
 
 # This method is likely to be very heavily used, to take
 # it slowly and carefuly.
-sub _condition {
+sub _wanted {
 	my $self = shift;
 	my $it   = defined $_[0] ? shift : do {
 		Carp::carp('Undefined value passed as search condition') if $^W;
 		return undef;
 		};
 
-	# Conditions are CODE-refs. Has the caller rolled their own?
+	# Has the caller provided a wanted function directly
 	return $it if ref $it eq 'CODE';
-
-	# No other ref types supported
 	if ( ref $it ) {
+		# No other ref types are supported
 		Carp::carp('Illegal non-CODE reference passed as search condition') if $^W;
 		return undef;
 	}
 
-	# Auto-prepend PPI:: if needed
+	# The first argument should be an Element class, possibly in shorthand
 	$it = "PPI::$it" unless substr($it, 0, 5) eq 'PPI::';
-
-	# Is the class a PPI::Element subclass?
 	unless ( isa($it, 'PPI::Element') ) {
+		# We got something, but it isn't an element
 		Carp::carp("Cannot create search condition for '$it': Not a PPI::Element") if $^W;
 		return undef;
 	}
 
-	# Create the condition code
-	my $code = eval "sub { UNIVERSAL::isa( \$_[1], \"$it\" ) }";
+	# Create the class part of the wanted function
+	my $wanted_class = "\n\treturn '' unless UNIVERSAL::isa( \$_[1], '$it' );";
+
+	# Have we been given a second argument to check the content
+	my $wanted_content = '';
+	if ( defined $_[0] ) {
+		my $content = shift;
+		if ( ref $content eq 'Regexp' ) {
+			$content = "$content";
+		} elsif ( ref $content ) {
+			# No other ref types are supported
+			Carp::carp("Cannot create search condition for '$it': Not a PPI::Element") if $^W;
+			return undef;
+		} else {
+			$content = quotemeta $content;
+		}
+
+		# Complete the content part of the wanted function
+		$wanted_content .= "\n\treturn '' unless defined \$_[1]->{content};";
+		$wanted_content .= "\n\treturn '' unless \$_[1]->{content} =~ /$content/;";
+	}
+
+	# Create the complete wanted function
+	my $code = "sub {"
+		. $wanted_class
+		. $wanted_content
+		. "\n\t1;"
+		. "\n}";
+
+	# Compile the wanted function
+	$code = eval $code;
 	(ref $code eq 'CODE') ? $code : undef;
 }
 
@@ -513,7 +578,7 @@ sub content {
 
 # Clone as normal, but then go down and relink all the _PARENT entries
 sub clone {
-	my $self = shift;
+	my $self  = shift;
 	my $clone = $self->SUPER::clone;
 
 	# Relink all our children ( depth first )
@@ -536,13 +601,13 @@ sub clone {
 
 
 sub _line {
-	my $self = shift;
+	my $self  = shift;
 	my $first = $self->{children}->[0] or return undef;
 	$first->_line;
 }
 
 sub _col {
-	my $self = shift;
+	my $self  = shift;
 	my $first = $self->{children}->[0] or return undef;
 	$first->_col;
 }

@@ -29,13 +29,15 @@ use base 'PPI::Base';
 use PPI::Node       ();
 use Clone           ();
 use List::MoreUtils ();
-use overload '=='   => '__equals';
-use overload 'eq'   => '__eq';
-use overload 'bool' => sub () { 1 };
+use overload 'bool' => sub () { 1 },
+             '""'   => 'content',
+             '=='   => '__equals',
+             'eq'   => '__eq';
+             
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 
 	# Master Child -> Parent index
 	%_PARENT = ();
@@ -192,8 +194,6 @@ sub next_sibling {
 		} @$elements;
 	$elements->[$position + 1] || '';
 }
-
-=cut
 
 =pod
 
@@ -454,6 +454,27 @@ sub delete {
 	$self->remove or return undef;
 	$self->DESTROY;
 	1;
+}
+
+=pod
+
+=head2 replace $Element
+
+Although some higher level class support more exotic forms of replace,
+at the basic level the C<replace> method takes a single Element as
+an argument and replaces the current Element with it.
+
+To prevent accidental damage to code, in this initial implementation the
+replacement element MUST be of exactly the same class as the one being
+replaced.
+
+=cut
+
+sub replace {
+	my $self = ref $_[0] ? shift : return undef;
+	my $Element = isa(ref $_[0], ref $self) ? shift : return undef;
+
+	die "CODE INCOMPLETE";
 }
 
 =pod

@@ -34,7 +34,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 
@@ -130,9 +130,9 @@ sub new {
 
 # Creates a new tokenizer from a file
 sub load {
-	my $class = shift;
+	my $class    = shift;
 	my $filename = shift or return undef;
-	my $source = File::Slurp::read_file($filename, reference => 1) or return undef;
+	my $source   = File::Slurp::read_file($filename, reference => 1) or return undef;
 	$class->new( $source );
 }
 
@@ -246,7 +246,7 @@ sub decrement_cursor {
 # ( cleaned up if necessary ) trailing slash.
 # Returns '' at EOF.
 # Returns undef on error.
-sub _get_line {
+ sub _get_line {
 	my $self = shift;
 	return '' unless $self->{source}; # End of file
 
@@ -402,7 +402,7 @@ sub _handle_raw_input {
 		if ( ref($terminator) eq 'PPI::Token::Word' ) {
 			$tString = $terminator->{content};
 		} elsif ( ref($terminator) =~ /^PPI::Token::Quote::(Single|Double)$/ ) {
-			$tString = $terminator->get_string;
+			$tString = $terminator->string;
 			return undef unless defined $tString;
 		} else {
 			return $self->_error( "Syntax error. The raw input << operator must be followed by a bare word, or a single or double quoted string" );

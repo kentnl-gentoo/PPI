@@ -1,35 +1,35 @@
-package PPI::Token::Quote::Full;
+package PPI::Token::_QuoteEngine::Full;
 
 # Full quote engine
 
 use strict;
-use base 'PPI::Token::Quote';
+use base 'PPI::Token::_QuoteEngine';
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
 	%quotes = (
-		'q'   => { operator => 'q',  braced => undef, seperator => undef, _sections => 1 },
-		'qq'  => { operator => 'qq', braced => undef, seperator => undef, _sections => 1 },
-		'qx'  => { operator => 'qx', braced => undef, seperator => undef, _sections => 1 },
-		'qw'  => { operator => 'qw', braced => undef, seperator => undef, _sections => 1 },
-		'qr'  => { operator => 'qr', braced => undef, seperator => undef, _sections => 1, modifiers => {} },
-		'm'   => { operator => 'm',  braced => undef, seperator => undef, _sections => 1, modifiers => {} },
-		's'   => { operator => 's',  braced => undef, seperator => undef, _sections => 2, modifiers => {} },
-		'tr'  => { operator => 'tr', braced => undef, seperator => undef, _sections => 2, modifiers => {} },
+		'q'   => { operator => 'q',   braced => undef, seperator => undef, _sections => 1 },
+		'qq'  => { operator => 'qq',  braced => undef, seperator => undef, _sections => 1 },
+		'qx'  => { operator => 'qx',  braced => undef, seperator => undef, _sections => 1 },
+		'qw'  => { operator => 'qw',  braced => undef, seperator => undef, _sections => 1 },
+		'qr'  => { operator => 'qr',  braced => undef, seperator => undef, _sections => 1, modifiers => {} },
+		'm'   => { operator => 'm',   braced => undef, seperator => undef, _sections => 1, modifiers => {} },
+		's'   => { operator => 's',   braced => undef, seperator => undef, _sections => 2, modifiers => {} },
+		'tr'  => { operator => 'tr',  braced => undef, seperator => undef, _sections => 2, modifiers => {} },
 
 		# Y is the little used varient of tr
-		'y'   => { operator => 'y', braced => undef, seperator => undef, _sections => 2, modifiers => {} },
+		'y'   => { operator => 'y',   braced => undef, seperator => undef, _sections => 2, modifiers => {} },
 
-		'/'   => { operator => undef, braced => 0, seperator => '/', _sections => 1, modifiers => {} },
+		'/'   => { operator => undef, braced => 0,     seperator => '/',   _sections => 1, modifiers => {} },
 
 		# The final ( and kind of depreciated ) "first match only" one is not
 		# used yet, since I'm not sure on the context differences between
 		# this and the trinary operator, but its here for completeness.
-		'?'   => { operator => undef, braced => 0, seperator => '?', _sections => 1, modifieds => {} },
+		'?'   => { operator => undef, braced => 0,     seperator => '?',   _sections => 1, modifieds => {} },
 		);
 
 	# Prototypes for the different braced sections
@@ -50,7 +50,10 @@ sub new {
 	my $init = defined $_[0] ? shift : return undef;
 
 	# Create the token
-	my $self = $class->SUPER::new($init) or return undef;
+	### This manual SUPER'ing ONLY works because none of
+	### Token::Quote, Token::QuoteLike and Token::Regexp
+	### implement a new function of their own.
+	my $self = PPI::Token::new( $class, $init ) or return undef;
 
 	# Do we have a prototype for the intializer? If so, add the extra fields
 	my $options = $quotes{$init} or return $self->_error( "Unknown quote like operator '$init'" );
@@ -97,27 +100,26 @@ sub _fill {
 
 	# Parse different based on whether we are normal or braced
 	$_ = $self->{braced}
-		? $self->_fill_braced( $t ) : $self->_fill_normal( $t )
+		? $self->_fill_braced($t)
+		: $self->_fill_normal($t)
 		or return $_;
 
-	# Does the quote support modifiers ( i.e. s/foo//eieio )
-	if ( $self->{modifiers} ) {
-		# Check for modifiers
-		my $char;
-		my $len = 0;
-		while ( ($char = substr( $t->{line}, $t->{line_cursor} + 1, 1 )) =~ /\w/ ) {
-			if ( $char eq '_' ) {
-				return $self->_error( "Syntax error. Cannot use underscore '_' as regex modifier" );
-			} else {
-				$len++;
-				$self->{content} .= $char;
-				$self->{modifiers}->{ lc $char } = 1;
-				$t->{line_cursor}++;
-			}
-		}
-	}
+	# Return now unless it has modifiers ( i.e. s/foo//eieio )
+	return 1 unless $self->{modifiers};
 
-	1;
+	# Check for modifiers
+	my $char;
+	my $len = 0;
+	while ( ($char = substr( $t->{line}, $t->{line_cursor} + 1, 1 )) =~ /\w/ ) {
+		if ( $char eq '_' ) {
+			return $self->_error( "Syntax error. Cannot use underscore '_' as regex modifier" );
+		}
+
+		$len++;
+		$self->{content} .= $char;
+		$self->{modifiers}->{lc $char} = 1;
+		$t->{line_cursor}++;
+	}
 }
 
 # Handle the content parsing path for normally seperated
@@ -138,7 +140,7 @@ sub _fill_normal {
 	# Complete the properties of the first section
 	$self->{sections}->[0] = {
 		position => length $self->{content},
-		size => length($string) - 1
+		size     => length($string) - 1
 		};
 
 	# We are done if there is only one section
@@ -162,7 +164,7 @@ sub _fill_normal {
 	# Complete the properties of the second section
 	$self->{sections}->[1] = {
 		position => length $self->{content},
-		size => length($string) - 1
+		size     => length($string) - 1
 		};
 
 	1;
@@ -186,7 +188,7 @@ sub _fill_braced {
 
 	# Complete the properties of the first section
 	$section->{position} = length $self->{content};
-	$section->{size} = length($_) - 1;
+	$section->{size}     = length($_) - 1;
 	delete $section->{_close};
 
 	# We are done if there is only one section
@@ -236,7 +238,7 @@ sub _fill_braced {
 
 	# Complete the properties for the second section
 	$section->{position} = length $self->{content};
-	$section->{size} = length($_) - 1;
+	$section->{size}     = length($_) - 1;
 	delete $section->{_close};
 
 	1;
@@ -250,6 +252,6 @@ sub _fill_braced {
 
 # In a scalar context, get the number of sections
 # In an array context, get the section information
-sub sections { wantarray ? @{$_[0]->{sections}} : scalar @{$_[0]->{sections}} }
+sub _sections { wantarray ? @{$_[0]->{sections}} : scalar @{$_[0]->{sections}} }
 
 1;

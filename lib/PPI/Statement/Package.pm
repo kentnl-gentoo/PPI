@@ -8,11 +8,11 @@ PPI::Statement::Package - A package statement
 
 =head1 INHERITANCE
 
-  PPI::Base
-  \--> PPI::Element
-       \--> PPI::Node
-            \--> PPI::Statement
-                 \--> PPI::Statement::Package
+  PPI::Statement::Package
+  is a PPI::Statement
+  is a PPI::Node
+  is a PPI::Element
+  is a PPI::Base
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,7 @@ PPI::Statement::Package object.
 
 When working with package statements, please remember that packages only
 exist within their scope, and proper support for scoping has yet to be
-provided in PPI.
+completed in PPI.
 
 However, if the immediate parent of the package statement is the
 top level L<PPI::Document|PPI::Document> object, then it can be considered
@@ -43,7 +43,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.831';
+	$VERSION = '0.840';
 }
 
 =pod
