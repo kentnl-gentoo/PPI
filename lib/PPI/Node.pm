@@ -57,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.900';
+	$VERSION = '0.901';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -393,7 +393,7 @@ sub find_first {
 
 	# Use the same queue-based search as for ->find
 	my @queue = $self->children;
-	eval {
+	my $rv = eval {
 		while ( my $Element = shift @queue ) {
 			my $rv = &$wanted( $self, $Element );
 			return $Element if $rv;
@@ -420,7 +420,7 @@ sub find_first {
 		return undef;
 	}
 
-	'';
+	$rv or '';
 }
 
 =pod
@@ -525,9 +525,11 @@ sub prune {
 
 # This method is likely to be very heavily used, to take
 # it slowly and carefuly.
+### NOTE: Renaming this function or changing either to self will probably
+###       break File::Find::Rule::PPI
 sub _wanted {
-	my $self = shift;
-	my $it   = defined $_[0] ? shift : do {
+	my $either = shift;
+	my $it     = defined $_[0] ? shift : do {
 		Carp::carp('Undefined value passed as search condition') if $^W;
 		return undef;
 		};

@@ -8,17 +8,14 @@
 use strict;
 use lib ();
 use UNIVERSAL 'isa';
-use File::Spec;
+use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	unless ( $ENV{HARNESS_ACTIVE} ) {
 		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( File::Spec->catdir(
-			File::Spec->updir,
-			File::Spec->updir,
-			'modules',
-			) );
+		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
+		chdir catdir( $FindBin::Bin, updir() );
+		lib->import('blib', 'lib');
 	}
 }
 
@@ -27,7 +24,7 @@ use Class::Autouse ':devel';
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 136;
+use Test::More tests => 146;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -197,7 +194,8 @@ is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previo
 	is( ref $found, 'ARRAY', '->find returned an array' );
 	is( scalar(@$found), 2, 'Multiple find returned expected number of items' );
 
-	# Test for the ability to short then names
+	# Test for the ability to shorten the names
+	$found = $Document->find('Token::Number');
 	ok( $found, 'Multiple find succeeded' );
 	is( ref $found, 'ARRAY', '->find returned an array' );
 	is( scalar(@$found), 2, 'Multiple find returned expected number of items' );
@@ -212,6 +210,27 @@ is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previo
 	is( $Document->find('Foo'), undef, '->find(BAD) failed'   );
 }
 
+# Test the find_first method
+{
+	is( $Document->find_first('PPI::Token::End'), '', '->find_first returns false if nothing found' );
+	isa_ok( $Document->find_first('PPI::Structure'), 'PPI::Structure' );
+	my $found = $Document->find_first('PPI::Token::Number');
+	ok( $found, 'Multiple find_first succeeded' );
+	isa_ok( $found, 'PPI::Token::Number' );
+
+	# Test for the ability to shorten the names
+	$found = $Document->find_first('Token::Number');
+	ok( $found, 'Multiple find_first succeeded' );
+	isa_ok( $found, 'PPI::Token::Number' );
+}
+
+# Test the find_any method
+{
+	is( $Document->find_any('PPI::Token::End'), '', '->find_any returns false if nothing found' );
+	is( $Document->find_any('PPI::Structure'), 1, '->find_any returns true is something found' );
+	is( $Document->find_any('PPI::Token::Number'), 1, '->find_any returns true for multiple find' );
+	is( $Document->find_any('Token::Number'), 1, '->find_any returns true for shortened multiple find' );
+}
 
 # Test the contains method
 {

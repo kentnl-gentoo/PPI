@@ -1,6 +1,20 @@
 Revision history for Perl extension PPI
 
-0.847 Mon Jan 17 2005
+0.901 Sat Jan 29 2005
+	General:
+	- Moved all up-to-date code over to SourceForge
+	- Various fixes to allow the release of File::Find::Rule::PPI
+
+	Details:
+	- Got all modules synchronising their versions correctly
+	- Moved to SourceForge CVS repository
+	- Changed all files over to the new CVS directory layout
+	- Fixed bug in PPI::Node::find_first
+	- Added unit tests for PPI::Node::find_first
+	- Added unit tests for PPI::Node::find_any
+	- Added a stub and docs for PPI::Statement::stable
+
+0.900 Mon Jan 17 2005
 	General:
 	- Final removal of PPI::Base
 	- Completed majority of crash bugs in the Tokenizer

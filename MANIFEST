@@ -16,7 +16,6 @@ inc/Test/ClassAPI.pm
 lib/PPI.pm
 lib/PPI/Document.pm
 lib/PPI/Document/Fragment.pm
-lib/PPI/Document/Normalized.pm
 lib/PPI/Dumper.pm
 lib/PPI/Element.pm
 lib/PPI/Find.pm

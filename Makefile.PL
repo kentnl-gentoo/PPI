@@ -23,6 +23,10 @@ build_requires( 'Test::ClassAPI'   => '1.02'    );
 include       ( 'Test::ClassAPI'                );
 include       ( 'Config::Tiny'                  );
 
+# Our test data might contain valid-looking modules.
+# Don't index anything in the test data directory.
+no_index      ( directory          => 't.data' );
+
 auto_install();
 
 &WriteAll;

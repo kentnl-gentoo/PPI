@@ -10,8 +10,9 @@ BEGIN {
 	$| = 1;
 	unless ( $ENV{HARNESS_ACTIVE} ) {
 		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
+		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
+		chdir catdir( $FindBin::Bin, updir() );
+		lib->import('blib', 'lib');
 	}
 }
 
@@ -25,7 +26,7 @@ use PPI::Find;
 # use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2055;
+use Test::More 'tests' => 2067;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -254,6 +255,7 @@ PPI::Token=isa
 [PPI::Statement]
 PPI::Node=isa
 label=method
+stable=method
 
 [PPI::Statement::Expression]
 PPI::Statement=isa

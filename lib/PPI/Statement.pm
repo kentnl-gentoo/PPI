@@ -155,7 +155,7 @@ use PPI::Statement::Variable       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.900';
+	$VERSION = '0.901';
 }
 
 # "Normal" statements end at a statement terminator ;
@@ -208,6 +208,44 @@ sub label {
 	isa($first, 'PPI::Token::Label')
 		? substr($first, 0, length($first) - 1)
 		: '';
+}
+
+=pod
+
+=head2 stable
+
+Much like the L<PPI::Document> method of the same name, the ->stable
+method converts a statement to source and back again, to determine if
+a modified statement is still legal, and won't be interpreted in a
+different way.
+
+Returns true if the statement is stable, false if not, or C<undef> on
+error.
+
+=cut
+
+sub stable {
+	my $self = shift;
+	die "The ->stable method has not yet been implemented";	
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub _Fragment {
+	my $self = shift;
+
+	# Because we are potentially part of a larger structure,
+	# we need to clone ourselves first.
+	my $clone = $self->clone or return undef;
+
+	# Create the empty Fragment
+	my $Fragment = PPI::Document::Fragment->new;
+	$Fragment->add_element( $self ) or return undef;
 }
 
 1;

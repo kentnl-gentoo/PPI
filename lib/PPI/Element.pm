@@ -34,7 +34,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.900';
+	$VERSION = '0.901';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -542,7 +542,7 @@ sub replace {
 	my $self = ref $_[0] ? shift : return undef;
 	my $Element = isa(ref $_[0], ref $self) ? shift : return undef;
 
-	die "CODE INCOMPLETE";
+	die "The ->replace method has not yet been implemented";
 }
 
 =pod

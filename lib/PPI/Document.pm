@@ -62,7 +62,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.900';
+	$VERSION = '0.901';
 }
 
 
@@ -185,6 +185,7 @@ sub serialize {
 			} else {
 				# Slower and more general version
 				$content =~ s/\n/\n$heredoc/;
+				$output .= $content;
 			}
 
 			$heredoc = '';
