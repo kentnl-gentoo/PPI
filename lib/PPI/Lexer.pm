@@ -49,7 +49,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 	$errstr  = '';
 }
 
@@ -996,7 +996,7 @@ and Structure subclasses.
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 

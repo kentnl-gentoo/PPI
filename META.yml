@@ -1,5 +1,5 @@
 name: PPI
-version: 0.902
+version: 0.903
 abstract: Analyze and manipulate Perl code without using perl itself
 author: Adam Kennedy<cpan@ali.as>
 license: perl
@@ -16,6 +16,7 @@ requires:
   File::Slurp: 9999.04
   List::Util: 1.11
   List::MoreUtils: 0.04
+  Storable: 1.13
 no_index:
   directory:
     - t.data

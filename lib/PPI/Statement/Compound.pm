@@ -39,7 +39,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 
 	# Keyword type map
 	%TYPES = (
@@ -101,6 +101,17 @@ sub type {
 	undef;
 }
 
+
+
+
+
+#####################################################################
+# PPI::Node Methods
+
+sub scope {
+	
+}
+
 1;
 
 =pod
@@ -111,7 +122,7 @@ sub type {
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 

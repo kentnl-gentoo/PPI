@@ -1,5 +1,24 @@
 Revision history for Perl extension PPI
 
+0.903 Fri Mar 25
+	General:
+	- PPI::Document and other PPI::Node-subclasses will now implicitly
+	  DESTROY correctly.
+	- Now that PPI.pm is just a module loader, merge the main
+	  documentation from PPI::Manual back into it again.
+
+	Details:
+	- Added use of Scalar::Util::weaken for all %_PARENT writes
+	- Uncovered critical bug in Clone, so we use Storable::dclone
+	  for now, until Clone is fixed.
+	  This resolves rt.cpan.org #11552
+	- Added dependency on Storable 1.13
+	- Moved all PPI::Manual content to PPI and relinked
+	  This resolves rt.cpan.org #11803
+	- Removed lib/PPI/Manual.pod
+	- Added the standard 99_pod.t to check POD
+	- Fixed a POD bug in Element.pm
+
 0.902 Sun Feb  6 2005
 	General:
 	- Added Document Normalization functions from old Perl::Compare

@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
-# code/dump-style regression tests for known problems
+# code/dump-style regression tests for known lexing problems.
+
+# Some other regressions tests are included here for simplicity.
 
 use strict;
 use lib ();
@@ -29,7 +31,7 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 30;
+use Test::More tests => 37;
 use File::Slurp ();
 
 use vars qw{$testdir};
@@ -51,7 +53,7 @@ ok( scalar @code, 'Found at least one code file' );
 
 
 #####################################################################
-# Testing
+# Code/Dump Testing
 
 my $Lexer = PPI::Lexer->new;
 foreach my $codefile ( @code ) {
@@ -85,6 +87,22 @@ foreach my $codefile ( @code ) {
 	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
 	is( $Document->serialize, $source, "$codefile: Round-trip back to source was ok" );
+}
+
+
+
+
+
+#####################################################################
+# Regression Test for rt.cpan.org #11522
+
+# Check that objects created in a foreach don't leak circulars.
+is( scalar(keys(%PPI::Element::_PARENT)), 0, 'No parent links initially' );
+foreach ( 1 .. 3 ) {
+	sleep 1;
+	is( scalar(keys(%PPI::Element::_PARENT)), 0, 'No parent links at start of loop time' );
+	my $Document = PPI::Document->new(q[print "Foo!"]);
+	is( scalar(keys(%PPI::Element::_PARENT)), 4, 'Correct number of keys created' );
 }
 
 exit();

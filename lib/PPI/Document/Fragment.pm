@@ -24,11 +24,15 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 }
 
-# Identical, except for not having its own scope
-# sub scope { '' }
+
+
+
+
+#####################################################################
+# PPI::Document Methods
 
 =pod
 
@@ -47,6 +51,17 @@ sub index_locations {
 	undef;
 }
 
+
+
+
+
+#####################################################################
+# PPI::Element Methods
+
+# We are not a scope boundary
+### XS -> PPI/XS.xs:_PPI_Document_Fragment__scope 0.903+
+sub scope { '' }
+
 1;
 
 =pod
@@ -58,7 +73,7 @@ obvious would be to implement arbitrary cut/copy/paste more easily.
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 

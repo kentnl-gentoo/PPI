@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -39,7 +39,9 @@ sub new {
 		}, $class;
 
 	# Set the start braces parent link
-	$_PARENT{refaddr $Token} = $self;
+	Scalar::Util::weaken(
+		$_PARENT{refaddr $Token} = $self
+		);
 
 	$self;
 }

@@ -55,7 +55,7 @@ use PPI::Document::Normalized ();
 
 use vars qw{$VERSION $errstr %LAYER};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 	$errstr  = '';
 
 	# Registered function store
@@ -216,7 +216,7 @@ sub _clear { $errstr = ''; $_[0] }
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 

@@ -8,7 +8,7 @@ use strict;
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.00';
+	$VERSION = '2.01';
 	$errstr  = '';
 }
 
@@ -76,7 +76,7 @@ sub write {
 	my $file = shift or return $self->_error( 'No file name provided' );
 
 	# Write it to the file
-	open( CFG, '>', $file ) 
+	open( CFG, '>'. $file ) 
 		or return $self->_error( "Failed to open file '$file' for writing: $!" );
 	print CFG $self->write_string;
 	close CFG;
@@ -107,4 +107,4 @@ sub _error { $errstr = $_[1]; undef }
 
 __END__
 
-#line 248
+#line 246

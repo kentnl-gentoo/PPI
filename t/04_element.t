@@ -25,7 +25,7 @@ BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 151;
+use Test::More tests => 172;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -51,6 +51,78 @@ sub omethod_fails {
 	foreach my $args ( @$arg_set ) {
 		is( $object->$method( $args ), undef, ref($object) . "->$method fails correctly" );
 	}
+}
+
+
+
+
+
+#####################################################################
+# Miscellaneous
+
+# Confirm that C< weaken( $hash{scalar} = $object ) > works as expected,
+# adding a weak reference to the has index.
+use Scalar::Util ();
+{
+	my %hash = ();
+	my $counter = 0;
+
+	{
+		my $object1 = bless { }, 'My::WeakenTest';
+		my $object2 = bless { }, 'My::WeakenTest';
+		my $object3 = bless { }, 'My::WeakenTest';
+		isa_ok( $object1, 'My::WeakenTest' );
+		isa_ok( $object2, 'My::WeakenTest' );
+		isa_ok( $object3, 'My::WeakenTest' );
+
+		# Do nothing for object1.
+		
+		# Add object2 to a has index normally
+		$hash{foo} = $object2;
+
+		# Add object2 and weaken
+		Scalar::Util::weaken($hash{bar} = $object3);
+		ok( Scalar::Util::isweak( $hash{bar} ), 'index entry is weak' );
+		ok( ! Scalar::Util::isweak( $object3 ), 'original is not weak' );
+
+		sleep 1;
+
+		# Do all the objects still exist
+		isa_ok( $object1, 'My::WeakenTest' );
+		isa_ok( $object2, 'My::WeakenTest' );
+		isa_ok( $object3, 'My::WeakenTest' );
+		isa_ok( $hash{foo}, 'My::WeakenTest' );
+		isa_ok( $hash{bar}, 'My::WeakenTest' );
+	}
+	sleep 1;
+	# Two of the three should have destroyed
+	is( $counter, 2, 'Counter increments as expected normally' );
+
+	# foo should still be there
+	isa_ok( $hash{foo}, 'My::WeakenTest' );
+
+	# bar should ->exists, but be undefined
+	ok( exists $hash{bar}, 'weakened object hash slot exists' );
+	ok( ! defined $hash{bar}, 'weakened object hash slot is undefined' );
+
+	package My::WeakenTest;
+	
+	sub DESTROY {
+		$counter++;
+	}
+}
+	
+
+
+
+# Test interaction between weaken and Storable::dclone
+{
+	my $object = { a => undef };
+	# my $object = bless { a => undef }, 'Foo';
+	my $object2 = $object;
+	Scalar::Util::weaken($object2);
+	my $clone = Storable::dclone($object);
+	is_deeply( $clone, $object, 'Object is cloned OK when a different reference is weakened' );
 }
 
 
@@ -313,6 +385,39 @@ ok( ! defined $Braces->parent, "Braces are detached from parent" );
 	sleep 1;
 	$k3 = scalar keys %PPI::Element::_PARENT;
 	is( $k3, $k1, 'PARENT keys returns to original on DESTROY' );
+}
+
+# Repeat for an entire (large) file
+{
+	my $k1 = scalar keys %PPI::Element::_PARENT;
+	my $k2;
+	my $k3;
+	{
+		my $NodeDocument = PPI::Document->load( $INC{"PPI/Node.pm"} );
+		isa_ok( $NodeDocument, 'PPI::Document' );
+		$k2 = scalar keys %PPI::Element::_PARENT;
+		ok( $k2 > ($k1 + 3000), 'PARENT keys increases after loading document' );
+		$NodeDocument->DESTROY;
+	}
+	sleep 1;
+	$k3 = scalar keys %PPI::Element::_PARENT;
+	is( $k3, $k1, 'PARENT keys returns to original on explicit Document DESTROY' );
+}
+
+# Repeat again, but with an implicit DESTROY
+{
+	my $k1 = scalar keys %PPI::Element::_PARENT;
+	my $k2;
+	my $k3;
+	{
+		my $NodeDocument = PPI::Document->load( $INC{"PPI/Node.pm"} );
+		isa_ok( $NodeDocument, 'PPI::Document' );
+		$k2 = scalar keys %PPI::Element::_PARENT;
+		ok( $k2 > ($k1 + 3000), 'PARENT keys increases after loading document' );
+	}
+	sleep 1;
+	$k3 = scalar keys %PPI::Element::_PARENT;
+	is( $k3, $k1, 'PARENT keys returns to original on implicit Document DESTROY' );
 }
 
 1;

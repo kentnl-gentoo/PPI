@@ -8,7 +8,17 @@ use base 'PPI::Structure';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 }
+
+
+
+
+
+#####################################################################
+# PPI::Element Methods
+
+# This is a scoping boundary
+sub scope { 1 }
 
 1;

@@ -57,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -82,6 +82,18 @@ sub new {
 
 =pod
 
+=head2 scope
+
+The C<scope> method returns true if the node represents a lexical scope
+boundary, or false if it does not.
+
+=cut
+
+### XS -> PPI/XS.xs:_PPI_Node__scope 0.903+
+sub scope { '' }
+
+=pod
+
 =head2 add_element $Element
 
 The C<add_element> method adds a PPI::Element object to the end of a
@@ -103,7 +115,9 @@ sub add_element {
 
 	# Add the argument to the elements
 	push @{$self->{children}}, $Element;
-	$_PARENT{refaddr $Element} = $self;
+	Scalar::Util::weaken(
+		$_PARENT{refaddr $Element} = $self
+		);
 
 	1;
 }
@@ -111,7 +125,10 @@ sub add_element {
 # In a typical run profile, add_element is the number 1 resource drain.
 # This is a highly optimised unsafe version, for internal use only.
 sub __add_element {
-	push @{($_PARENT{refaddr $_[1]} = $_[0])->{children}}, $_[1];
+	Scalar::Util::weaken( 
+		$_PARENT{refaddr $_[1]} = $_[0]
+		);
+	push @{$_[0]->{children}}, $_[1];
 }
 
 =pod
@@ -610,19 +627,26 @@ sub clone {
 	while ( my $Node = shift @queue ) {
 		# Link our immediate children
 		foreach my $Element ( @{$Node->{children}} ) {
-			$_PARENT{refaddr($Element)} = $Node;
+			Scalar::Util::weaken(
+				$_PARENT{refaddr($Element)} = $Node
+				);
 			unshift @queue, $Element if isa($Element, 'PPI::Node');
 		}
 
 		# If it's a structure, relink the open/close braces
 		next unless isa($Node, 'PPI::Structure');
-		$_PARENT{refaddr($Node->start)}  = $Node if $Node->start;
-		$_PARENT{refaddr($Node->finish)} = $Node if $Node->finish;
+		Scalar::Util::weaken(
+			$_PARENT{refaddr($Node->start)}  = $Node
+			)
+			if $Node->start;
+		Scalar::Util::weaken(
+			$_PARENT{refaddr($Node->finish)} = $Node
+			)
+			if $Node->finish;
 	}
 
 	$clone;
 }
-
 
 sub _line {
 	my $self  = shift;
@@ -662,7 +686,7 @@ sub DESTROY {
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 

@@ -25,7 +25,7 @@ use strict;
 use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
 use PPI::Node       ();
-use Clone           ();
+use Storable        ();
 use List::MoreUtils ();
 use overload 'bool' => sub () { 1 },
              '""'   => 'content',
@@ -34,7 +34,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -185,8 +185,6 @@ sub document {
 	my $top = shift->top;
 	isa($top, 'PPI::Document') and $top;
 }
-
-=cut
 
 =pod
 
@@ -435,10 +433,13 @@ an Element object. In the generic case, the implementation is done using
 the Clone module's mechanism itself. In higher-order cases, such as for
 Nodes, there is more work involved to keep the parent-child links intact.
 
+NOTE: This has temporarily been moved to Storable::dclone until a critical
+but in Clone can be fixed.
+
 =cut
 
-BEGIN {
-	Clone->import('clone');
+sub clone {
+	Storable::dclone(shift);
 }
 
 =pod
@@ -661,7 +662,7 @@ as error handlers.
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 

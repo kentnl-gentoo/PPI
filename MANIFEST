@@ -21,7 +21,6 @@ lib/PPI/Dumper.pm
 lib/PPI/Element.pm
 lib/PPI/Find.pm
 lib/PPI/Lexer.pm
-lib/PPI/Manual.pod
 lib/PPI/Node.pm
 lib/PPI/Normal.pm
 lib/PPI/Normal/Standard.pm
@@ -132,3 +131,4 @@ t/06_round_trip.t
 t/07_token.t
 t/08_regression.t
 t/09_normal.t
+t/99_pod.t

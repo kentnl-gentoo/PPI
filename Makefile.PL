@@ -13,6 +13,7 @@ requires      ( 'Clone'            => '0.13'    );
 requires      ( 'File::Slurp'      => '9999.04' );
 requires      ( 'List::Util'       => '1.11'    );
 requires      ( 'List::MoreUtils'  => '0.04'    );
+requires      ( 'Storable'         => '1.13'    );
 
 build_requires( 'File::Spec'       => '0.82'    );
 build_requires( 'Test::More'       => '0.47'    );

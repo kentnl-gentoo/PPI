@@ -62,7 +62,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.902';
+	$VERSION = '0.903';
 }
 
 
@@ -390,6 +390,17 @@ sub normalized {
 	PPI::Normal->process( $Document );
 }
 
+
+
+
+
+#####################################################################
+# PPI::Node Methods
+
+# We are a scope boundary
+### XS -> PPI/XS.xs:_PPI_Document__scope 0.903+
+sub scope { 1 }
+
 1;
 
 =pod
@@ -406,7 +417,7 @@ recognise the normalisation work going on in L<Perl::Compare> and the like.
 
 =head1 SUPPORT
 
-See the L<support section|PPI::Manual/SUPPORT> in the PPI Manual
+See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
