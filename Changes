@@ -1,7 +1,40 @@
 Revision history for Perl extension PPI
 
-0.840 Tue Dev 21 2004
+0.840 Thu Dec 21 2004
+	General:
+	- Changed the PPI summary to no longer use the devisive word "parse"
+	  Now: "PPI - Analyze and manipulate Perl code without using perl itself"
+	- Total rewrite of all the ->location code
+	- Upgrading MakeFile.PL to Module::Install
+	- Fixed #CPAN 8752 (a round-trip edge case bug)
+	- Added 08_regression.t to do code/dump regression testing for lexer bugs
+	- Completed (hopefully) HereDocs conversion to a single complex token
+	- PPI is now compatible with prefork.pm (although not dependant)
+
+	Details:
+	- Added PPI::Node::find_first object method
+	- Changed PPI::Node::find_any to just call PPI::Node::find_first
+	- Added PPI::Element::first_token object method
+	- Added PPI::Element::last_token object method
+	- Made a partial-removal-capable PPI::Element::_flush_locations
+	- PPI::Document::flush_locations uses PPI::Element::_flush_locations
+	- PPI::Document::index_locations is here-doc sane
+	- Added PPI::Token::HereDoc::heredoc object method
+	- Added PPI::Token::HereDoc::terminator object method
+	- Documented PPI::Token::HereDoc
+	- Added a HereDoc code/dump test to 05_lexer_practical.t
+	- Added PPI::Document::serialize, which replaces the use of
+	  ->content for generating the actual string to write out to
+	  files when saving Documents.
+	- File::Spec reduced from dependency to build dependency
+	- Updated Test::ClassAPI dependency to newest version
+	- Enabled API collision detection in 02_api.t
+	- Updated Class::Autouse dependency to newest version
+
+0.840_01 Tue Dec 21 2004
+	General:
 	- Perl Foundation Funding Commences
+	- Changes separated into General and Details from here one
 	- Complete re-organisation of the quote-like token classes.
 	  Any and all code that works with quotes will be broken.
 	- Gave up on the old PPI::Query code and wrote a complete new and
@@ -12,6 +45,8 @@ Revision history for Perl extension PPI
 	  It should be relatively easy for someone to write PPI::Find::Rule
 	  on top of it.
 	- PPI::Transform is thus temporarily stale
+
+	Details:
 	- Introduced a bug for C< foreach $foo () > and caught/fixed it
 	  during the changeover.
 	- Changed PPI::Lexer::Dump to PPI::Dumper

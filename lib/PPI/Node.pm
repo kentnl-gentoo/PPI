@@ -374,29 +374,33 @@ sub find {
 
 =pod
 
-=head2 find_any $class | \&wanted
+=head2 find_first $class | \&wanted
 
-The C<find_any> is a short-circuiting true/false method that behaves like
-the normal C<find> method, but returns true as soon as it finds any Elements
-that match the search condition.
+If the normal C<find> method is like a grep, then C<find_first> is
+equivalent to the L<Scalar::Util> C<first> function.
+
+Given an element class or a wanted function, it will search depth-first
+through a tree until it finds something that matches the condition,
+returning the first Element that it encounters.
 
 See the C<find> method for details on the format of the search condition.
 
-Returns true if any Elements that match the condition can be found, false if
-not, or C<undef> if given an invalid condition, or an error occurs.
+Returns the first L<PPI::Element> object that matches the condition, false
+if nothing matches the condition, or C<undef> if given an invalid condition,
+or an error occurs.
 
 =cut
 
-sub find_any {
+sub find_first {
 	my $self      = shift;
 	my $wanted = $self->_wanted(shift) or return undef;
 
-	# Use a queue based search, rather than a recursive one
+	# Use the same queue-based search as for ->find
 	my @queue = $self->children;
 	eval {
 		while ( my $Element = shift @queue ) {
 			my $rv = &$wanted( $self, $Element );
-			return 1 if $rv;
+			return $Element if $rv;
 
 			# Support "don't descend on undef return"
 			next unless defined $rv;
@@ -421,6 +425,27 @@ sub find_any {
 	}
 
 	'';
+}
+
+=pod
+
+=head2 find_any $class | \&wanted
+
+The C<find_any> method is a short-circuiting true/false method that behaves
+like the normal C<find> method, but returns true as soon as it finds any
+Elements that match the search condition.
+
+See the C<find> method for details on the format of the search condition.
+
+Returns true if any Elements that match the condition can be found, false if
+not, or C<undef> if given an invalid condition, or an error occurs.
+
+=cut
+
+sub find_any {
+	my $self = shift;
+	my $rv = $self->find_first(@_);
+	return $rv ? 1 : $rv; # false or undef
 }
 
 =pod

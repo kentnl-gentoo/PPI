@@ -9,9 +9,9 @@ PPI::Document - A single Perl document
 =head1 INHERITANCE
 
   PPI::Base
-  `--> PPI::Element
-       `--> PPI::Node
-            `--> PPI::Document
+  isa PPI::Element
+      isa PPI::Node
+          isa PPI::Document
 
 =head1 SYNOPSIS
 
@@ -54,10 +54,11 @@ Document-specific.
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
-use File::Slurp    ();
-use PPI            ();
-use PPI::Statement ();
-use PPI::Structure ();
+use List::MoreUtils ();
+use File::Slurp     ();
+use PPI             ();
+use PPI::Statement  ();
+use PPI::Structure  ();
 use PPI::Document::Fragment ();
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'content';
@@ -100,7 +101,7 @@ sub save {
 	my $self = shift;
 
 	# Serialize the Document
-	my $content = $self->content or return undef;
+	my $content = $self->serialize;
 
 	### FIXME - Check the return conditions for this
 	File::Slurp::write_file( shift,
@@ -110,7 +111,133 @@ sub save {
 
 =pod
 
-index_locations
+=head2 serialize
+
+Unlike the C<content> method, which shows only the immediate content
+within an element, Document objects also have to be able to be written
+out to a file again.
+
+When doing this we need to take into account some additional factors.
+
+Primarily, we need to handle here-docs correctly, so that are written
+to the file in the expected place.
+
+The C<serialize> method generates the actual file content for a given
+Document object. The resulting string can be written straight to a file.
+
+Returns the serialized document as a string.
+
+=cut
+
+sub serialize {
+	my $self   = shift;
+	my @Tokens = $self->tokens;
+
+	# The here-doc content buffer
+	my $heredoc = '';
+
+	# Start the main loop
+	my $output = '';
+	foreach my $i ( 0 .. $#Tokens ) {
+		my $Token = $Tokens[$i];
+
+		# Handle normal tokens
+		unless ( $Token->isa('PPI::Token::HereDoc') ) {
+			my $content = $Token->content;
+
+			# Handle the trivial cases
+			unless ( $heredoc ne '' and $content =~ /\n/ ) {
+				$output .= $content;
+				next;
+			}
+
+			# We have pending here-doc content that needs to be
+			# inserted just after the first newline in the content.
+			if ( $content eq "\n" ) {
+				# Shortcut the most common case for speed
+				$output .= $content . $heredoc;
+			} else {
+				# Slower and more general version
+				$content =~ s/\n/\n$heredoc/;
+			}
+
+			$heredoc = '';
+			next;
+		}
+
+		# This token is a HereDoc.
+		# First, add the token content as normal, which in this
+		# case will definately not contain a newline.
+		$output .= $Token->content;
+
+		# Now add all of the here-doc content to the heredoc
+		# buffer.
+		foreach my $line ( $Token->heredoc ) {
+			$heredoc .= $line;
+		}
+
+		if ( $Token->{_damaged} ) {
+			# Special Case:
+			# There are a couple of warning/bug situations
+			# that can occur when a HereDoc content was read in
+			# from the end of a file that we silently allow.
+			#
+			# When writing back out to the file we have to
+			# auto-repair these problems if we arn't going back
+			# on to the end of the file.
+
+			# This is a two part test.
+			# First, are we on the last line of the
+			# content part of the file
+			my $last_line = List::MoreUtils::none {
+				$Tokens[$_] and $Tokens[$_]->{content} =~ /\n/
+				} (($i + 1) .. $#Tokens);
+
+			# Secondly, are their any more here-docs after us
+			my $any_after = List::MoreUtils::any {
+				isa($Tokens[$_], 'PPI::Token::HereDoc')
+				} (($i + 1) .. $#Tokens);
+
+			# We don't need to repair the last here-doc on the
+			# last line. But we do need to repair anything else.
+			unless ( $last_line and ! $any_after ) {
+				# Add a terminating string if it didn't have one
+				unless ( defined $Token->{_terminator_line} ) {
+					$Token->{_terminator_line} = $Token->{_terminator};
+				}
+
+				# Add a trailing newline to the terminating
+				# string if it didn't have one.
+				unless ( $Token->{_terminator_line} =~ /\n$/ ) {
+					$Token->{_terminator_line} .= "\n";
+				}
+			}
+		}
+
+		# Now add the termination line to the heredoc buffer
+		$heredoc .= $Token->{_terminator_line};
+	}
+
+	# End of tokens
+
+	if ( $heredoc ne '' ) {
+		# If the file doesn't end in a newline, we need to add one
+		# so that the here-doc content starts on the next line.
+		unless ( $output =~ /\n$/ ) {
+			$output .= "\n";
+		}
+
+		# Now we add the remaining here-doc content
+		# to the end of the file.
+		$output .= $heredoc;
+	}
+
+	$output;
+}
+
+=pod
+
+=head2 index_locations
 
 Within a document, all L<PPI::Element> objects can be considered to have a
 "location", a line/column position within the document when considered as a
@@ -128,42 +255,74 @@ added to or removed from the file, these indexed locations will be B<wrong>.
 =cut
 
 sub index_locations {
-	my $self = shift;
-	my ($line, $col) = (1, 1);
+	my $self    = shift;
+	my @Tokens  = $self->tokens;
 
-	# Get all the elements
-	my @tokens = $self->tokens;
-	foreach my $Token ( @tokens ) {
-		$Token->{_line} = $line;
-		$Token->{_col}  = $col;
+	# Whenever we hit a heredoc we will need to increment by
+	# the number of lines in it's content section when when we
+	# encounter the next token with a newline in it.
+	my $heredoc = 0;
 
-		# Does the token contain any newlines
-		my $content = $self->{content};
-		my $newlines =()= $content =~ /\n/g;
-		if ( $newlines ) {
-			# Move down to the beginning of the new line(s)
-			$line += $newlines;
+	# Find the first Token without a location
+	my $i;
+	my $location;
+	foreach $i ( 0 .. $#Tokens ) {
+		my $Token = $Tokens[$i];
+		next if $Token->{_location};
 
-			# Does the token have additional characters
-			# after their last newline.
-			if ( $content =~ /\n([^\n])$/ ) {
-				# Move across to the column
-				$col = length($1) + 1;
-			} else {
-				# We end up at the beginning of the line
-				$col = 1;
-			}
+		# Found the first Token without a location
+		# Calculate the new location if needed.
+		$location = $i
+			? $self->_add_location( $location, $Tokens[$i-1], \$heredoc )
+			: [ 1, 1 ];
+	}
 
-		} else {
-			# Move across the page
-			$col .= length $content;
+	# Calculate locations for the rest
+	foreach $i ( $i .. $#Tokens ) {
+		my $Token = $Tokens[$i];
+		$Token->{_location} = $location;
+		$location = $self->_add_location( $location, $Token, \$heredoc );
+
+		# Add any here-doc lines to the counter
+		if ( $Token->isa('PPI::Token::HereDoc') ) {
+			$heredoc += $Token->heredoc + 1;
 		}
 	}
 
 	1;
 }
 
+sub _add_location {
+	my ($self, $start, $Token, $heredoc) = @_;
+	my $content = $Token->{content};
+
+	# Does the content contain any newlines
+	my $newlines =()= $content =~ /\n/g;
+	unless ( $newlines ) {
+		# Handle the simple case
+		return [ $start->[0], length($content) ];
+	}
+
+	# This is the more complex case where we hit or
+	# span a newline boundary.
+	my $location = [ $start->[0] + $newlines, 1 ];
+	if ( $heredoc and $$heredoc ) {
+		$location->[0] += $$heredoc;
+		$$heredoc = 0;
+	}
+
+	# Does the token have additional characters
+	# after their last newline.
+	if ( $content =~ /\n([^\n])$/ ) {
+		$location->[1] += length($1);
+	}
+
+	$location;
+}
+
 =pod
+
+=head2 flush_locations
 
 When no longer needed, the C<flush_locations> method clears all location data
 from the tokens.
@@ -171,14 +330,7 @@ from the tokens.
 =cut
 
 sub flush_locations {
-	my $self = shift;
-
-	foreach ( $self->tokens ) {
-		delete $_->{_line};
-		delete $_->{_col};
-	}
-
-	1;
+	shift->_flush_locations(@_);
 }
 
 1;

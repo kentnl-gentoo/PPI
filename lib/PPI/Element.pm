@@ -72,6 +72,9 @@ The C<tokens> method returns a list of PPI::Token objects for the
 Element, essentially getting back that part of the document as if it had not
 been lexed.
 
+This also means there are no Statements and no Structures in the list, just
+the Token classes.
+
 =cut
 
 sub tokens { $_[0] }
@@ -266,6 +269,61 @@ sub sprevious_sibling {
 	while ( defined(my $it = $elements->[--$position]) ) {
 		return $it if $it->significant;
 	}
+}
+
+=pod
+
+=head2 first_token
+
+As a support method for higher-order algorithms that deal specifically with
+tokens and actual Perl content, the C<first_token> method finds the first
+PPI::Token object within or equal to this one.
+
+That is, if called on a L<PPI::Node> subclass, it will descend until it
+finds a L<PPI::Token>. If called on a PPI::Token object, it will return the
+same object.
+
+Returns a PPI::Token object, or dies on error (which should be extremely rare
+and only occur if an illegal empty L<PPI::Statement|PPI::Structure> exists
+below the current Element somewhere.
+
+=cut
+
+sub first_token {
+	my $cursor = shift;
+	while ( $cursor->isa('PPI::Node') ) {
+		$cursor = $cursor->first_element
+			or die "Found empty PPI::Node while getting first token";
+	}
+	$cursor;
+}
+
+
+=pod
+
+=head2 last_token
+
+As a support method for higher-order algorithms that deal specifically with
+tokens and actual Perl content, the C<last_token> method finds the last
+PPI::Token object within or equal to this one.
+
+That is, if called on a L<PPI::Node> subclass, it will descend until it
+finds a L<PPI::Token>. If called on a PPI::Token object, it will return the
+itself.
+
+Returns a L<PPI::Token> object, or dies on error (which should be extremely rare
+and only occur if an illegal empty L<PPI::Statement|PPI::Structure> exists
+below the current Element somewhere.
+
+=cut
+
+sub last_token {
+	my $cursor = shift;
+	while ( $cursor->isa('PPI::Node') ) {
+		$cursor = $cursor->last_element
+			or die "Found empty PPI::Node while getting first token";
+	}
+	$cursor;
 }
 
 =pod
@@ -500,9 +558,55 @@ sub location {
 	[ $line, $col ];
 }
 
+# Although flush_locations is only publically a Document-level method,
+# we are able to implement it at an Element level, allowing us to
+# selectively flush only the part of the document that occurs after the
+# element for which the flush is called.
+sub _flush_location {
+	my $self  = shift;
+	unless ( $self == $self->top ) {
+		return $self->top->_flush_location( $self );
+	}
+
+	# Get the full list of all Tokens
+	my @Tokens = $self->tokens;
+
+	# Optionally allow starting from an arbitrary element (or rather,
+	# the first Token equal-to-or-within an arbitrary element)
+	if ( isa($_[0], 'PPI::Element') ) {
+		my $start = shift->first_token;
+		while ( my $Token = shift @Tokens ) {
+			return 1 unless $Token->{_location};
+			next unless refaddr($Token) == refaddr($start);
+
+			# Found the start. Flush it's location
+			delete $$Token->{_location};
+			last;
+		}
+	}
+
+	# Iterate over any remaining Tokens and flush their location
+	foreach my $Token ( @Tokens ) {
+		delete $_->{_location};
+	}
+
+	1;
+}
+
+
+
+
+
 # These should be implemented in the subclasses
 sub _line { undef }
 sub _col  { undef }
+
+
+
+
+
+#####################################################################
+# Internals
 
 # Being DESTROYed in this manner, rather than by an explicit
 # ->delete means our reference count has probably fallen to zero.
@@ -511,7 +615,7 @@ sub _col  { undef }
 sub DESTROY { delete $_PARENT{refaddr shift} }
 
 # Operator overloads
-sub __equals { ref $_[1] and refaddr $_[0] == refaddr $_[1] }
+sub __equals { ref $_[1] and refaddr($_[0]) == refaddr($_[1]) }
 sub __eq {
 	my $self  = isa(ref $_[0], 'PPI::Element') ? shift->content : shift;
 	my $other = isa(ref $_[0], 'PPI::Element') ? shift->content : shift;

@@ -105,8 +105,8 @@ sub set_class {
 #####################################################################
 # Overloaded PPI::Element methods
 
-sub _line { $_[0]->{_line} }
-sub _col  { $_[0]->{_col}  }
+sub _line       { $_[0]->{_line} }
+sub _col        { $_[0]->{_col}  }
 
 
 

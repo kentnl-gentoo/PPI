@@ -1,6 +1,5 @@
 NAME
-    PPI - Parse and manipulate Perl code non-destructively, without using
-    perl itself
+    PPI - Analyze and manipulate Perl code without using perl itself
 
 DESCRIPTION
     This is PPI, originally short for Parse::Perl::Isolated, a package for

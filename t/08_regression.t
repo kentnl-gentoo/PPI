@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 
-# Compare a large number of specific constructs
-# with the expected Lexer dumps.
+# code/dump-style regression tests for known problems
 
 use strict;
 use lib ();
@@ -28,12 +27,12 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 65;
+use Test::More tests => 9;
 use File::Slurp ();
 
 use vars qw{$testdir};
 BEGIN {
-	$testdir = catdir( 't.data', '05_lexer_practical' );
+	$testdir = catdir( 't.data', '08_regression' );
 }
 
 # Does the test directory exist?
@@ -83,7 +82,7 @@ foreach my $codefile ( @code ) {
 	my $source = File::Slurp::read_file( $codefile );
 	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
-	is( $Document->serialize, $source, "$codefile: Round-trip back to source was ok" );
+	is( $Document->content, $source, "$codefile: Round-trip back to source was ok" );
 }
 
 exit();

@@ -25,7 +25,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More 'tests' => 2050;
+use Test::More 'tests' => 2228;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -33,7 +33,7 @@ $Test::ClassAPI::IGNORE{'DESTROY'}++;
 $Test::ClassAPI::IGNORE{'refaddr'}++;
 
 # Execute the tests
-Test::ClassAPI->execute('complete');
+Test::ClassAPI->execute('complete', 'collisions');
 exit(0);
 
 # Now, define the API for the classes
@@ -89,6 +89,8 @@ next_sibling=method
 snext_sibling=method
 previous_sibling=method
 sprevious_sibling=method
+first_token=method
+last_token=method
 next_token=method
 previous_token=method
 insert_before=method
@@ -114,6 +116,7 @@ schild=method
 contains=method
 find=method
 find_any=method
+find_first=method
 remove_child=method
 prune=method
 
@@ -334,6 +337,7 @@ PPI::Structure=isa
 PPI::Node=isa
 load=method
 save=method
+serialize=method
 index_locations=method
 flush_locations=method
 

@@ -4,7 +4,7 @@ package PPI;
 
 =head1 NAME
 
-PPI - Parse and manipulate Perl code non-destructively, without using perl itself
+PPI - Analyze and manipulate Perl code without using perl itself
 
 =head1 DESCRIPTION
 
@@ -34,7 +34,7 @@ use PPI::Structure ();
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.840_01';
+	$VERSION = '0.840';
 }
 
 

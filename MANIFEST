@@ -1,4 +1,15 @@
+Build.PL
 Changes
+inc/Module/Install.pm
+inc/Module/Install/AutoInstall.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Build.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
 lib/PPI.pm
 lib/PPI/Base.pm
 lib/PPI/Document.pm
@@ -77,6 +88,7 @@ lib/PPI/Transform/Object.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
+META.yml
 README
 t.data/03_empiric/test.dat
 t.data/05_lexer_practical/01_simpleassign.code
@@ -95,6 +107,10 @@ t.data/05_lexer_practical/07_unmatched_braces.code
 t.data/05_lexer_practical/07_unmatched_braces.dump
 t.data/05_lexer_practical/08_subroutines.code
 t.data/05_lexer_practical/08_subroutines.dump
+t.data/05_lexer_practical/09_heredoc.code
+t.data/05_lexer_practical/09_heredoc.dump
+t.data/08_regression/01_rt_cpan_8752.code
+t.data/08_regression/01_rt_cpan_8752.dump
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t
@@ -104,4 +120,4 @@ t/04_element.t
 t/05_lexer_practical.t
 t/06_round_trip.t
 t/07_token.t
-META.yml                                 Module meta-data (added by MakeMaker)
+t/08_regression.t

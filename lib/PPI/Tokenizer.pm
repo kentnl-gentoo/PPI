@@ -1,6 +1,8 @@
 package PPI::Tokenizer;
 
-# Process
+# Process:
+# --------
+#
 # The tokenizer works through a series of buffers.
 #
 # The first holds the raw source code, which can be either a scalar, an array
@@ -242,22 +244,20 @@ sub decrement_cursor {
 #####################################################################
 # Working With Source
 
-# Fetches a reference to a line of source, including
-# ( cleaned up if necessary ) trailing slash.
-# Returns '' at EOF.
-# Returns undef on error.
+# Fetches the next line from the input line buffer
+# Returns undef at EOF.
  sub _get_line {
 	my $self = shift;
-	return '' unless $self->{source}; # End of file
+	return undef unless $self->{source}; # EOF hit previously
 
-	# Check for end of file
-	unless ( @{$self->{source}} ) {
-		$self->{source} = undef;
-		return '';
-	}
+	# Pull off the next line
+	my $line = shift @{$self->{source}};
 
-	# Normal line
-	shift @{$self->{source}};
+	# Flag EOF if we hit it
+	$self->{source} = undef unless defined $line;
+
+	# Return the line (or EOF flag)
+	$line; # string or undef
 }
 
 # Fetches the next line, ready to process
@@ -267,25 +267,9 @@ sub decrement_cursor {
 sub _fill_line {
 	my $self = shift;
 
-	# Get a new line
+	# Get the next line
 	my $line = $self->_get_line;
-	if ( length $line ) {
-		$self->{line} = $line;
-		$self->{line_cursor} = -1;
-		$self->{line_length} = length $line;
-		$self->{line_count}++;
-
-		# Mainly to protect ourselves against the horror that is
-		# Crypt::GeneratePassword, don't allow lines longer than 
-		# 5000 characters.
-		if ( $self->{line_length} > 5000 ) {
-			return $self->_error( "Line longer than 5000 characters found ( $self->{line_length} characters )" );
-		}
-
-		return 1;
-	}
-
-	if ( defined $line ) {
+	unless ( defined $line ) {
 		# End of file, clean up
 		delete $self->{line};
 		delete $self->{line_cursor};
@@ -293,9 +277,20 @@ sub _fill_line {
 		return 0;
 	}
 
-	# Must be an error.
-	# Add a comment for from us, and pass the error along
-	$self->_error( "Error getting line " . ($self->{line_count} + 1) );
+	# Populate the appropriate variables
+	$self->{line} = $line;
+	$self->{line_cursor} = -1;
+	$self->{line_length} = length $line;
+	$self->{line_count}++;
+
+	# Mainly to protect ourselves against the horror that is
+	# Crypt::GeneratePassword, don't allow lines longer than 
+	# 5000 characters.
+	if ( $self->{line_length} > 5000 ) {
+		return $self->_error( "Line longer than 5000 characters found ( $self->{line_length} characters )" );
+	}
+
+	1;
 }
 
 # Get the current character

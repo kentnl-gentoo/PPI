@@ -785,12 +785,15 @@ sub _lex_structure {
 
 		# Anything other than a Structure starts a Statement
 		unless ( ref $Token eq 'PPI::Token::Structure' ) {
+			# Because _resolve_new_statement may well delay and
+			# rollback itself, we need to add the delayed tokens early
+			$self->_add_delayed( $Structure ) or return undef;
+
 			# Determine the class for the Statement and create it
 			my $_class = $self->_resolve_new_statement($Structure, $Token) or return undef;
 			my $Statement = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Statement
-			$self->_add_delayed( $Structure ) or return undef;
 			$self->_lex_statement( $Statement ) or return undef;
 
 			# Add the completed statement to our elements
