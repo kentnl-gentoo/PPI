@@ -1,10 +1,11 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         PPI
-version:      0.830
+version:      0.831
 version_from: lib/PPI.pm
 installdirs:  site
 requires:
+    Carp:                          0
     Class::Autouse:                1.04
     Clone:                         0.13
     File::Slurp:                   9999.04

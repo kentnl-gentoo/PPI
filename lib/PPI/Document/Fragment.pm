@@ -24,10 +24,10 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
-# Identical, except for not having it's own scope
+# Identical, except for not having its own scope
 # sub scope { '' }
 
 =pod

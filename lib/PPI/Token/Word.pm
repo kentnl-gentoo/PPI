@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %quotelike};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 
 	%quotelike = (
 		'q'  => 'Quote::OperatorSingle',
@@ -66,7 +66,7 @@ sub _on_char {
 		$t->{line_cursor}++;
 		$t->_set_token_class( 'Label' );
 
-	# If not a label, '_' on it's own is the magic filehandle
+	# If not a label, '_' on its own is the magic filehandle
 	} elsif ( $word eq '_' ) {
 		$t->_set_token_class( 'Magic' );
 
@@ -165,11 +165,11 @@ sub _commit {
 		$token_class = 'Operator';
 
 	} elsif ( $word =~ /\:/ ) {
-		# Since it's not a simple identifier...
+		# Since its not a simple identifier...
 		$token_class = 'Word';
 
 	} else {
-		# Now, if the next character is a :, it's a label
+		# Now, if the next character is a :, its a label
 		my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
 		if ( $char eq ':' ) {
 			$word .= ':';

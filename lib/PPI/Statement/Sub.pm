@@ -35,7 +35,7 @@ use List::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 # Lexer clue
@@ -73,7 +73,7 @@ sub name {
 
 If it has one, the C<prototype> method returns the subroutine's prototype.
 It is returned in the same format as L<PPI::Token::Prototype/prototype>,
-cleaned and removed from it's brackets.
+cleaned and removed from its brackets.
 
 Returns false if the subroutine does not define a prototype
 
@@ -89,7 +89,7 @@ sub prototype {
 
 =head2 block
 
-With it's name and implementation shared with
+With its name and implementation shared with
 L<PPI::Statement::Scheduled|PPI::Statement::Scheduled>, the C<block> method
 finds and returns the actual Structure object of the code block for this
 subroutine.

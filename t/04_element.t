@@ -27,7 +27,7 @@ use Class::Autouse ':devel';
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 130;
+use Test::More tests => 136;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -196,7 +196,22 @@ is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previo
 	ok( $found, 'Multiple find succeeded' );
 	is( ref $found, 'ARRAY', '->find returned an array' );
 	is( scalar(@$found), 2, 'Multiple find returned expected number of items' );
+
+	# Test for the ability to short then names
+	ok( $found, 'Multiple find succeeded' );
+	is( ref $found, 'ARRAY', '->find returned an array' );
+	is( scalar(@$found), 2, 'Multiple find returned expected number of items' );
 }
+
+# Test for CPAN #7799 - Unsupported element types are accepted by find
+#
+# The correct behaviour for a bad string is a warning, and return C<undef>
+{ local $^W = '';
+	is( $Document->find(undef), undef, '->find(undef) failed' );
+	is( $Document->find([]),    undef, '->find([]) failed'    );
+	is( $Document->find('Foo'), undef, '->find(BAD) failed'   );
+}
+
 
 # Test the contains method
 {

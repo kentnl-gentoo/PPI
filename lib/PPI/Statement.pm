@@ -44,7 +44,7 @@ use PPI::Statement::Scheduled ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 # "Normal" statements end at a statement terminator ;
@@ -109,7 +109,7 @@ frozen/finalised. Names may change slightly or be added or removed.
 =head2 L<PPI::Statement::Scheduled>
 
 This covers all "scheduled" blocks, chunks of code that are executed
-seperately from the main body of the code, at a particular time. This
+separately from the main body of the code, at a particular time. This
 includes all C<BEGIN>, C<CHECK>, C<INIT> and C<END> blocks.
 
 =head2 L<PPI::Statement::Package>
@@ -154,12 +154,12 @@ This includes all of 'redo', 'next', 'last' and 'return' statements.
 =head2 PPI::Statement::Data
 
 A special statement which encompasses an entire __DATA__ block, including
-the inital '__DATA__' token itself and the entire contents.
+the initial '__DATA__' token itself and the entire contents.
 
 =head2 PPI::Statement::End
 
 A special statement which encompasses an entire __END__ block, including
-the intial '__END__' token itself and the entire contents, including any
+the initial '__END__' token itself and the entire contents, including any
 parsed PPI::Token::POD that may occur in it.
 
 =head2 PPI::Statement::Expression
@@ -180,11 +180,11 @@ to help represent the special rules relating to "expressions" such as in:
 A null statement is a special case for where we encounter two consecutive
 statement terminators. ( ;; )
 
-The second terminator is given an entire statement of it's own, but one
+The second terminator is given an entire statement of its own, but one
 that serves no purpose. Hence a 'null' statement.
 
 Theoretically, assuming a correct parsing of a perl file, all null statements
-are supurfluous and should be able to be removed without damage to the file.
+are superfluous and should be able to be removed without damage to the file.
 
 But don't do that, in case PPI has parsed something wrong.
 
@@ -193,11 +193,11 @@ But don't do that, in case PPI has parsed something wrong.
 Because PPI is intended for use when parsing incorrect or incomplete code,
 the problem arises of what to do with a stray closing brace.
 
-Rather than die, it is allocated it's own "unmatched brace" statement,
+Rather than die, it is allocated its own "unmatched brace" statement,
 which really means "unmatched closing brace". An unmatched open brace at the
 end of a file would become a structure with no contents and no closing brace.
 
-If the document loaded is intented to be correct and valid, finding a
+If the document loaded is intended to be correct and valid, finding a
 PPI::Statement::UnmatchedBrace in the PDOM is generally indicative of a
 misparse.
 
@@ -217,7 +217,7 @@ package PPI::Statement::Expression;
 # A "normal" expression of some sort
 
 BEGIN {
-	$PPI::Statement::Expression::VERSION = '0.830';
+	$PPI::Statement::Expression::VERSION = '0.831';
 	@PPI::Statement::Expression::ISA     = 'PPI::Statement';
 }
 
@@ -232,7 +232,7 @@ package PPI::Statement::Break;
 # next, last, return.
 
 BEGIN {
-	$PPI::Statement::Break::VERSION = '0.830';
+	$PPI::Statement::Break::VERSION = '0.831';
 	@PPI::Statement::Break::ISA     = 'PPI::Statement';
 }
 
@@ -244,10 +244,10 @@ BEGIN {
 package PPI::Statement::Null;
 
 # A null statement is a useless statement.
-# Usually, just an extra ; on it's own.
+# Usually, just an extra ; on its own.
 
 BEGIN {
-	$PPI::Statement::Null::VERSION = '0.830';
+	$PPI::Statement::Null::VERSION = '0.831';
 	@PPI::Statement::Null::ISA     = 'PPI::Statement';
 }
 
@@ -261,7 +261,7 @@ package PPI::Statement::Data;
 # The section of a file containing data
 
 BEGIN {
-	$PPI::Statement::Data::VERSION = '0.830';
+	$PPI::Statement::Data::VERSION = '0.831';
 	@PPI::Statement::Data::ISA     = 'PPI::Statement';
 }
 
@@ -275,7 +275,7 @@ package PPI::Statement::End;
 # The useless stuff (although maybe containing POD) at the end of a file
 
 BEGIN {
-	$PPI::Statement::End::VERSION = '0.830';
+	$PPI::Statement::End::VERSION = '0.831';
 	@PPI::Statement::End::ISA     = 'PPI::Statement';
 }
 
@@ -286,12 +286,12 @@ BEGIN {
 #####################################################################
 package PPI::Statement::UnmatchedBrace;
 
-# An unattached structural clode such as ) ] } found incorrectly at
-# the root level of a Document. We create a seperate statement for it
+# An unattached structural code such as ) ] } found incorrectly at
+# the root level of a Document. We create a separate statement for it
 # so that we can continue parsing the code.
 
 BEGIN {
-	$PPI::Statement::UnmatchedBrace::VERSION = '0.830';
+	$PPI::Statement::UnmatchedBrace::VERSION = '0.831';
 	@PPI::Statement::UnmatchedBrace::ISA     = 'PPI::Statement';
 }
 
@@ -302,13 +302,13 @@ BEGIN {
 #####################################################################
 package PPI::Statement::Unknown;
 
-# We are unable to definitely catagorize the statement from the first
+# We are unable to definitely categorize the statement from the first
 # token alone. Do additional checks when adding subsequent tokens.
 
 # Currently, the only time this happens is when we start with a label
 
 BEGIN {
-	$PPI::Statement::Unknown::VERSION = '0.830';
+	$PPI::Statement::Unknown::VERSION = '0.831';
 	@PPI::Statement::Unknown::ISA     = 'PPI::Statement';
 }
 

@@ -12,7 +12,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 
@@ -148,7 +148,7 @@ sub _on_char {
 			return $t->_finalize_token->_on_char( $t );
 		}
 
-		# It MIGHT be a label, but it's probably the ?: trinary operator
+		# It MIGHT be a label, but its probably the ?: trinary operator
 		$t->_set_token_class( 'Operator' ) or return undef;
 		return $t->{class}->_on_char( $t );
 	}

@@ -8,7 +8,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 # What type of variable declaration is it? ( my, local, our )
@@ -33,7 +33,7 @@ sub variables {
 	my @schild = grep { $_->significant } $self->children;
 	shift @schild if isa($schild[0], 'PPI::Token::Label');
 
-	# If the second child is a symbol, return it's name
+	# If the second child is a symbol, return its name
 	if ( isa($schild[1], 'PPI::Token::Symbol') ) {
 		return $schild[1]->canonical;
 	}

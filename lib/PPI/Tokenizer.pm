@@ -34,7 +34,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 
@@ -105,7 +105,7 @@ sub new {
 	# can understand why I'm about to do something that looks very
 	# strange. There's a problem with the Tokenizer, in that tokens
 	# tend to change classes as each letter is added, but they don't
-	# get allocated their definate final class until the "end" of the
+	# get allocated their definite final class until the "end" of the
 	# token, the detection of which occurs in about a hundred different
 	# places, all through various crufty code.
 	# However, in general, this does not apply to tokens in which a
@@ -131,7 +131,8 @@ sub new {
 # Creates a new tokenizer from a file
 sub load {
 	my $class = shift;
-	my $source = File::Slurp->read_file(shift, reference => 1) or return undef;
+	my $filename = shift or return undef;
+	my $source = File::Slurp::read_file($filename, reference => 1) or return undef;
 	$class->new( $source );
 }
 
@@ -142,7 +143,7 @@ sub load {
 #####################################################################
 # Main Public Methods
 
-# Fetchs the next token
+# Fetches the next token
 # Returns a PPI::Token on success
 # Returns 0 on EOF
 # Returns undef on error
@@ -242,7 +243,7 @@ sub decrement_cursor {
 # Working With Source
 
 # Fetches a reference to a line of source, including
-# ( cleaned up if necesary ) trailing slash.
+# ( cleaned up if necessary ) trailing slash.
 # Returns '' at EOF.
 # Returns undef on error.
 sub _get_line {
@@ -379,7 +380,7 @@ sub _handle_raw_input {
 			# destructively consume the input. We don't... so having
 			# a token that SPANS OVER a raw input is just silly, and
 			# too complicated for this little parser to turn back
-			# into something usefull.
+			# into something useful.
 			return $self->_error( "The code is too crufty for the tokenizer.\n"
 				. "Cannot have tokens that span across rawinput lines." );
 		}
@@ -415,7 +416,7 @@ sub _handle_raw_input {
 		my $rawinput = PPI::Token::RawInput::String->new( '' ) or return undef;
 		$rawinput->{endString} = $tString;
 
-		# Add some extra links, so these will know where it's other parts are
+		# Add some extra links, so these will know where its other parts are
 		$rawinput->{_operator} = $operator;
 		$operator->{_string} = $rawinput;
 
@@ -440,7 +441,7 @@ sub _handle_raw_input {
 		# Pass on any error
 		return undef unless defined $rv;
 
-		# End of file. We are a bit more leniant on errors, so
+		# End of file. We are a bit more lenient on errors, so
 		# we will let this slip by without mention. In fact, it may
 		# well actually be legal.
 
@@ -484,7 +485,7 @@ sub _process_next_char {
 	# We will need the value of the current character
 	my $char = substr( $self->{line}, $self->{line_cursor}, 1 );
 	if ( $_ eq '1' ) {
-		# If _on_char returns 1, it is signalling that it thinks that
+		# If _on_char returns 1, it is signaling that it thinks that
 		# the character is part of it.
 
 		# Add the character
@@ -621,7 +622,7 @@ sub _last_significant_token {
 }
 
 # Get an array ref of previous significant tokens.
-# Like _last_significant_token except it get's more than just one token
+# Like _last_significant_token except it gets more than just one token
 # Returns array ref on success.
 # Returns 0 on not enough tokens
 sub _previous_significant_tokens {

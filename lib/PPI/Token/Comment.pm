@@ -6,7 +6,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 sub significant { 0 }
@@ -29,7 +29,7 @@ sub _commit {
 
 	# Get the rest of the line
 	$_ = substr( $t->{line}, $t->{line_cursor} );
-	if ( chomp ) { # Include the newline seperately
+	if ( chomp ) { # Include the newline separately
 		# Add the current token, and the newline
 		$t->_new_token('Comment', $_);
 		$t->_new_token('Whitespace', "\n");

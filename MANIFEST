@@ -9,6 +9,7 @@ lib/PPI/Lexer.pm
 lib/PPI/Lexer/Dump.pm
 lib/PPI/Manual.pod
 lib/PPI/Node.pm
+lib/PPI/Query.pm
 lib/PPI/Statement.pm
 lib/PPI/Statement/Compound.pm
 lib/PPI/Statement/Include.pm

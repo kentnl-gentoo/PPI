@@ -10,7 +10,7 @@ use PPI ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 
@@ -99,8 +99,9 @@ sub transform_file {
 	# Save the changes back to the source
 	my $changed = $Document->content;
 	return undef unless defined $changed;
-	File::Slurp::write_file( $file, $changed ) or return undef;
-	$rv;
+	File::Slurp::write_file( $file,
+		{ err_mode => 'quiet' }, $changed,
+		) ? $rv : undef;
 }
 
 sub transform_source {

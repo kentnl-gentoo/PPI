@@ -18,11 +18,11 @@ use Class::Autouse;
 # Set the version for CPAN
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 
 	# If we are in a mod_perl environment, always fully load
 	# modules, in case Apache::Reload is present, and also to
-	# let copy-on-write do it's work and save us gobs of memory.
+	# let copy-on-write do its work and save us gobs of memory.
 	Class::Autouse->devel(1) if $ENV{MOD_PERL};
 }
 
@@ -133,7 +133,7 @@ sub add_transform {
 #####################################################################
 # Main interface methods
 
-# Get's the input document
+# Gets the input document
 sub document {
 	die "Method ->document disabled";
 
@@ -145,7 +145,7 @@ sub document {
 	$self->{Document};
 }
 
-# Get's the output document
+# Gets the output document
 sub output {
 	die "Method ->output disabled";
 
@@ -212,9 +212,9 @@ sub save {
 	return undef unless defined $content;
 
 	# Save the content
-	File::Slurp::write_file( $saveas, $content ) or return undef;
-
-	1;
+	File::Slurp::write_file( $saveas,
+		{ err_mode => 'quiet' }, $content,
+		) ? 1 : undef;
 }
 
 1;

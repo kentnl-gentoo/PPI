@@ -15,8 +15,8 @@ samples.
 The ability to read, and understand perl (programmatically) other than with
 the perl executable is one that has caused difficulty for a long time.
 
-The root cause of this problem is perl's dynamic grammer. Although there
-are typically not huge differences in the grammer of most code, some things
+The root cause of this problem is perl's dynamic grammar. Although there
+are typically not huge differences in the grammar of most code, some things
 cause large problems.
 
 An example of these are function signatures, as demonstrated by the following.
@@ -34,9 +34,9 @@ To restate, a true or "real" parser needs information that can not be found
 in the immediate vicinity. In fact, this information might not even be in the
 same file. It might also not be able to determine this without the prior
 execution of a C<BEGIN {}> block. In other words, to parse perl, you must
-also execute it, or if not it, everything that it depends on for its grammer.
+also execute it, or if not it, everything that it depends on for its grammar.
 
-This, while possibly feasable in some circumstances, is not a valid solution
+This, while possibly feasible in some circumstances, is not a valid solution
 ( at least, so far as this module is concerned ). Imagine trying to parse some
 code that had a dependency on the C<Win32::*> modules from a Unix machine, or
 trying to parse some code with a dependency on another module that had not
@@ -71,7 +71,7 @@ the first place. What are the uses we would put such a parser.
 =item Documentation
 
 Analyze the contents of of a Perl document to automatically generate
-documentation, in parellel to, or as a replacement for, POD documentation.
+documentation, in parallel to, or as a replacement for, POD documentation.
 
 =item Structural and Quality Analysis
 
@@ -81,25 +81,25 @@ situations relating to particular phrases, techniques or locations.
 =item Refactoring
 
 Make structural, syntax, or other changes to code in an automated manner,
-independantly, or in assistance to an editor. This list includes backporting,
+independently, or in assistance to an editor. This list includes backporting,
 forward porting, partial evaluation, "improving" code, or whatever.
 
 =item Layout
 
-Change the layout of code without changing it's meaning. This includes
+Change the layout of code without changing its meaning. This includes
 techniques such as tidying (like perltidy), obfuscation, compression, or to
 implement formatting preferences or policies.
 
 =item Presentation
 
-This includes method of improving the presentating of code, without changing
+This includes method of improving the presentation of code, without changing
 the text of the code. Modify, improve, syntax colour etc the presentation of
 a Perl document.
 
 =back
 
 With these goals identified, as long as the above tasks can be achieved,
-with some sort of reasonabe guarentee that the code will not be damaged in
+with some sort of reasonable guarantee that the code will not be damaged in
 the process, then PPI can be considered to be a success.
 
 =head2 Good Enough(TM)
@@ -109,7 +109,7 @@ above tasks, or to provide a sufficiently good API on which to allow others
 to implement modules in these and related areas.
 
 However, there are going to be limits to this process. Because PPI cannot
-adapt to changing grammers, any code written using code filters should not
+adapt to changing grammars, any code written using code filters should not
 be assumed to be parsable. At one extreme, this includes anything munged by
 L<Acme::Bleach|Acme::Bleach>, as well as (arguably) more common cases like
 L<Switch.pm|Switch>, L<Error.pm|Error> and L<Exception.pm|Exception>. We do
@@ -118,7 +118,7 @@ may be able to extend PPI to handle them.
 
 UPDATE: The ability to extend PPI to handle lexical additions to the
 language, which means handling filters that LOOK like they should be perl,
-but arn't, is on the drawing board to be done some time post-1.0
+but aren't, is on the drawing board to be done some time post-1.0
 
 The goal for success is thus to be able to successfully parse 99% of all
 Perl documents contained in CPAN. This means the entire file in each case.
@@ -133,7 +133,7 @@ tree of nearly 50 classes which implement the various objects within the
 Perl Document Object Model (PDOM).
 
 The Perl Document Object Model is somewhat similar in style and intent to the
-regular DOM, but contains many diferences to handle perl-specific cases.
+regular DOM, but contains many differences to handle perl-specific cases.
 
 On top of the Tokenizer and Lexer, and the classes of the PDOM, sit a number
 of classes intended to make life a little easier when dealing with PDOM
@@ -228,7 +228,7 @@ one, or many Tokens and Structures (the rules for which vary for the different
 Structure subclasses)
 
 A L<PPI::Statement|PPI::Statement> is any series of Tokens and Structures
-that are treated as a single contigious statement by perl itself. You should
+that are treated as a single contiguous statement by perl itself. You should
 note that a Statement is as close as PPI can get to "parsing" the code in the
 sense that perl-itself parses Perl code when it is building the op-tree. PPI
 cannot tell you, for example, which tokens are subroutine names, or arguments
@@ -305,7 +305,7 @@ large trees.
 =head1 CLASS INDEX
 
 The following provides a list of all the primary classes contained in the
-core PPI distribution. The list is in alphabetical order. Anything with it's
+core PPI distribution. The list is in alphabetical order. Anything with its
 own POD documentation can be considered stable, as the POD is only written
 after the API is largely finalised and frozen. Still, don't rely on anything
 here until after PPI official becomes a beta, in the 0.9xx versions.
@@ -351,14 +351,14 @@ A simple class for dumping readable debugging version of PDOM structures
 =item L<PPI::Node|PPI::Node>
 
 The Node object, the abstract base class for all PDOM object that can
-contain other Elements, such as the Document, Statement and Strucure
+contain other Elements, such as the Document, Statement and Structure
 objects.
 
 =item L<PPI::Statement|PPI::Statement>
 
 The base class for all Perl statements. Generic "evaluate for side-effects"
 statements are of this actual type. Other more interesting statement types
-belong to one of it's children.
+belong to one of its children.
 
 See the L<PPI::Statement|PPI::Statement> documentation for a longer description
 and list of all of the different statement types and subclasses.
@@ -373,8 +373,8 @@ list of all of the different structure types/classes.
 
 =item PPI::Token
 
-A token is the basic unit of content. At it's most basic, a Token is just
-a string tagged with metadata (it's class, some additional flags in some
+A token is the basic unit of content. At its most basic, a Token is just
+a string tagged with metadata (its class, some additional flags in some
 cases).
 
 See the PPI::Token documentation (not yet written) for a description and
@@ -384,7 +384,7 @@ list of all of the different Token types/classes
 
 The PPI::Token::Quote class provides an abstract base class for the many and
 varied types of quote and quote-like things in perl. Classes that inherit
-from PPI::Token::Quote, or one of it's other abstract subclasses
+from PPI::Token::Quote, or one of its other abstract subclasses
 PPI::Token::Quote::Simple or PPI::Token::Quote::Full, are mostly handled by
 the Tokenizer quote engine.
 
@@ -419,7 +419,7 @@ PPI is slowly approaching feature freeze and API freeze. In general, anything
 that has got proper class documentation can be considered to be frozen, and
 be relatively reliably used in your code. Otherwise, be prepared for changes,
 as there are still some issues to be resolved, in particular Token class
-names, the Transform API, the (non-existant) Plugin system, and what (if
+names, the Transform API, the (non-existent) Plugin system, and what (if
 anything) the base PPI class will actually do.
 
 Also needed are more Manual sections, probably including basic tutorials for

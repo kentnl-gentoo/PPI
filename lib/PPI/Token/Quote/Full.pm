@@ -7,7 +7,7 @@ use base 'PPI::Token::Quote';
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
@@ -28,7 +28,7 @@ BEGIN {
 
 		# The final ( and kind of depreciated ) "first match only" one is not
 		# used yet, since I'm not sure on the context differences between
-		# this and the trinary operator, but it's here for completeness.
+		# this and the trinary operator, but its here for completeness.
 		'?'   => { operator => undef, braced => 0, seperator => '?', _sections => 1, modifieds => {} },
 		);
 

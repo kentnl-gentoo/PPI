@@ -13,7 +13,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 sub _on_char {
@@ -41,7 +41,7 @@ sub _on_char {
 		} elsif ( $char eq '.' ) {
 			return 1;
 		} else {
-			# End of the number... it's just 0
+			# End of the number... its just 0
 			return $t->_finalize_token->_on_char( $t );
 		}
 	}

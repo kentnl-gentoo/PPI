@@ -54,7 +54,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 sub __LEXER__normal { '' }
@@ -78,7 +78,7 @@ sub type {
 
 =head2 block
 
-With it's name and implementation shared with
+With its name and implementation shared with
 L<PPI::Statement::Sub|PPI::Statement::Sub>, the C<block> method finds and
 returns the actual Structure object of the block for this scheduled block.
 

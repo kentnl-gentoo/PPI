@@ -9,7 +9,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION @CLASSMAP @COMMITMAP};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 
 	# Build the class and commit maps
         @CLASSMAP = ();
@@ -150,7 +150,7 @@ sub _on_char {
 		return 'Regex::Match' if $previous->_isa( 'Word', 'grep' );
 
 		# What about the char after the slash? There's some things
-		# that would be highly illogical to see if it's an operator.
+		# that would be highly illogical to see if its an operator.
 		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
 		if ( defined $next_char and length $next_char ) {
 			if ( $next_char =~ /(?:\^|\[|\\)/ ) {

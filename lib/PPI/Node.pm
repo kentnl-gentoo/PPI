@@ -8,9 +8,9 @@ PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
 
 =head1 INHERITANCE
 
-  PPI::Base
-  \--> PPI::Element
-       \--> PPI::Node
+  PPI::Node
+  is a PPI::Element
+  is a PPI::Base
 
 =head1 SYNOPSIS
 
@@ -25,10 +25,10 @@ PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
   my @elements = $Node->children;
   
   # Find all the barewords within a Node
-  my @barewords = $Node->find( 'PPI::Token::Word' );
+  my $barewords = $Node->find( 'PPI::Token::Word' );
   
   # Find by more complex criteria
-  my @my_tokens = $Node->find( sub { $_[1]->content eq 'my' } );
+  my $my_tokens = $Node->find( sub { $_[1]->content eq 'my' } );
   
   # Remove all the whitespace
   $Node->prune( 'PPI::Token::Whitespace' );
@@ -38,7 +38,7 @@ PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
 
 =head1 DESCRIPTION
 
-The PPI::Node class privides an abstract base class for the Element classes
+The PPI::Node class provides an abstract base class for the Element classes
 that are able to contain other elements, L<PPI::Document|PPI::Document>,
 L<PPI::Statement|PPI::Statement>, and L<PPI::Structure|PPI::Structure>.
 
@@ -54,10 +54,11 @@ use UNIVERSAL 'isa';
 use base 'PPI::Element';
 use Scalar::Util 'refaddr';
 use List::MoreUtils ();
+use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -211,7 +212,7 @@ sub schildren {
 
 =head2 child $index
 
-The C<child> method accesses a child PPI::Element object by it's
+The C<child> method accesses a child PPI::Element object by its
 position within the Node.
 
 Returns a PPI::Element object, or C<undef> if there is no child
@@ -278,7 +279,7 @@ on error.
 
 sub contains {
 	my $self = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = isa(ref $_[0], 'PPI::Element') ? shift : return undef;
 
 	# Iterate up the Element's parent chain until we either run out
 	# of parents, or get to ourself.
@@ -294,18 +295,43 @@ sub contains {
 =head2 find $class | \&condition
 
 The C<find> method is used to search within a code tree for PPI::Element
-objects that meet a particular condition. To specify the condition, the
-method can be provided with either a simple class name, or an anonymous
-subroutine.
+objects that meet a particular condition.
+
+To specify the condition, the method can be provided with either a simple
+class name (full or shortened), or an anonymous subroutine.
+
+  # Find all single quotes in a Document (which is a Node)
+  $Document->find('PPI::Quote::Single');
+  
+  # The same thing with a shortened class name
+  $Document->find('Quote::Single');
+  
+  # Anything more elaborate, we so with the sub
+  $Document->find( sub {
+  	# At the top level of the file...
+  	$_[1]->parent == $_[0]
+  	and (
+  		# ...find all comments and POD
+  		$_[1]->isa('PPI::Token::Pod')
+  		or
+  		$_[1]->isa('PPI::Token::Comment')
+  	)
+  } );
 
 The anonymous subroutine will be passed two arguments, the top-level
-Node being searched within and the current Element that the condition is
+Node you are searching in and the current Element that the condition is
 testing. The anonymous subroutine should return a simple true/false
-value incating match or no match.
+value indicating match or no match.
 
-The C<find> method returns a reference to an array of PPI::Element object
-that match the condition, false if no Elements match the condition, or
-C<undef> if an error occurs during the search process.
+Note that the same condition logic is used for all methods documented to
+have a C<\&condition> parameter, as this one does.
+
+The C<find> method returns a reference to an array of PPI::Element objects
+that match the condition, false (but defined) if no Elements match the
+condition, or C<undef> if you provide a bad condition, or an error occurs
+during the search process.
+
+In the case of a bad condition, a warning will be emitted as well.
 
 =cut
 
@@ -377,7 +403,7 @@ sub find_any {
 
 If passed a L<PPI::Element|PPI::Element> object that is a direct child of
 the Node, the C<remove_element> method will remove the Element intact,
-along with any of it's children. As such, this method acts essentially as
+along with any of its children. As such, this method acts essentially as
 a lexical 'cut' function.
 
 =cut
@@ -407,7 +433,7 @@ The C<prune> method is used to strip PPI::Element objects out of a code tree.
 The argument is the same as for the C<find> method, either a class name, or
 an anonymous subroutine which returns true/false. Any Element that matches
 the class|condition will be deleted from the code tree, along with any
-of it's children.
+of its children.
 
 The C<prune> method returns the number of Element objects that matched and
 were removed, B<NOT> including the child Elements of those that matched
@@ -438,20 +464,36 @@ sub prune {
 	$pruned;
 }
 
+# This method is likely to be very heavily used, to take
+# it slowly and carefuly.
 sub _condition {
 	my $self = shift;
-	my $it   = defined $_[0] ? shift : return undef;
+	my $it   = defined $_[0] ? shift : do {
+		Carp::carp('Undefined value passed as search condition') if $^W;
+		return undef;
+		};
 
-	# conditions should normally be CODE refs
+	# Conditions are CODE-refs. Has the caller rolled their own?
 	return $it if ref $it eq 'CODE';
 
-	# Looking for a particular catagory of elements
-	if ( ! ref and isa( $it, 'PPI::Element' ) ) {
-		my $code = eval "sub { UNIVERSAL::isa( \$_[1], '$it' ) }";
-		return (ref $code eq 'CODE') ? $code : undef;
+	# No other ref types supported
+	if ( ref $it ) {
+		Carp::carp('Illegal non-CODE reference passed as search condition') if $^W;
+		return undef;
 	}
 
-	undef;
+	# Auto-prepend PPI:: if needed
+	$it = "PPI::$it" unless substr($it, 0, 5) eq 'PPI::';
+
+	# Is the class a PPI::Element subclass?
+	unless ( isa($it, 'PPI::Element') ) {
+		Carp::carp("Cannot create search condition for '$it': Not a PPI::Element") if $^W;
+		return undef;
+	}
+
+	# Create the condition code
+	my $code = eval "sub { UNIVERSAL::isa( \$_[1], \"$it\" ) }";
+	(ref $code eq 'CODE') ? $code : undef;
 }
 
 

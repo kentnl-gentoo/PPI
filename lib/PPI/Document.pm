@@ -9,9 +9,9 @@ PPI::Document - A single Perl document
 =head1 INHERITANCE
 
   PPI::Base
-  \--> PPI::Element
-       \--> PPI::Node
-            \--> PPI::Document
+  `--> PPI::Element
+       `--> PPI::Node
+            `--> PPI::Document
 
 =head1 SYNOPSIS
 
@@ -37,7 +37,7 @@ object acts as a normal L<PPI::Node>, with some additional convenience
 methods for loading and saving, and working with the line/column locations
 of Elements within a file.
 
-The exemption to it's ::Node behaviour this is that a PPI::Document object
+The exemption to its ::Node behavior this is that a PPI::Document object
 can NEVER have a parent node, and is always the root node in a tree.
 
 =head1 METHODS
@@ -59,10 +59,12 @@ use PPI            ();
 use PPI::Statement ();
 use PPI::Structure ();
 use PPI::Document::Fragment ();
+use overload 'bool' => sub () { 1 };
+use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 
@@ -98,10 +100,12 @@ sub save {
 	my $self = shift;
 
 	# Serialize the Document
-	my $content = $self->as_string or return undef;
+	my $content = $self->content or return undef;
 
 	### FIXME - Check the return conditions for this
-	File::Slurp::write_file( shift, $content );
+	File::Slurp::write_file( shift,
+		{ err_mode => 'quiet' }, $content,
+		) ? 1 : undef;
 }
 
 =pod
@@ -181,8 +185,13 @@ sub flush_locations {
 
 =head1 TO DO
 
-May need to overload some methods to forcefully prevent Document objects
-becoming children of another Node.
+- Write proper unit and regression tests
+
+- May need to overload some methods to forcefully prevent Document
+objects becoming children of another Node.
+
+- May be worth adding a PPI::Document::Normalized sub-class to formally
+recognise the normalisation work going on in L<Perl::Compare> and the like.
 
 =head1 SUPPORT
 

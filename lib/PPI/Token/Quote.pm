@@ -14,7 +14,7 @@ package PPI::Token::Quote;
 #
 # To use these, you should initialize them as normal 'Class->new',
 # and then call the 'fill' method, which will cause the specialised
-# parser to parse the quote to it's end point.
+# parser to parse the quote to its end point.
 #
 # If ->fill returns true, finailise the token.
 
@@ -23,7 +23,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 

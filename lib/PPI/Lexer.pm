@@ -18,7 +18,7 @@ PPI::Lexer - The PPI Lexer
   my $Document = $Lexer->lex_tokenizer( $Tokenizer );
   
   # Build a PPI::Document object for some raw source
-  my $source = File::Slurp->read_file( 'My/Module.pm' );
+  my $source = File::Slurp::read_file( 'My/Module.pm' );
   $Document = $Lexer->lex_source( $source );
   
   # Build a PPI::Document object for a particular file name
@@ -26,7 +26,7 @@ PPI::Lexer - The PPI Lexer
 
 =head1 DESCRIPTION
 
-The is the PPI Lexer. In the larger scheme of things, it's job is to take
+The is the PPI Lexer. In the larger scheme of things, its job is to take
 token streams, in a variety of forms, and "lex" them into nested structures,
 
 Pretty much everything in this module happens behind the scenes at this
@@ -50,7 +50,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 
@@ -406,7 +406,7 @@ sub _lex_statement {
 			return 1;
 		}
 
-		# Which leaves us with a new structure than continues the statement
+		# Which leaves us with a new structure
 
 		# Determine the class for the structure and create it
 		my $sclass = $self->_resolve_new_structure($Statement, $Token) or return undef;
@@ -693,14 +693,20 @@ sub _resolve_new_structure_round {
 		return 'PPI::Structure::ForLoop';
 	}
 
-	# Otherwise, if must be a list
+	# Otherwise, it must be a list
+
+	# If the previous element is -> then we mark it as a dereference
+	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
+		$Element->{_dereference} = 1;
+	}
+
 	'PPI::Structure::List'
 }
 
 # Given a parent element, and a [ token to open a structure, determine
 # the class that the structure should be.
 sub _resolve_new_structure_square {
-	my $self = shift;
+	my $self   = shift;
 	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
 
 	# Get the last significant element in the parent
@@ -709,6 +715,7 @@ sub _resolve_new_structure_square {
 	# Is this a subscript, like $foo[1] or $foo{expr}
 	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
 		# $foo->[]
+		$Element->{_dereference} = 1;
 		return 'PPI::Structure::Subscript';
 	}
 	if ( isa($Element, 'PPI::Structure::Subscript') ) {
@@ -737,6 +744,7 @@ sub _resolve_new_structure_curly {
 	# Is this a subscript, like $foo[1] or $foo{expr}
 	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
 		# $foo->{}
+		$Element->{_dereference} = 1;
 		return 'PPI::Structure::Subscript';
 	}
 	if ( isa($Element, 'PPI::Structure::Subscript') ) {

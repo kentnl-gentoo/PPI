@@ -43,7 +43,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.830';
+	$VERSION = '0.831';
 }
 
 =pod
@@ -74,7 +74,7 @@ sub namespace {
 
 Regardless of whether it is named or not, the C<file_scoped> method will
 test to see if the package declaration is a top level "file scoped"
-statement or not, based on it's location.
+statement or not, based on its location.
 
 In general, returns true if it is a "file scoped" package declaration with
 an immediate parent of the top level Document, or false if not.

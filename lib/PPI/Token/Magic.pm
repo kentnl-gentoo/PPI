@@ -11,7 +11,7 @@ BEGIN {
 	$VERSION = '0.826';
 
 	# Magic variables taken from perlvar.
-	# Several things added seperately to avoid warnings.
+	# Several things added separately to avoid warnings.
 	foreach ( qw{
 		$1 $2 $3 $4 $5 $6 $7 $8 $9
 		$_ $& $` $' $+ @+ $* $. $/ $|
@@ -74,7 +74,7 @@ sub _on_char {
 		}
 
 		if ( /^\$\#\{/ ) {
-			# The $# is actually a case, and { is it's block
+			# The $# is actually a case, and { is its block
 			# Add the current token as the cast...
 			$t->{token} = PPI::Token::Cast->new( '$#' );
 			$t->_finalize_token;

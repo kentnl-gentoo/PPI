@@ -11,6 +11,7 @@ WriteMakefile(
 		File::Slurp      => '9999.04',
 		List::MoreUtils  => '0.04',
 		List::Util       => '1.11',
+		Carp             => '0',
 
 		# Testing dependency
 		Test::More       => '0',
