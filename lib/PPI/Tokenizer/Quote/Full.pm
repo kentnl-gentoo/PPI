@@ -14,8 +14,8 @@ BEGIN {
 		'qq'  => { operator => 'qq', braced => undef, seperator => undef, _sections => 1 },
 		'qx'  => { operator => 'qx', braced => undef, seperator => undef, _sections => 1 },
 		'qw'  => { operator => 'qw', braced => undef, seperator => undef, _sections => 1 },
-		'm'   => { operator => 'm',  braced => undef, seperator => undef, _sections => 1, modifiers => {} },
 		'qr'  => { operator => 'qr', braced => undef, seperator => undef, _sections => 1, modifiers => {} },
+		'm'   => { operator => 'm',  braced => undef, seperator => undef, _sections => 1, modifiers => {} },
 		's'   => { operator => 's',  braced => undef, seperator => undef, _sections => 2, modifiers => {} },
 		'tr'  => { operator => 'tr', braced => undef, seperator => undef, _sections => 2, modifiers => {} },
 

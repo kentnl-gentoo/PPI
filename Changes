@@ -1,4 +1,11 @@
 Revision history for Perl extension PPI
 
+0.3  Tue Dec 17 10:29:27
+	- Restructured a little bit
+	- Fixed some mis-parsing cases
+
+0.2  Unknown
+	- Added test script
+
 0.1  Thu Dec 06 16:50:23 2002
 	- original version

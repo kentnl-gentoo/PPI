@@ -41,9 +41,11 @@ use PPI::RegexLib qw{%RE};
 BEGIN {
 	Class::Autouse->load( 'PPI::Tokenizer::Token' );
 
-	# Quote engine must be loaded before classes
+	# Quote engine must be loaded before classes.
+	# This is _important_, but I can't remember why
 	Class::Autouse->load( 'PPI::Tokenizer::Quote' );
 	Class::Autouse->load( 'PPI::Tokenizer::Classes' );
+	Class::Autouse->load( 'PPI::Tokenizer::Token::Unknown' );
 }
  
 # Constructor
@@ -424,7 +426,7 @@ sub handleRawInput {
 # Process on a per-character basis.
 # Note that due the the high number of times this get's 
 # called, it has been fairly heavily in-lined, so the code
-# might look a bit ugly
+# might look a bit ugly and duplicated.
 sub processNextChar {
 	my $self = shift;
 	
@@ -436,6 +438,9 @@ sub processNextChar {
 	
 	# Add the character to the token
 	my $rv = $self->{class}->onChar( $self );
+	
+	# If onChar returns 1, it is signalling that it thinks that
+	# the character is part of it.
 	if ( $rv eq '1' ) {
 		# Add the character
 		if ( defined $self->{token} ) {
@@ -444,6 +449,8 @@ sub processNextChar {
 			$self->{token} = $self->{class}->new( $self->{zone}, $self->{char} ) or return undef;
 		}
 		
+	# Otherwise, it provides us the name of an alternative class that
+	# we should change to.
 	} elsif ( $rv ) {
 		# Use the legacy style character selector
 		if ( $self->{class} eq "PPI::Tokenizer::Token::$rv" ) {

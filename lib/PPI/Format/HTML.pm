@@ -211,13 +211,15 @@ sub _serializeDocumentDebug {
 
 	# Reset the cursor and loop
 	my $lineCounter = 0;
+	my $bgcolor = '#EEEEEE';
 	foreach $token ( @{ $Document->getTokenArray } ) {
 		$class = $token->{class} eq 'Comment' ?
 			$token->{tags}
 				? ("Comment (" . join( ', ', map { ucfirst $_ } keys %{$token->{tags}}) . ")")
 				: "Comment"
 			: $token->{class};
-		$html .= "<tr bgcolor='#FFFFFF'><td align=right valign=top><b>" 
+		$bgcolor = $bgcolor eq '#FFFFFF' ? '#EEEEEE' : '#FFFFFF';
+		$html .= "<tr bgcolor='$bgcolor'><td align=right valign=top><b>" 
 			. ++$lineCounter 
 			. "</b></td>"
 			. "<td valign=top nowrap>$class</td>"

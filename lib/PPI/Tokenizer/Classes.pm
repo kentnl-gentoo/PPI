@@ -84,18 +84,18 @@ BEGIN {
 		'[' => 'Structure',
 		']' => 'Structure',
 		',' => 'Operator',
-		'*' => 'Transient::Star',
-		'$' => 'Transient::Dollar',
-		'@' => 'Transient::At',
-		'&' => 'Transient::And',
+		'*' => 'Unknown',
+		'$' => 'Unknown',
+		'@' => 'Unknown',
+		'&' => 'Unknown',
 		'=' => 'Operator',
 		'?' => 'Operator',
-		':' => 'Operator',
-		'-' => 'Transient::Minus',
+		':' => 'Unknown',
+		'-' => 'Unknown',
 		'#' => 'Comment',
 		'|' => 'Operator',
 		'+' => 'Operator',
-		'%' => 'Transient::Percent',
+		'%' => 'Unknown',
 		'\\' => 'Cast',
 #		'/' => 'Operator',   Alternate behaviours, see below
 		'>' => 'Operator',
@@ -113,7 +113,9 @@ BEGIN {
 	$charMap{$_} = 'Number' foreach ( 0 .. 9 );
 }
 sub onChar {
-	$_ = $_[1]->{char};
+	my $t = $_[1];
+	$_ = $t->{char};
+	
 	if ( exists $charMap{$_} ) {
 		return $charMap{$_};
 		
@@ -125,7 +127,7 @@ sub onChar {
 		# 3. The one before that is a 'structure'
 		
 		# Get the three previous significant tokens
-		my $tokens = $_[1]->previousSignificantTokens( 3 );
+		my $tokens = $t->previousSignificantTokens( 3 );
 		if ( $tokens
 		     and $tokens->[0]->{class} eq 'Bareword'
 		     and $tokens->[1]->is_a( 'Bareword', 'sub' )
@@ -145,7 +147,6 @@ sub onChar {
 		# This is either a "divided by" or a "start regex"
 		# Do some context stuff to guess ( ack ) which.
 		# Hopefully the guess will be good enough.
-		my $t = $_[1];
 		my $previous = $t->lastSignificantToken;
 		
 		# Explicit regex
@@ -286,8 +287,7 @@ sub onChar { 1 }
 
 # Comments end at the end of the line
 sub onLineEnd {
-	my $class = shift;
-	my $t = shift;
+	my $t = $_[1];
 	if ( defined $t->{token} ) {
 		$t->finalizeToken() or return undef;
 	}
@@ -322,6 +322,7 @@ BEGIN {
 		'qq' => 'Quote::OperatorDouble',
 		'qx' => 'Quote::OperatorExecute',
 		'qw' => 'Quote::Words',
+		'qr' => 'Quote::Regex',
 		'm'  => 'Regex::Match',
 		's'  => 'Regex::Replace',
 		'tr' => 'Regex::Transform',
@@ -686,6 +687,13 @@ sub onChar {
 			return 1;
 		}
 	}
+	if ( $current eq '$:' ) {
+		if ( $_ eq ':' ) {
+			# This is really a $::foo style symbol
+			$t->setTokenClass( 'Symbol' );
+			return 1;
+		}
+	}
 
 	# Normal magic token finished
 	$t->finalizeToken();
@@ -748,6 +756,10 @@ sub _scanForCharacterOnThisLine {
 	my $t = shift;
 	my $lookFor = shift;
 	
+	### FIXME - Why can't we do this as a regex match?
+	# There's something you can do with manipulating 
+	# match positions, using a magic global...
+	
 	# Loop as long as we can get new lines
 	my $start = $t->{line_position};
 	my $line = $t->{line_buffer};
@@ -770,271 +782,11 @@ sub _scanForCharacterOnThisLine {
 
 
 #####################################################################
-# All the quote and quote likes
+# A Dashed Bareword    -likethis
 
-# Single Quote
-package PPI::Tokenizer::Token::Quote::Single;
-use strict;
-use base 'PPI::Tokenizer::Quote::Simple';
-sub dummy { 1 }
-	
-# Double Quote
-package PPI::Tokenizer::Token::Quote::Double;
-use strict;
-use base 'PPI::Tokenizer::Quote::Simple';
-sub dummy { 1 }
+package PPI::Tokenizer::Token::DashedBareword;
 
-# Back Ticks
-package PPI::Tokenizer::Token::Quote::Execute;
-use strict;
-use base 'PPI::Tokenizer::Quote::Simple';
-sub dummy { 1 }
-
-# Single Quote
-package PPI::Tokenizer::Token::Quote::OperatorSingle;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-	
-# Double Quote
-package PPI::Tokenizer::Token::Quote::OperatorDouble;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-# Back Ticks
-package PPI::Tokenizer::Token::Quote::OperatorExecute;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-# Quote Words
-package PPI::Tokenizer::Token::Quote::Words;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-# Operator or Non-Operator Match Regex
-package PPI::Tokenizer::Token::Regex::Match;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-# Operaator Pattern Regex
-package PPI::Tokenizer::Token::Regex::Pattern;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-# Replace Regex
-package PPI::Tokenizer::Token::Regex::Replace;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-# Transform regex
-package PPI::Tokenizer::Token::Regex::Transform;
-use strict;
-use base 'PPI::Tokenizer::Quote::Full';
-sub dummy { 1 }
-
-
-
-
-
-#####################################################################
-# Temporary states, for when something could mean more than one thing
-
-package PPI::Tokenizer::Token::Transient::Star;
-
-use strict;
-use base 'PPI::Tokenizer::Token';
-
-# Import the regexs
-use PPI::RegexLib qw{%RE};
-
-sub onChar {
-	my $class = shift;
-	my $t = shift;
-	$_ = $t->{char};
-
-	# Is it a symbol?	
-	if ( /$RE{SYMBOL}{FIRST}/ ) {
-		$t->setTokenClass( 'Symbol' ) or return undef;
-		return 1;
-	}
-	
-	if ( $_ eq '{' ) {
-		# GLOB cast
-		$t->setTokenClass( 'Cast' ) or return undef;
-	} else {
-		$t->setTokenClass( 'Operator' ) or return undef;
-	}		
-
-	# Finish the star and continue
-	$t->finalizeToken();
-	return $t->onChar();
-}
-
-
-
-
-
-package PPI::Tokenizer::Token::Transient::Dollar;
-
-use strict;
-use base 'PPI::Tokenizer::Token';
-
-# Import the regexs
-use PPI::RegexLib qw{%RE};
-
-sub onChar {
-	my $class = shift;
-	my $t = shift;
-	$_ = $t->{char};
-
-	# Is it a symbol?	
-	if ( /$RE{SYMBOL}{FIRST}/ ) {
-		$t->setTokenClass( 'Symbol' ) or return undef;
-		return 1;
-	} elsif ( $PPI::Tokenizer::Token::Magic::magic{ $t->{token}->{content} . $_ } ) {
-		# Magic variable
-		$t->setTokenClass( 'Magic' ) or return undef;
-		return 1;
-	# } elsif ( /[$@%{]/ ) {
-	} else {
-		# Star is a cast...?
-		$t->setTokenClass( 'Cast' ) or return undef;
-		$t->finalizeToken() or return undef;
-		return $t->onChar();
-	}		
-}
-
-
-
-
-package PPI::Tokenizer::Token::Transient::At;
-
-use strict;
-use base 'PPI::Tokenizer::Token';
-
-# Import the regexs
-use PPI::RegexLib qw{%RE};
-
-sub onChar {
-	my $class = shift;
-	my $t = shift;
-	$_ = $t->{char};
-	
-	# Is it a symbol?	
-	if ( /$RE{SYMBOL}{FIRST}/ ) {
-		$t->setTokenClass( 'Symbol' ) or return undef;
-		return 1;
-	} elsif ( /-+/ ) {
-		# Magic variable
-		$t->setTokenClass( 'Magic' ) or return undef;
-		return 1;
-	# } elsif ( /[$@%{]/ ) {
-	} else {
-		# Star is a cast...?
-		$t->setTokenClass( 'Cast' ) or return undef;
-		$t->finalizeToken() or return undef;
-		return $t->onChar();
-	}		
-}
-
-
-
-
-
-package PPI::Tokenizer::Token::Transient::Percent;
-
-use strict;
-use base 'PPI::Tokenizer::Token';
-use PPI::RegexLib qw{%RE};
-
-sub onChar {
-	my $class = shift;
-	my $t = shift;
-	$_ = $t->{char};
-	
-	# Is it a symbol?	
-	if ( /$RE{SYMBOL}{FIRST}/ ) {
-		$t->setTokenClass( 'Symbol' ) or return undef;
-		return 1;
-	} elsif ( /[\$@%{]/ ) {
-		# Percent is a cast
-		$t->setTokenClass( 'Cast' ) or return undef;
-		$t->finalizeToken() or return undef;
-		return $t->onChar();
-	} else {
-		# The mod operator?
-		$t->setTokenClass( 'Operator' ) or return undef;
-		return $t->onChar();
-	}
-}
-
-
-
-
-
-package PPI::Tokenizer::Token::Transient::And;
-
-use strict;
-use base 'PPI::Tokenizer::Token';
-use PPI::RegexLib qw{%RE};
-
-sub onChar {
-	my $class = shift;
-	my $t = shift;
-	$_ = $t->{char};
-
-	# Is it a symbol
-	if ( /$RE{SYMBOL}{FIRST}/ ) {
-		$t->setTokenClass( 'Symbol' ) or return undef;
-		return 1;
-	} elsif ( /[\$@%{]/ ) {
-		# And is a cast...?
-		$t->setTokenClass( 'Cast' ) or return undef;
-		$t->finalizeToken() or return undef;
-		return $t->onChar();
-	} else {
-		# Operator?
-		$t->setTokenClass( 'Operator' ) or return undef;
-		return $t->onChar();
-	}
-}	
-
-
-
-
-package PPI::Tokenizer::Token::Transient::Minus;
-
-use strict;
-use base 'PPI::Tokenizer::Token';
-
-sub onChar {
-	my $class = shift;
-	my $t = shift;
-	$_ = $t->{char};
-	
-	# Is it a number
-	if ( /\d/ ) {
-		$t->setTokenClass( 'Number' ) or return undef;
-		return 1;
-	} elsif ( /[a-zA-Z]/ ) {
-		$t->setTokenClass( 'Transient::DashedBareword' ) or return undef;
-		return 1;
-	} else {
-		$t->setTokenClass( 'Operator' ) or return undef;
-		return $t->onChar();
-	}
-}
-
-
-
-
-package PPI::Tokenizer::Token::Transient::DashedBareword;
+# This should be a string... but I'm still musing
 
 use strict;
 use base 'PPI::Tokenizer::Token';
@@ -1052,8 +804,76 @@ sub onChar {
 		$t->setTokenClass( 'Bareword' ) or return undef;
 		$t->finalizeToken() or return undef;
 		return $t->onChar();
-	}		
-} 
+	}
+}
+
+
+
+
+
+#####################################################################
+# All the quote and quote likes
+
+# Single Quote
+package PPI::Tokenizer::Token::Quote::Single;
+use base 'PPI::Tokenizer::Quote::Simple';
+sub DUMMY { 1 }
+	
+# Double Quote
+package PPI::Tokenizer::Token::Quote::Double;
+use base 'PPI::Tokenizer::Quote::Simple';
+sub DUMMY { 1 }
+
+# Back Ticks
+package PPI::Tokenizer::Token::Quote::Execute;
+use base 'PPI::Tokenizer::Quote::Simple';
+sub DUMMY { 1 }
+
+# Single Quote
+package PPI::Tokenizer::Token::Quote::OperatorSingle;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+	
+# Double Quote
+package PPI::Tokenizer::Token::Quote::OperatorDouble;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Back Ticks
+package PPI::Tokenizer::Token::Quote::OperatorExecute;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Quote Words
+package PPI::Tokenizer::Token::Quote::Words;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Quote Regex Expression
+package PPI::Tokenizer::Token::Quote::Regex;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Operator or Non-Operator Match Regex
+package PPI::Tokenizer::Token::Regex::Match;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Operaator Pattern Regex
+package PPI::Tokenizer::Token::Regex::Pattern;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Replace Regex
+package PPI::Tokenizer::Token::Regex::Replace;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
+# Transform regex
+package PPI::Tokenizer::Token::Regex::Transform;
+use base 'PPI::Tokenizer::Quote::Full';
+sub DUMMY { 1 }
+
 
 
 

@@ -6,8 +6,10 @@ use strict;
 # use warnings;
 # use diagnostics;
 
+# In development, get the devel versions of modules
 use FindBin;
-use lib $FindBin::Bin, "$FindBin::Bin/../../modules";
+use lib "$FindBin::Bin/../../../modules";
+
 use File::Spec;
 use File::Find::Rule;
 use AppLib;
