@@ -79,7 +79,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION $errstr $ALLOW_NONASCII};
 BEGIN {
-	$VERSION = '0.904';
+	$VERSION = '0.905';
 	$errstr  = '';
 }
 

@@ -49,7 +49,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.904';
+	$VERSION = '0.905';
 	$errstr  = '';
 }
 

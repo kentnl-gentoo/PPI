@@ -121,6 +121,7 @@ t.data/08_regression/03_rt_cpan_9614.code
 t.data/08_regression/03_rt_cpan_9614.dump
 t.data/08_regression/04_tinderbox.code
 t.data/08_regression/04_tinderbox.dump
+t.data/11_util/test.pm
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t
@@ -133,4 +134,5 @@ t/07_token.t
 t/08_regression.t
 t/09_normal.t
 t/10_statement.t
+t/11_util.t
 t/99_pod.t

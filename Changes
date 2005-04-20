@@ -1,5 +1,14 @@
 Revision history for Perl extension PPI
 
+0.905 Wed Apr 20 2005
+	General:
+	- Completely forgot to write unit tests for PPI::Util,
+	  and a bug slipped in. Fixed and added tests
+
+	Details:
+	- Fixed bug in PPI::Util::_Document
+	- Added 11_util.t
+
 0.904 Wed Apr 20 2005
 	General:
 	- Improvements to PPI::Normal

@@ -18,7 +18,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 use Class::Autouse ':devel';
 
 
@@ -40,6 +40,7 @@ use_all_ok( qw{
 	PPI::Dumper
 	PPI::Find
 	PPI::Normal
+	PPI::Util
 	} );
 
 sub use_all_ok {
@@ -60,6 +61,6 @@ sub use_all_ok {
 	}
 }
 
-ok( ! $PPI::XS::VERSION, 'PPI::XS is explicitly NOT loaded' );
+ok( ! $PPI::XS::VERSION, 'PPI::XS is correctly NOT loaded' );
 
 exit(0);

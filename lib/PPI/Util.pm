@@ -3,12 +3,13 @@ package PPI::Util;
 # Provides some common utility functions that can be imported
 
 use strict;
+use UNIVERSAL 'isa';
 use base 'Exporter';
 use PPI::Document ();
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.904';
+	$VERSION = '0.905';
 	@EXPORT_OK = qw{_Document};
 }
 
