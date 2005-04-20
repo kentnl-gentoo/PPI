@@ -23,15 +23,15 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 
 
 
 
-# Hook for the _on_char token call
-sub _on_char {
+# Hook for the __TOKENIZER__on_char token call
+sub __TOKENIZER__on_char {
 	my $class = shift;
 	my $t     = $_[0]->{token} ? shift : return undef;
 

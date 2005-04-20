@@ -6,26 +6,26 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Comment__significant 0.900+
 sub significant { '' }
 
-# Most stuff goes through _commit.
+# Most stuff goes through __TOKENIZER__commit.
 # This is such a rare case, do char at a time to keep the code small
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t = $_[1];
 
 	# Make sure not to include the trailing newline
 	if ( substr( $t->{line}, $t->{line_cursor}, 1 ) eq "\n" ) {
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
 	1;
 }
 
-sub _commit {
+sub __TOKENIZER__commit {
 	my $t = $_[1];
 
 	# Get the rest of the line
@@ -46,7 +46,7 @@ sub _commit {
 }
 
 # Comments end at the end of the line
-sub _on_line_end {
+sub __TOKENIZER__on_line_end {
 	$_[1]->_finalize_token if $_[1]->{token};
 	1;
 }

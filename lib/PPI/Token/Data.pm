@@ -8,9 +8,9 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
-sub _on_char { 1 }
+sub __TOKENIZER__on_char { 1 }
 
 1;

@@ -30,20 +30,6 @@ In addition, you can choose to do the normalization only as deep as a
 particular layer, depending on aggressively you want the normalization
 process to be.
 
-=head2 Layer 1 - Insignificant Data Removal
-
-The basic step common to all normalization, layer 1 scans through the
-Document and removes all whitespace, comments, POD, and anything else
-that returns false for its C<significant> method.
-
-It also checks each Element and removes known-useless sub-element
-metadata such as the Elements physical position in the file.
-
-=head1 Layer 2 - NOT IMPLEMENTED
-
-This initial forward-port of the original Perl::Compare functionality to
-the 0.900+ API of PPI only implements Layer 1 at this time.
-
 =head1 METHODS
 
 =cut
@@ -55,12 +41,13 @@ use PPI::Document::Normalized ();
 
 use vars qw{$VERSION $errstr %LAYER};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 	$errstr  = '';
 
 	# Registered function store
 	%LAYER = (
 		1 => [],
+		2 => [],
 		);
 }
 
@@ -103,7 +90,7 @@ sub register {
 
 		# Check the layer to add it to
 		my $layer = shift;
-		defined $layer and $layer == 1 or return undef;
+		defined $layer and $layer =~ /^(?:1|2)$/ or return undef;
 
 		# Add to the layer data store
 		push @{ $LAYER{$layer} }, $function;
@@ -137,9 +124,9 @@ Returns a new PPI::Normal object, or C<undef> on error.
 
 B<Note>
 
-Unless it can be shown there's absolutely a could reason to make this
-instantiable, this may degrade into a non-instantiable class at a
-later date (although the PPI::Document C<normalize> will stay as is).
+Unless it can be shown there's a string reason to make this instantiable,
+this may degrade into a non-instantiable class at a later date (although
+the PPI::Document C<normalize> will stay as is).
 
 =cut
 
@@ -148,7 +135,7 @@ sub new {
 
 	# Create the object
 	my $object = bless {
-		layer => 1,
+		layer => 2,
 		}, $class;
 
 	$object;
@@ -210,9 +197,39 @@ sub _clear { $errstr = ''; $_[0] }
 
 =pod
 
+=head1 NOTES
+
+The following normalisation layers are implemented. When writing
+plugins, you should register each transformation function with the
+appropriate layer.
+
+=head2 Layer 1 - Insignificant Data Removal
+
+The basic step common to all normalization, layer 1 scans through the
+Document and removes all whitespace, comments, POD, and anything else
+that returns false for its C<significant> method.
+
+It also checks each Element and removes known-useless sub-element
+metadata such as the Element's physical position in the file.
+
+=head2 Layer 2 - Significant Element Removal
+
+After the removal of the insignificant data, Layer 2 removed larger, more
+complex, and superficially "significant" elements, that can be removed
+for the purposes of normalisation.
+
+Examples from this layer include pragmas, now-useless statement
+separators (since the PDOM tree is holding statement elements), and
+several other minor bits and pieces.
+
+=head2 Layer 3 - TO BE COMPLETED
+
+This version of the forward-port of the Perl::Compare functionality
+to the 0.900+ API of PPI only implements Layer 1 and 2 at this time.
+
 =head1 TO DO
 
-- Write the other 5 layers :)
+- Write the other 4-5 layers :)
 
 =head1 SUPPORT
 

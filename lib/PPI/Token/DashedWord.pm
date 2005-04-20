@@ -8,10 +8,10 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t = $_[1];
 
 	# Suck to the end of the dashed bareword
@@ -30,7 +30,7 @@ sub _on_char {
 		$t->_set_token_class( 'Word' ) or return undef;
 	}
 
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 1;

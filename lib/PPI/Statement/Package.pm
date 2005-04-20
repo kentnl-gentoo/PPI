@@ -42,7 +42,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 =pod
@@ -63,7 +63,7 @@ If the package statement is done any different way, it returns false.
 
 sub namespace {
 	my $self = shift;
-	my $namespace = $self->child(1) or return '';
+	my $namespace = $self->schild(1) or return '';
 	isa($namespace, 'PPI::Token::Word') ? $namespace->content : '';
 }
 
@@ -96,10 +96,6 @@ sub file_scoped {
 1;
 
 =pod
-
-=head1 TO DO
-
-- Write unit tests for this package
 
 =head1 SUPPORT
 

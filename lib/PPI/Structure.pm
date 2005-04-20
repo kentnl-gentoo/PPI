@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -54,7 +54,7 @@ sub _set_finish {
 	# Check the Token
 	my $Token = isa(ref $_[0], 'PPI::Token::Structure') ? shift : return undef;
 	$Token->parent and return undef; # Must be a detached token
-	($self->start->_opposite eq $Token->content) or return undef; # ... that matches the opening token
+	($self->start->__LEXER__opposite eq $Token->content) or return undef; # ... that matches the opening token
 
 	# Set the token
 	$self->{finish} = $Token;

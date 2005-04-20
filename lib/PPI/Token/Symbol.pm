@@ -8,10 +8,10 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t = $_[1];
 
 	# Suck in till the end of the symbol
@@ -25,12 +25,12 @@ sub _on_char {
 	my $content = $t->{token}->{content};	
 	if ( $content eq '@_' or $content eq '$_' ) {
 		$t->_set_token_class( 'Magic' );
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
 	# Shortcut for a couple of things
 	if ( $content eq '%::' ) {
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 	if ( $content eq '$::' ) {
 		# May well be an alternate form of a Magic
@@ -40,11 +40,11 @@ sub _on_char {
 			$t->{line_cursor}++;
 			$t->_set_token_class( 'Magic' );
 		}
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 	if ( $content =~ /^(?:\$|\@)\d+/ ) {
 		$t->_set_token_class( 'Magic' );
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
 	# Trim off anything we oversucked...
@@ -54,7 +54,7 @@ sub _on_char {
 		$t->{token}->{content} = $1;
 	}
 
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 # Returns the normalised, canonical symbol.

@@ -5,7 +5,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -23,7 +23,7 @@ BEGIN {
 	*OPERATOR = *PPI::Token::Operator::OPERATOR;
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $class = shift;
 	my $t     = shift;
 
@@ -50,26 +50,26 @@ sub _on_char {
 	my $tokens = $t->_previous_significant_tokens(1);
 	if ( $tokens and $tokens->[0]->{_attribute} ) {
 		$t->_set_token_class( 'Attribute' );
-		return $t->{class}->_commit( $t );
+		return $t->{class}->__TOKENIZER__commit( $t );
 	}
 
 	# Check for a quote like operator
 	my $word = $t->{token}->{content};
-	if ( $QUOTELIKE{$word} and ! $class->_literal($t, $word, $tokens) ) {
+	if ( $QUOTELIKE{$word} and ! $class->__TOKENIZER__literal($t, $word, $tokens) ) {
 		$t->_set_token_class( $QUOTELIKE{$word} );
-		return $t->{class}->_on_char( $t );
+		return $t->{class}->__TOKENIZER__on_char( $t );
 	}
 
 	# Or one of the word operators
-	if ( $OPERATOR{$word} and ! $class->_literal($t, $word, $tokens) ) {
+	if ( $OPERATOR{$word} and ! $class->__TOKENIZER__literal($t, $word, $tokens) ) {
 	 	$t->_set_token_class( 'Operator' );
- 		return $t->_finalize_token->_on_char( $t );
+ 		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
 	# Unless this is a simple identifier, at this point
 	# it has to be a normal bareword
 	if ( $word =~ /\:/ ) {
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
 	# If the NEXT character in the line is a colon, this
@@ -87,12 +87,12 @@ sub _on_char {
 	}
 
 	# Finalise and process the character again
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 # We are committed to being a bareword.
 # Or so we would like to believe.
-sub _commit {
+sub __TOKENIZER__commit {
 	my ($class, $t) = @_;
 
 	# Our current position is the first character of the bareword.
@@ -123,7 +123,7 @@ sub _commit {
 	if ( $tokens and $tokens->[0]->{_attribute} ) {
 		$t->_new_token( 'Attribute', $word );
 		return ($t->{line_cursor} >= $t->{line_length}) ? 0
-			: $t->{class}->_on_char($t);
+			: $t->{class}->__TOKENIZER__on_char($t);
 	}
 
 	# Check for the end of the file
@@ -181,14 +181,14 @@ sub _commit {
 		# Since its not a simple identifier...
 		$token_class = 'Word';
 
-	} elsif ( $class->_literal($t, $word, $tokens) ) {
+	} elsif ( $class->__TOKENIZER__literal($t, $word, $tokens) ) {
 		$token_class = 'Word';
 
 	} elsif ( $QUOTELIKE{$word} ) {
 		# Special Case: A Quote-like operator
 		$t->_new_token( $QUOTELIKE{$word}, $word );
 		return ($t->{line_cursor} >= $t->{line_length}) ? 0
-			: $t->{class}->_on_char( $t );
+			: $t->{class}->__TOKENIZER__on_char( $t );
 
 	} elsif ( $OPERATOR{$word} ) {
 		# Word operator
@@ -215,12 +215,13 @@ sub _commit {
 		$t->_finalize_token;
 		return 0;
 	}
-	$t->_finalize_token->_on_char($t);
+	$t->_finalize_token->__TOKENIZER__on_char($t);
 }
 
 # Is the word in a "forced" context, and thus cannot be either an
-# operator or a quote-like thing.
-sub _literal {
+# operator or a quote-like thing. This version is only useful
+# during tokenization.
+sub __TOKENIZER__literal {
 	my ($class, $t, $word, $tokens) = @_;
 
 	# Is this a forced-word context?

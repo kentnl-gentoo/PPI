@@ -6,10 +6,10 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t = $_[1];
 
 	# Suck in till the end of the arrayindex
@@ -20,7 +20,7 @@ sub _on_char {
 	}
 
 	# End of token
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 1;

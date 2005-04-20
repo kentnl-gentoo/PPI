@@ -13,10 +13,10 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $class = shift;
 	my $t     = shift;
 	my $char  = substr( $t->{line}, $t->{line_cursor}, 1 );
@@ -42,7 +42,7 @@ sub _on_char {
 			return 1;
 		} else {
 			# End of the number... its just 0
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 	}
 
@@ -101,7 +101,7 @@ sub _on_char {
 
 	# Doesn't fit a special case, or is after the end of the token
 	# End of token.
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 1;

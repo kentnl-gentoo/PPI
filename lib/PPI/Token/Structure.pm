@@ -6,11 +6,22 @@ use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
-use vars qw{$VERSION @MATCH};
+use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
+}
 
-	# Populate the matches
+
+
+
+
+#####################################################################
+# Parsing Methods
+
+# Set the matching braces, done as an array
+# for slightly faster lookups.
+use vars qw{@MATCH};
+BEGIN {
 	$MATCH[ord '{'] = '}';
 	$MATCH[ord '}'] = '{';
 	$MATCH[ord '['] = ']';
@@ -19,20 +30,13 @@ BEGIN {
 	$MATCH[ord ')'] = '(';
 }
 
-
-
-
-
-#####################################################################
-# Tokenizer Methods
-
-sub _on_char {
+sub __TOKENIZER__on_char {
 	# Structures are one character long, always.
 	# Finalize and process again.
-	$_[1]->_finalize_token->_on_char( $_[1] );
+	$_[1]->_finalize_token->__TOKENIZER__on_char( $_[1] );
 }
 
-sub _commit {
+sub __TOKENIZER__commit {
 	my $t = $_[1];
 	$t->_new_token( 'Structure', substr( $t->{line}, $t->{line_cursor}, 1 ) );
 	$t->_finalize_token;
@@ -40,6 +44,8 @@ sub _commit {
 }
 
 # For a given brace, find its opposing pair
-sub _opposite { $MATCH[ord $_[0]->{content} ] }
+sub __LEXER__opposite {
+	$MATCH[ord $_[0]->{content} ];
+}
 
 1;

@@ -5,21 +5,24 @@ package PPI::Token::Unknown;
 # different things.
 #
 # All the unknown cases are character by character problems,
-# so this class only needs to implement _on_char()
+# so this class only needs to implement __TOKENIZER__on_char()
 
 use strict;
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 
 
 
 
-sub _on_char {
+#####################################################################
+# Parsing Methods
+
+sub __TOKENIZER__on_char {
 	my $t = $_[1];                                    # Tokenizer object
 	my $c = $t->{token}->{content};                   # Current token contents
 	$_ = substr( $t->{line}, $t->{line_cursor}, 1 );  # Current character
@@ -37,11 +40,11 @@ sub _on_char {
 		if ( $_ eq '{' or $_ eq '$' ) {
 			# GLOB cast
 			$t->_set_token_class( 'Cast' ) or return undef;
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		$t->_set_token_class( 'Operator' ) or return undef;
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 
 
 
@@ -58,7 +61,7 @@ sub _on_char {
 
 		# Must be a cast
 		$t->_set_token_class( 'Cast' ) or return undef;
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 
 
 
@@ -75,7 +78,7 @@ sub _on_char {
 
 		# Must be a cast
 		$t->_set_token_class( 'Cast' ) or return undef;
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 
 
 
@@ -84,7 +87,7 @@ sub _on_char {
 		if ( /\d/ ) {
 			# This is %2 (modulus number)
 			$t->_set_token_class( 'Operator' ) or return undef;
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		# Is it a symbol?
@@ -95,13 +98,13 @@ sub _on_char {
 		if ( /[\$@%{]/ ) {
 			# It's a cast
 			$t->_set_token_class( 'Cast' ) or return undef;
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 
 		}
 
 		# Probably the mod operator
 		$t->_set_token_class( 'Operator' ) or return undef;
-		return $t->{class}->_on_char( $t );
+		return $t->{class}->__TOKENIZER__on_char( $t );
 
 
 
@@ -110,7 +113,7 @@ sub _on_char {
 		if ( /\d/ ) {
 			# This is &2 (bitwise-and number)
 			$t->_set_token_class( 'Operator' ) or return undef;
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		# Is it a symbol
@@ -121,12 +124,12 @@ sub _on_char {
 		if ( /[\$@%{]/ ) {
 			# The ampersand is a cast
 			$t->_set_token_class( 'Cast' ) or return undef;
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		# Probably the binary and operator
 		$t->_set_token_class( 'Operator' ) or return undef;
-		return $t->{class}->_on_char( $t );
+		return $t->{class}->__TOKENIZER__on_char( $t );
 
 
 
@@ -142,7 +145,7 @@ sub _on_char {
 
 		# The numeric negative operator
 		$t->_set_token_class( 'Operator' ) or return undef;
-		return $t->{class}->_on_char( $t );
+		return $t->{class}->__TOKENIZER__on_char( $t );
 
 
 
@@ -155,16 +158,16 @@ sub _on_char {
 		# Now, : acts very very differently in different contexts.
 		# Mainly, we need to find out if this is a subroutine attribute.
 		# We'll leave a hint in the token to indicate that, if it is.
-		if ( $_[0]->_is_an_attribute( $t ) ) {
+		if ( $_[0]->__TOKENIZER__is_an_attribute( $t ) ) {
 			# This : is an attribute indicator
 			$t->_set_token_class( 'Operator' ) or return undef;
 			$t->{token}->{_attribute} = 1;
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		# It MIGHT be a label, but its probably the ?: trinary operator
 		$t->_set_token_class( 'Operator' ) or return undef;
-		return $t->{class}->_on_char( $t );
+		return $t->{class}->__TOKENIZER__on_char( $t );
 	}
 
 	### erm...
@@ -172,22 +175,22 @@ sub _on_char {
 }
 
 # Are we at a location where a ':' would indicate a subroutine attribute
-sub _is_an_attribute {
-	my $t = $_[1]; # Tokenizer object
+sub __TOKENIZER__is_an_attribute {
+	my $t      = $_[1]; # Tokenizer object
 	my $tokens = $t->_previous_significant_tokens( 3 ) or return undef;
 
 	# If we just had another attribute, we are also an attribute
-	if ( $tokens->[0]->_isa('Attribute') ) {
+	if ( $tokens->[0]->isa('PPI::Token::Attribute') ) {
 		return 1;
 	}
 
 	# If we just had a prototype, then we are an attribute
-	if ( $tokens->[0]->_isa('Prototype') ) {
+	if ( $tokens->[0]->isa('PPI::Token::Prototype') ) {
 		return 1;
 	}
 
 	# Other than that, we would need to have had a bareword
-	unless ( $tokens->[0]->_isa('Word') ) {
+	unless ( $tokens->[0]->isa('PPI::Token::Word') ) {
 		return '';
 	}
 
@@ -198,7 +201,7 @@ sub _is_an_attribute {
 
 	# Or, we could be a named subroutine
 	if ( $tokens->[1]->_isa('Word', 'sub')
-		and ( $tokens->[2]->_isa('Structure')
+		and ( $tokens->[2]->isa('PPI::Token::Structure')
 			or $tokens->[2]->_isa('Whitespace','')
 		)
 	) {

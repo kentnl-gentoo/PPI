@@ -21,7 +21,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 
@@ -31,13 +31,16 @@ BEGIN {
 #####################################################################
 # Configuration and Registration
 
-my %METHODS = (
+my @METHODS = (
 	remove_insignificant_elements => 1,
+	remove_useless_pragma         => 2,
+	remove_statement_seperator    => 2,
+	remove_useless_return         => 2,
 	);
 
 sub import {
 	PPI::Normal->register(
-		map { /\D/ ? "PPI::Normal::Standard::$_" : $_ } %METHODS
+		map { /\D/ ? "PPI::Normal::Standard::$_" : $_ } @METHODS
 		) or die "Failed to register PPI::Normal::Standard transforms";
 }
 
@@ -52,6 +55,58 @@ sub import {
 sub remove_insignificant_elements {
 	my $Document = shift;
 	$Document->prune( sub { ! $_[1]->significant } );
+}
+
+
+
+
+
+#####################################################################
+# Level 2 Transforms
+
+# Remove version dependencies and pragma
+my $remove_pragma = map { $_ => 1 } qw{
+	strict warnings diagnostics	less
+	};
+sub remove_useless_pragma {
+	my $Document = shift;
+	$Document->prune( sub {
+		return '' unless $_[1]->isa('PPI::Statement::Include');
+		return 1  if     $_[1]->version;
+		return 1  if     $remove_pragma->{$_[1]->pragma};
+		'';
+	} );
+}
+
+# Remove all semi-colons at the end of statements
+sub remove_statement_seperator {
+	my $Document = shift;
+	$Document->prune( sub {
+		$_[1]->isa('PPI::Token::Structure') or return '';
+		$_[1]->content eq ';'               or return '';
+		my $stmt = $_[1]->parent            or return '';
+		$stmt->isa('PPI::Statement')        or return '';
+		$_[1]->next_sibling                 or return '';
+		1;
+	} );
+}
+
+# In any block, the "return" in the last statement is not
+# needed if there is only one and only one thing after the
+# return.
+sub remove_useless_return {
+	my $Document = shift;
+	$Document->prune( sub {
+		$_[1]->isa('PPI::Token::Word')       or return '';
+		$_[1]->content eq 'return'           or return '';
+		my $stmt = $_[1]->parent             or return '';
+		$stmt->isa('PPI::Statement::Break')  or return '';
+		$stmt->children == 2                 or return '';
+		$stmt->next_sibling                 and return '';
+		my $block = $stmt->parent            or return '';
+		$block->isa('PPI::Structure::Block') or return '';
+		1;
+	} );
 }
 
 1;

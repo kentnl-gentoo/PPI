@@ -6,7 +6,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly
@@ -26,7 +26,7 @@ BEGIN {
 		);
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t    = $_[1];
 	my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
 
@@ -38,9 +38,9 @@ sub _on_char {
 		my $line = substr( $t->{line}, $t->{line_cursor} );
 		if ( $line =~ /^(?:[^\W\d]|\s*['"`])/ ) {
 			# This is a here-doc.
-			# Change the class and move to the HereDoc's own _on_char method.
+			# Change the class and move to the HereDoc's own __TOKENIZER__on_char method.
 			$t->_set_token_class('HereDoc');
-			return $t->{class}->_on_char( $t );
+			return $t->{class}->__TOKENIZER__on_char( $t );
 		}
 	}
 
@@ -50,7 +50,7 @@ sub _on_char {
 	}
 
 	# Finalize normally
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 1;

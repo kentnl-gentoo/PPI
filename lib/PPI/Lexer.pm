@@ -49,7 +49,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 	$errstr  = '';
 }
 
@@ -822,7 +822,7 @@ sub _lex_structure {
 		# Is this the close of a structure ( which would be an error )
 		if ( $Token->_closes ) {
 			# Is this OUR closing structure
-			if ( $Token->content eq $Structure->start->_opposite ) {
+			if ( $Token->content eq $Structure->start->__LEXER__opposite ) {
 				# Add any delayed tokens, and the finishing token
 				$self->_add_delayed( $Structure ) or return undef;
 				$Structure->_set_finish( $Token ) or return undef;

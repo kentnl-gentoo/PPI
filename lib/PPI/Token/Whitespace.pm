@@ -1,33 +1,15 @@
 package PPI::Token::Whitespace;
 
+# The 'Whitespace' class represents the normal default state of the parser.
+# That is, the whitespace area 'outside' the code.
+
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
-# The 'Whitespace' class represents the normal default state of the parser.
-# That is, the whitespace area 'outside' the code.
-
-use vars qw{$VERSION @CLASSMAP @COMMITMAP};
+use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
-
-	# Build the class and commit maps
-        @CLASSMAP = ();
-        foreach ( 'a' .. 'w', 'y', 'z', 'A' .. 'Z', '_' ) { $COMMITMAP[ord $_] = 'PPI::Token::Word'  }
-	foreach ( qw!; [ ] { } )! )                       { $COMMITMAP[ord $_] = 'PPI::Token::Structure' }
-        foreach ( 0 .. 9 )                                { $CLASSMAP[ord $_]  = 'Number'   }
-	foreach ( qw{= ? | + > . ! ~ ^} )                 { $CLASSMAP[ord $_]  = 'Operator' }
-	foreach ( qw{* $ @ & : - %} )                     { $CLASSMAP[ord $_]  = 'Unknown'  }
-
-	# Miscellaneous remainder
-        $COMMITMAP[ord '#'] = 'PPI::Token::Comment';
-        $CLASSMAP[ord ',']  = 'PPI::Token::Operator';
-	$CLASSMAP[ord "'"]  = 'Quote::Single';
-	$CLASSMAP[ord '"']  = 'Quote::Double';
-	$CLASSMAP[ord '`']  = 'QuoteLike::Backtick';
-	$CLASSMAP[ord '\\'] = 'Cast';
-	$CLASSMAP[ord '_']  = 'Word';
-	$CLASSMAP[32]       = 'Whitespace'; # A normal space
+	$VERSION = '0.904';
 }
 
 # Create a null whitespace token
@@ -36,7 +18,43 @@ sub null { $_[0]->new('') }
 ### XS -> PPI/XS.xs:_PPI_Token_Whitespace__significant 0.900+
 sub significant { '' }
 
-sub _on_line_start {
+# Horozintal space before a newline is not needed.
+# The ->tidy method removes it.
+sub tidy {
+	my $self = shift;
+	$self->{content} =~ s/^\s+?(?>\n)//;
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Parsing Methods
+
+# Build the class and commit maps
+use vars qw{@CLASSMAP @COMMITMAP};
+BEGIN {
+	@CLASSMAP = ();
+	foreach ( 'a' .. 'w', 'y', 'z', 'A' .. 'Z', '_' ) { $COMMITMAP[ord $_] = 'PPI::Token::Word'  }
+	foreach ( qw!; [ ] { } )! )                       { $COMMITMAP[ord $_] = 'PPI::Token::Structure' }
+	foreach ( 0 .. 9 )                                { $CLASSMAP[ord $_]  = 'Number'   }
+	foreach ( qw{= ? | + > . ! ~ ^} )                 { $CLASSMAP[ord $_]  = 'Operator' }
+	foreach ( qw{* $ @ & : - %} )                     { $CLASSMAP[ord $_]  = 'Unknown'  }
+
+	# Miscellaneous remainder
+	$COMMITMAP[ord '#'] = 'PPI::Token::Comment';
+	$CLASSMAP[ord ',']  = 'PPI::Token::Operator';
+	$CLASSMAP[ord "'"]  = 'Quote::Single';
+	$CLASSMAP[ord '"']  = 'Quote::Double';
+	$CLASSMAP[ord '`']  = 'QuoteLike::Backtick';
+	$CLASSMAP[ord '\\'] = 'Cast';
+	$CLASSMAP[ord '_']  = 'Word';
+	$CLASSMAP[32]       = 'Whitespace'; # A normal space
+}
+
+sub __TOKENIZER__on_line_start {
 	my $t = $_[1];
 	$_ = $t->{line};
 
@@ -68,12 +86,12 @@ sub _on_line_start {
 	1;
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t = $_[1];
 	$_ = ord substr $t->{line}, $t->{line_cursor}, 1;
 
 	# Do we definately know what something is?
-	return $COMMITMAP[$_]->_commit($t) if $COMMITMAP[$_];
+	return $COMMITMAP[$_]->__TOKENIZER__commit($t) if $COMMITMAP[$_];
 
 	# Handle the simple option first
 	return $CLASSMAP[$_] if $CLASSMAP[$_];
@@ -92,13 +110,13 @@ sub _on_char {
 		my $tokens = $t->_previous_significant_tokens( 3 );
 		if ( $tokens ) {
 			# A normal subroutine declaration
-		     	if ( $tokens->[0]->_isa('Word')
-		     		and $tokens->[1]->_isa('Word', 'sub')
-		     	 	and (
-			     		$tokens->[2]->_isa('Structure')
+			if ( $tokens->[0]->isa('PPI::Token::Word')
+				and $tokens->[1]->_isa('Word', 'sub')
+				and (
+					$tokens->[2]->isa('PPI::Token::Structure')
 					or $tokens->[2]->_isa('Whitespace', '')
-			     		)
-		     	) {
+				)
+			) {
 				# This is a sub prototype
 				return 'Prototype';
 			}
@@ -124,10 +142,10 @@ sub _on_char {
 		# $foo < $bar
 		# 1 < $bar
 		# $#foo < $bar
-		return 'Operator' if $previous->_isa( 'Symbol'     );
-		return 'Operator' if $previous->_isa( 'Magic'      );
-		return 'Operator' if $previous->_isa( 'Number'     );
-		return 'Operator' if $previous->_isa( 'ArrayIndex' );
+		return 'Operator' if $previous->isa('PPI::Token::Symbol');
+		return 'Operator' if $previous->isa('PPI::Token::Magic');
+		return 'Operator' if $previous->isa('PPI::Token::Number');
+		return 'Operator' if $previous->isa('PPI::Token::ArrayIndex');
 
 		# If it is <<... it's a here-doc instead
 		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
@@ -172,14 +190,14 @@ sub _on_char {
 		# .. - The second condition in a flip flop
 		# =~ - A bound regex
 		# !~ - Ditto
-		return 'Regexp::Match' if $previous->_isa( 'Operator' );
+		return 'Regexp::Match' if $previous->isa('PPI::Token::Operator');
 
 		# After a symbol
-		return 'Operator' if $previous->_isa( 'Symbol' );
+		return 'Operator' if $previous->isa('PPI::Token::Symbol');
 		return 'Operator' if $previous->_isa( 'Structure', ']' );
 
 		# After another number
-		return 'Operator' if $previous->_isa( 'Number' );
+		return 'Operator' if $previous->isa('PPI::Token::Number');
 
 		# After going into scope/brackets
 		return 'Regexp::Match' if $previous->_isa( 'Structure', '(' );
@@ -220,21 +238,13 @@ sub _on_char {
 		}
 
 		# Otherwise, commit like a normal bareword
-		return PPI::Token::Word->_commit($t);
+		return PPI::Token::Word->__TOKENIZER__commit($t);
 	}
 
 	# This SHOULD BE is just normal base stuff
 	'Whitespace';
 }
 
-sub _on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
-
-# Horozintal space before a newline is not needed.
-# The ->tidy method removes it.
-sub tidy {
-	my $self = shift;
-	$self->{content} =~ s/^\s+?(?>\n)//;
-	1;
-}
+sub __TOKENIZER__on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
 
 1;

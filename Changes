@@ -1,6 +1,31 @@
 Revision history for Perl extension PPI
 
-0.903 Fri Mar 25
+0.904 Wed Apr 20 2005
+	General:
+	- Improvements to PPI::Normal
+	- Method renaming to parse-time PDOM private methods
+	- Various bug fixes and POD tweaks
+	- Added PPI::Util
+
+	Details:
+	- Partly added Layer 2 to PPI::Normal
+	- Added function PPI::Normal::Standard::remove_useless_pragma
+	- Added function PPI::Normal::Standard::remove_statement_seperator
+	- Added function PPI::Normal::Standard::remove_useless_return
+	- Renamed _on_line_start to __TOKENIZER__on_line_start
+	- Renamed _on_line_end to __TOKENIZER__on_line_end
+	- Renamed _on_char to __TOKENIZER__on_char
+	- Renamed _scan_for_end to __TOKENIZER__scan_for_end
+	- Renamed _commit to __TOKENIZER__commit
+	- Renamed _is_an_attribute to __TOKENIZER__is_an_attribute
+	- Renamed _literal to __TOKENIZER__literal
+	- Renamed _opposite to __LEXER__opposite
+	- Fixed bug in PPI::Statement::Package::namespace
+	- Added unit tests for PPI::Statement::Package
+	- Added (currently mostly internal) PPI::Util
+	- Added exportable function PPI::Util::_Document
+
+0.903 Fri Mar 25 2005
 	General:
 	- PPI::Document and other PPI::Node-subclasses will now implicitly
 	  DESTROY correctly.

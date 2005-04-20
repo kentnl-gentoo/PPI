@@ -89,7 +89,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 
@@ -142,7 +142,7 @@ sub terminator {
 # Tokenizer Methods
 
 # Parse in the entire here-doc in one call
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t     = $_[1];
 	my $token = $t->{token} or return undef;
 
@@ -204,7 +204,7 @@ sub _on_char {
 			$token->{_terminator_line} = $line;
 
 			# The HereDoc is now fully parsed
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		# Add the line
@@ -234,7 +234,7 @@ sub _on_char {
 	$token->{_damaged} = 1;
 
 	# The HereDoc is not fully parsed
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 1;

@@ -13,7 +13,7 @@ use Class::Autouse   ();
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '0.903';
+	$VERSION       = '0.904';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -50,8 +50,14 @@ PPI - BETA: Analyze and manipulate Perl code without using perl itself
 
   use PPI;
   
+  # Create a new empty document
+  my $Document = PPI::Document->new;
+  
+  # Create a document from source
+  $Document = PPI::Document->new('print "Hello World!\n"');
+  
   # Load a Document from a file
-  my $Document = PPI::Document->load('Module.pm');
+  $Document = PPI::Document->load('Module.pm');
   
   # Does it contain any POD?
   if ( $Document->find_any('PPI::Token::Pod') ) {

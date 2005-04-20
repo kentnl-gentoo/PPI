@@ -9,12 +9,12 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 # A cast is either % @ $ or $#
-sub _on_char {
-	$_[1]->_finalize_token->_on_char( $_[1] );
+sub __TOKENIZER__on_char {
+	$_[1]->_finalize_token->__TOKENIZER__on_char( $_[1] );
 }
 
 1;

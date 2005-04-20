@@ -9,7 +9,7 @@ use base 'PPI::Element';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
 # We don't load the abstracts, they are loaded
@@ -132,9 +132,9 @@ sub length      { &CORE::length($_[0]->{content}) }
 #####################################################################
 # Tokenizer Default Methods
 
-sub _on_line_start { 1 }
-sub _on_line_end   { 1 }
-sub _on_char       { 'Unknown' }
+sub __TOKENIZER__on_line_start { 1 }
+sub __TOKENIZER__on_line_end   { 1 }
+sub __TOKENIZER__on_char       { 'Unknown' }
 
 
 

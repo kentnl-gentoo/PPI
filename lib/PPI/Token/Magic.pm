@@ -8,7 +8,7 @@ use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.
@@ -29,7 +29,7 @@ BEGIN {
 	}
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $t = $_[1];
 	$_ = $t->{token}->{content} . substr( $t->{line}, $t->{line_cursor}, 1 );
 
@@ -43,7 +43,7 @@ sub _on_char {
 			# It's actually a normal symbol in the style
 			# $_foo or $::foo or $'foo. Overwrite the current token
 			$t->_set_token_class('Symbol');
-			return PPI::Token::Symbol->_on_char( $t );
+			return PPI::Token::Symbol->__TOKENIZER__on_char( $t );
 		}
 
 		if ( /^\$\$\w/ ) {
@@ -61,13 +61,13 @@ sub _on_char {
 			# This is really an index dereferencing cast, although
 			# it has the same two chars as the magic variable $#.
 			$t->_set_token_class('Cast');
-			return $t->_finalize_token->_on_char( $t );
+			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
 		if ( /^(\$\#)\w/ ) {
 			# This is really an array index thingy ( $#array )
 			$t->{token} = PPI::Token::ArrayIndex->new( $1 );
-			return PPI::Token::ArrayIndex->_on_char( $t );
+			return PPI::Token::ArrayIndex->__TOKENIZER__on_char( $t );
 		}
 
 		if ( /^\$\^\w/o ) {
@@ -88,7 +88,7 @@ sub _on_char {
 	}
 
 	# End the current magic token, and recheck
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 # Our version is canonical is much simple

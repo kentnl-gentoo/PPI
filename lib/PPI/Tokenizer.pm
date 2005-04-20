@@ -14,7 +14,7 @@ PPI::Tokenizer - The Perl Document Tokenizer
   $Tokenizer = PPI::Tokenizer->new( \$source      );
   
   # Return all the tokens for the document
-  my $tokens = PPI::Tokenizer->all_tokens;
+  my $tokens = $Tokenizer->all_tokens;
   
   # Or we can use it as an iterator
   while ( my $Token = $Tokenizer->get_token ) {
@@ -23,8 +23,8 @@ PPI::Tokenizer - The Perl Document Tokenizer
   
   # If we REALLY need to manually nudge the cursor, you
   # can do that to (The lexer needs this ability to do rollbacks)
-  $Tokenizer->increment_cursor;
-  $Tokenizer->decrement_cursor;
+  $is_incremented = $Tokenizer->increment_cursor;
+  $is_decremented = $Tokenizer->decrement_cursor;
 
 =head1 DESCRIPTION
 
@@ -32,242 +32,32 @@ PPI::Tokenizer is the class that provides Tokenizer objects for use in
 breaking strings of Perl source code into Tokens.
 
 By the time you are reading this, you probably need to know a little
-about the different between how perl parses Perl "code" and how PPI
+about the difference between how perl parses Perl "code" and how PPI
 parsers Perl "documents".
 
-Perl itself (the intepreter) uses a heavily modified lex specification
-to specify it's parsing logic, maintains state as it goes, and both
-tokenises and lexes AND EXECUTES at the same time. In fact, it's
-provably impossible to use perl's parsing method without BEING perl.
+"perl" itself (the intepreter) uses a heavily modified lex specification
+to specify it's parsing logic, maintains several types of state as it
+goes, and both tokenises and lexes AND EXECUTES at the same time.
+In fact, it's provably impossible to use perl's parsing method without
+BEING perl.
 
-This is where the truism "Only perl can parse Perl" comes form.
+This is where the truism "Only perl can parse Perl" comes from.
 
 PPI uses a completely different approach by abandoning the ability to
-provably parse perl perfectly, and instead to parse as a document and
-get so close that unless you do insanely silly things, it can handle it.
+provably parse perl, and instead to parse the source as a document, but
+get so close to being perfect that unless you do insanely silly things,
+it can handle it.
 
 It was touch and go for a long time whether we could get it close enough,
 but in the end it turned out that it could be done.
 
-In this approach, PPI::Tokenizer is seperate from the lexer L<PPI::Lexer>.
-The job of PPI::Tokenizer is to take pure source as a string and break it
-up into a stream/set of tokens.
+In this approach, the tokenizer C<PPI::Tokenizer> is seperate from the
+lexer L<PPI::Lexer>. The job of C<PPI::Tokenizer> is to take pure source
+as a string and break it up into a stream/set of tokens.
 
 The Tokenizer uses a hell of a lot of heuristics, guessing, and cruft,
-supported by a very VERY flexible API.
-
-=head1 HOW THE TOKENIZER WORKS
-
-Understanding the Tokenizer is not for the feint-hearted. It is by far
-the most complex and twisty piece of perl I've ever seen. You probably
-want to skip this section.
-
-But if you really want to understand, well then here goes.
-
-=head2 Source Input and Clean Up
-
-The Tokenizer starts by taking source in a variety of forms, sucking it
-all in and merging into one big string, and doing our own internal line
-split, using a special "universal newline" which allows the Tokenizer to
-take source for any platform, and even supports a few known types of
-broken newlines caused by mixed mac/pc/*nix editor screw ups.
-
-The resulting array of lines is used to feed the tokenizer, and manually
-accessed by the heredoc-logic to do the line-oriented part of here-doc
-support.
-
-=head2 Doing Things the Old Fashioned Way
-
-Due to the complexity of perl, and after 2 previously aborted parser
-attempts, in the end the tokenizer was fashioned around a line-buffered
-character-by-character method.
-
-That is, the Tokenizer pulls and holds a line at a time into a line buffer,
-and then iterates a cursor along it. At each cursor position, a method is
-called in whatever token class we are currently in, which will examine the
-character at the current position, and handle it.
-
-As the handler methods in the various token classes are called, they
-build up a output token array for the source code.
-
-Until someone else with more formal training in parsers cares to name it,
-I am labelling it a "character by character heuristic tokenizer".
-
-Various parts of the Tokenisier use look-ahead, arbitrary-distance
-look-behind (although currently the maximum is three significant tokens),
-or both, and various other heuristic guesses.
-
-=head2 State Variables
-
-Aside from the current line and the character cursor, the Tokenizer
-maintains a number of different state variables.
-
-=over
-
-=item Current Class
-
-The Tokenizer maintains the current token class at all times. Much of the
-time is just going to be the "Whitespace" class, which is what the base of
-a document is. As the tokenizer executes the various character handlers,
-the class changes a lot as it moves a long. In fact, in some instances,
-the character handler may not handle the character directly itself, but
-rather change the "current class" and then hand off to the character
-handler for the new class.
-
-Because of this, and some other things I'll deal with later, the number of
-times the character handlers are called does not in fact have a direct
-relationship to the number of characters in the document.
-
-=item Current Zone
-
-Rather than create a zone stack to allow for infinitely nested layers of
-classes, the Tokenizer recognises just a single layer.
-
-To put it a different way, in various parts of the file, the Tokenizer will
-recognise different "base" or "substrate" classes. When a Token such as a
-comment is finalised by the tokenizer, it "falls back" to the base state.
-
-This allows proper tokenisation of special areas such as __DATA__
-and __END__ blockd, which also contain things like comments and POD,
-without allowing the creation of any significant Tokens inside these areas.
-
-For the main part of a document we use L<PPI::Token::Whitespace> for this,
-with the idea being that code tokens are "floating in a sea of whitespace".
-
-=item Current Token
-
-The final main state variable is the "current token". This is the Token
-that is currently being assembled by the Tokenizer. For certain types, it
-can be manipulated and morphed and change class quite a bit while being
-assembled.
-
-When the Tokeniser is confidant that it has seen the end of the Token, it
-will be "finalized", which adds it to the output token array and resets
-the current class to that of the zone that we are currently in.
-
-I should also note at this point that the "current token" variable is
-optional. The Tokenizer is capable of knowing what class it is currently
-set to, without actually having accumulated and characters in the Token.
-
-=back
-
-=head2 Making It Faster
-
-As I'm sure you can imagine, calling several different methods for each
-character and running regexs and other complex heuristics made the first
-fully working version of the tokenizer extremely slow.
-
-During testing, I created a metric to measure parsing speed called
-LPGC, or "lines per gigacycle" . A gigacycle is simple a billion CPU
-cycles on a typical single-core CPU, and so a Tokenizer running at
-"1000 lines per gigacycle" would generate 1200 lines of tokenized code
- when running on a 1200Ghz processor.
- 
-The first working version of the tokenizer ran at only 350 LPGC, so to
-tokenizer a typical large module such as ExtUtils::MakeMaker took
-10-15 seconds. This sluggishness made it unpractical for many uses.
-
-So in the current parser, there are 3 layers of optimisation very
-carefully built in to the basic. This has brought the tokenizer up
-to a more reasonable 1000 LPGC, at the expense of making it a lot
-twistier.
-
-=head2 Making It Faster - Whole Line Classification
-
-The first step in the optimisation process was to at a hew handler to
-enable several of the more basic classes (whitespace, comments) to be
-able to be parsed a line at a time. At the start of each line, a
-special handler (only supported by a few classes) is called to check
-and see if the entire line can be parsed in one go.
-
-This is used mainly to handle things like POD, comments, empty lines,
-and a few other minor special cases.
-
-=head2 Making It Faster - Inlining
-
-The first stage of the optimisation involved inlining a small
-number of critical methods that were repeated an extremely high number
-of times. Profiling had suggested that the method calls were running
-at about 1,000,000 per gigacycle, and by cutting these by two thirds,
-a signficant speed improvement, in the order of 50% was gained.
-
-You may notice that many other the methods in this class itself look
-very nested and long hand. This is primarily due to the inlining.
-
-At around this time, some statistics code that existed in the early
-versions of the parser was also removed, as it was determined that
-it was consuming around 15% of the CPU for the entire parser, while
-making the core more complicated.
-
-A judgement call was made that with the difficulties likely to be
-encountered with future planned enhancements, and given the relatively
-high cost involved, the statistics features would be removed from the
-Tokenizer.
-
-=head2 Making It Faster - Quote Engine
-
-Once inline had reached diminishingreturns, it became ovious from the
-profiling results that a huge amount of time was being spent stepping
-a char at a time though long and "boring" code such as comments,
-
-The existing regex engine was expanded to also encompass quotes and
-other quote-like things, and added a special abstract base class that
-provided a number of specialised parsing methods that would "scan
-ahead", looking out ahead to find the nd of a string, and updating
-the cursor at the end to leave the cursor in a valid position for the
-next vall.
-
-In the current version, this code is still much slower than it could
-be, and post-1.0 I will be seeking volunteers to help port some of
-this quote-engine code to C for additional speed.
-
-This is also the point at which the number of character handler calls began
-to greatly differ from the number of characters. But it has been done
-in a way that allows the parser to retain the power of the original
-version at the critical points, while skipping through the "boring bits"
-as needed for additional speed.
-
-The addition of this feature allowed the tokenizer to exceed 1000 LPGC
-for the first time.
-
-=head2 Making It Faster - The "Complete" Mechanism
-
-As it became evident that great speed increases were available by using
-this "skipping ahead" mechanism, a new handler method was added that
-explicitly handles the parsing of an entire token, where the structure
-of the token is relatively simple. Tokens such as symbols fit this case,
-as once we are passed the initial sygil and word char, we know that we
-can skip ahead and "complete" the rest of the token much more easily.
-
-A number of these have been added for most or possibly all of the common
-cases, with most of these "complete" handlers implemented using regular
-expressions.
-
-In fact, so many have been added that at this point, you could arguably
-reclassify the tokenizer as a "hybrid regex, char-by=char heuristic
-tokenizer". More tokens are now consumed in "complete" methods in a
-typical program than are handled by the normal char-by-char methods.
-
-Many of the these complete-handlers were implemented during the writing
-of the Lexer, and this has allowed the full parser to maintain around
-1000 LPGC despite the increasing weight of the Lexer.
-
-=head2 Making It Faster - Porting To C (To Be Completed)
-
-While it would be extraordinarily difficult to port all of the Tokenizer
-to C, it is envisioned that some form of PPI::XSBooster package could be
-written as a seperate and automatically-detected add-on to the main PPI
-package that would take a number of functions from various places, from
-the Tokenizer Core, Quote Engine, and various other places, and implement
-them identically in XS/C.
-
-In particular, the skip-ahead methods from the Quote Engine would appear
-to be extremely amenable to being done in C, and a number of other
-functions could be cheryy-picked one at a time and implemented in C.
-
-I plan to request assistance on this ONLY after we reach PPI 1.0 however,
-so that we can be relatively sure that the perl implementations of the
-various functions won't need to change over time.
+supported by a very B<VERY> flexible internal API, but fortunately there's
+not a lot that gets exposed to people using the C<PPI::Tokenizer> itself.
 
 =head1 METHODS
 
@@ -287,9 +77,9 @@ use PPI::Element    ();
 use PPI::Token      ();
 use File::Slurp     ();
 
-use vars qw{$VERSION $errstr};
+use vars qw{$VERSION $errstr $ALLOW_NONASCII};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 	$errstr  = '';
 }
 
@@ -312,7 +102,7 @@ It takes as argument either a normal scalar containing source code,
 a reference to a scalar containing source code, or a reference to an
 ARRAY containing newline-terminated lines of source code.
 
-Returns a new PPI::Tokenizer object on success, or C<undef> on error.
+Returns a new C<PPI::Tokenizer> object on success, or C<undef> on error.
 
 =cut
 
@@ -371,7 +161,7 @@ sub new {
 	}
 
 	# Check for non-standard characters
-	if ( $self->{source} =~ /([^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789;\[\]{}()=?|+<>.!~^*\$\@&:\%#,'"`\\\/_ \n\t-])/ ) {
+	if ( $ALLOW_NONASCII or $self->{source} =~ /([^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789;\[\]{}()=?|+<>.!~^*\$\@&:\%#,'"`\\\/_ \n\t-])/ ) {
 		return $self->_error( "Source code contains unsupported characters (first one encountered was '$1')" );
 	}
 
@@ -664,8 +454,8 @@ sub _process_next_line {
 		return 0;
 	}
 
-	# Run the _on_line_start
-	$rv = $self->{class}->_on_line_start( $self );
+	# Run the __TOKENIZER__on_line_start
+	$rv = $self->{class}->__TOKENIZER__on_line_start( $self );
 	unless ( $rv ) {
 		# If there are no more source lines, then clean up
 		if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
@@ -682,7 +472,7 @@ sub _process_next_line {
 	}
 
 	# Trigger any action that needs to happen at the end of a line
-	$self->{class}->_on_line_end( $self );
+	$self->{class}->__TOKENIZER__on_line_end( $self );
 
 	# If there are no more source lines, then clean up
 	if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
@@ -816,7 +606,7 @@ sub _process_next_char {
 	return 0 if ++$self->{line_cursor} >= $self->{line_length};
 
 	# Pass control to the token class
-	unless ( $_ = $self->{class}->_on_char( $self ) ) {
+	unless ( $_ = $self->{class}->__TOKENIZER__on_char( $self ) ) {
 		# undef is error. 0 is "Did stuff ourself, you don't have to do anything"
 		return defined $_ ? 1 : undef;
 	}
@@ -824,7 +614,7 @@ sub _process_next_char {
 	# We will need the value of the current character
 	my $char = substr( $self->{line}, $self->{line_cursor}, 1 );
 	if ( $_ eq '1' ) {
-		# If _on_char returns 1, it is signaling that it thinks that
+		# If __TOKENIZER__on_char returns 1, it is signaling that it thinks that
 		# the character is part of it.
 
 		# Add the character
@@ -1024,6 +814,221 @@ sub errstr {
 1;
 
 =pod
+
+=head1 NOTES
+
+=head2 How the Tokenizer Works
+
+Understanding the Tokenizer is not for the feint-hearted. It is by far
+the most complex and twisty piece of perl I've ever written that is actually
+still built properly and isn't a terrible spagetti-like mess. In fact, you
+probably want to skip this section.
+
+But if you really want to understand, well then here goes.
+
+=head2 Source Input and Clean Up
+
+The Tokenizer starts by taking source in a variety of forms, sucking it
+all in and merging into one big string, and doing our own internal line
+split, using a "universal line seperator" which allows the Tokenizer to
+take source for any platform (and even supports a few known types of
+broken newlines caused by mixed mac/pc/*nix editor screw ups).
+
+The resulting array of lines is used to feed the tokenizer, and is also
+accessed directly by the heredoc-logic to do the line-oriented part of
+here-doc support.
+
+=head2 Doing Things the Old Fashioned Way
+
+Due to the complexity of perl, and after 2 previously aborted parser
+attempts, in the end the tokenizer was fashioned around a line-buffered
+character-by-character method.
+
+That is, the Tokenizer pulls and holds a line at a time into a line buffer,
+and then iterates a cursor along it. At each cursor position, a method is
+called in whatever token class we are currently in, which will examine the
+character at the current position, and handle it.
+
+As the handler methods in the various token classes are called, they
+build up a output token array for the source code.
+
+Various parts of the Tokenisier use look-ahead, arbitrary-distance
+look-behind (although currently the maximum is three significant tokens),
+or both, and various other heuristic guesses.
+
+I've been told it can be officially described as a I<"backtracking parser
+with infinite lookaheads">.
+
+=head2 State Variables
+
+Aside from the current line and the character cursor, the Tokenizer
+maintains a number of different state variables.
+
+=over
+
+=item Current Class
+
+The Tokenizer maintains the current token class at all times. Much of the
+time is just going to be the "Whitespace" class, which is what the base of
+a document is. As the tokenizer executes the various character handlers,
+the class changes a lot as it moves a long. In fact, in some instances,
+the character handler may not handle the character directly itself, but
+rather change the "current class" and then hand off to the character
+handler for the new class.
+
+Because of this, and some other things I'll deal with later, the number of
+times the character handlers are called does not in fact have a direct
+relationship to the number of actual characters in the document.
+
+=item Current Zone
+
+Rather than create a class stack to allow for infinitely nested layers of
+classes, the Tokenizer recognises just a single layer.
+
+To put it a different way, in various parts of the file, the Tokenizer will
+recognise different "base" or "substrate" classes. When a Token such as a
+comment or a number is finalised by the tokenizer, it "falls back" to the
+base state.
+
+This allows proper tokenisation of special areas such as __DATA__
+and __END__ blocks, which also contain things like comments and POD,
+without allowing the creation of any significant Tokens inside these areas.
+
+For the main part of a document we use L<PPI::Token::Whitespace> for this,
+with the idea being that code is "floating in a sea of whitespace".
+
+=item Current Token
+
+The final main state variable is the "current token". This is the Token
+that is currently being built by the Tokenizer. For certain types, it
+can be manipulated and morphed and change class quite a bit while being
+assembled, as the Tokenizer's understanding of the token content changes.
+
+When the Tokeniser is confident that it has seen the end of the Token, it
+will be "finalized", which adds it to the output token array and resets
+the current class to that of the zone that we are currently in.
+
+I should also note at this point that the "current token" variable is
+optional. The Tokenizer is capable of knowing what class it is currently
+set to, without actually having accumulated any characters in the Token.
+
+=back
+
+=head2 Making It Faster
+
+As I'm sure you can imagine, calling several different methods for each
+character and running regexs and other complex heuristics made the first
+fully working version of the tokenizer extremely slow.
+
+During testing, I created a metric to measure parsing speed called
+LPGC, or "lines per gigacycle" . A gigacycle is simple a billion CPU
+cycles on a typical single-core CPU, and so a Tokenizer running at
+"1000 lines per gigacycle" should generate around 1200 lines of tokenized
+code when running on a 1200Mhz processor.
+
+The first working version of the tokenizer ran at only 350 LPGC, so to
+tokenize a typical large module such as L<ExtUtils::MakeMaker> took
+10-15 seconds. This sluggishness made it unpractical for many uses.
+
+So in the current parser, there are multiple layers of optimisation
+very carefully built in to the basic. This has brought the tokenizer
+up to a more reasonable 1000 LPGC, at the expense of making the code
+quite a bit twistier.
+
+=head2 Making It Faster - Whole Line Classification
+
+The first step in the optimisation process was to add a hew handler to
+enable several of the more basic classes (whitespace, comments) to be
+able to be parsed a line at a time. At the start of each line, a
+special optional handler (only supported by a few classes) is called to
+check and see if the entire line can be parsed in one go.
+
+This is used mainly to handle things like POD, comments, empty lines,
+and a few other minor special cases.
+
+=head2 Making It Faster - Inlining
+
+The second stage of the optimisation involved inlining a small
+number of critical methods that were repeated an extremely high number
+of times. Profiling suggested that there were about 1,000,000 individual
+method calls per gigacycle, and by cutting these by two thirds a signficant
+speed improvement was gained, in the order of about 50%.
+
+You may notice that many methods in the C<PPI::Tokenizer> code look
+very nested and long hand. This is primarily due to this inlining.
+
+At around this time, some statistics code that existed in the early
+versions of the parser was also removed, as it was determined that
+it was consuming around 15% of the CPU for the entire parser, while
+making the core more complicated.
+
+A judgement call was made that with the difficulties likely to be
+encountered with future planned enhancements, and given the relatively
+high cost involved, the statistics features would be removed from the
+Tokenizer.
+
+=head2 Making It Faster - Quote Engine
+
+Once inlining had reached diminishing returns, it became obvious from
+the profiling results that a huge amount of time was being spent
+stepping a char at a time though long, simple and "syntactically boring"
+code such as comments and strings.
+
+The existing regex engine was expanded to also encompass quotes and
+other quote-like things, and a special abstract base class was added
+that provided a number of specialised parsing methods that would "scan
+ahead", looking out ahead to find the end of a string, and updating
+the cursor to leave it in a valid position for the next call.
+
+This is also the point at which the number of character handler calls began
+to greatly differ from the number of characters. But it has been done
+in a way that allows the parser to retain the power of the original
+version at the critical points, while skipping through the "boring bits"
+as needed for additional speed.
+
+The addition of this feature allowed the tokenizer to exceed 1000 LPGC
+for the first time.
+
+=head2 Making It Faster - The "Complete" Mechanism
+
+As it became evident that great speed increases were available by using
+this "skipping ahead" mechanism, a new handler method was added that
+explicitly handles the parsing of an entire token, where the structure
+of the token is relatively simple. Tokens such as symbols fit this case,
+as once we are passed the initial sygil and word char, we know that we
+can skip ahead and "complete" the rest of the token much more easily.
+
+A number of these have been added for most or possibly all of the common
+cases, with most of these "complete" handlers implemented using regular
+expressions.
+
+In fact, so many have been added that at this point, you could arguably
+reclassify the tokenizer as a "hybrid regex, char-by=char heuristic
+tokenizer". More tokens are now consumed in "complete" methods in a
+typical program than are handled by the normal char-by-char methods.
+
+Many of the these complete-handlers were implemented during the writing
+of the Lexer, and this has allowed the full parser to maintain around
+1000 LPGC despite the increasing weight of the Lexer.
+
+=head2 Making It Faster - Porting To C (In Progress)
+
+While it would be extraordinarily difficult to port all of the Tokenizer
+to C, work has started on a L<PPI::XS> "accelerator" package which acts as
+a seperate and automatically-detected add-on to the main PPI package.
+
+L<PPI::XS> implements faster versions of a variety of functions scattered
+over the entire PPI codebase, from the Tokenizer Core, Quote Engine, and
+various other places, and implements them identically in XS/C.
+
+In particular, the skip-ahead methods from the Quote Engine would appear
+to be extremely amenable to being done in C, and a number of other
+functions could be cheryy-picked one at a time and implemented in C.
+
+Each method is heavily tested to ensure that the functionality is
+identical, and a versioning mechanism is included to ensure that if a
+function gets out of sync, L<PPI::XS> will degrade gracefully and just
+not replace that single method.
 
 =head1 TO DO
 

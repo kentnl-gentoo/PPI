@@ -9,10 +9,10 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.903';
+	$VERSION = '0.904';
 }
 
-sub _on_char {
+sub __TOKENIZER__on_char {
 	my $class = shift;
 	my $t = shift;
 	my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
@@ -20,13 +20,13 @@ sub _on_char {
 	# Unless this is a '(', we are finished.
 	unless ( $char eq '(' ) {
 		# Finalise and recheck
-		return $t->_finalize_token->_on_char( $t );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
 	# This is a bar(...) style attribute.
 	# We are currently on the ( so scan in until the end.
 	# We finish on the character AFTER our end
-	my $string = $class->_scan_for_end( $t );
+	my $string = $class->__TOKENIZER__scan_for_end( $t );
 	if ( ref $string ) {
 		# EOF
 		$t->{token}->{content} .= $$string;
@@ -37,13 +37,13 @@ sub _on_char {
 	# Found the end of the attribute
 	$t->{token}->{content} .= $string;
 	$t->{token}->{_attribute} = 1;
-	$t->_finalize_token->_on_char( $t );
+	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
 # Scan for a close braced, and take into account both escaping,
 # and open close bracket pairs in the string. When complete, the
 # method leaves the line cursor on the LAST character found.
-sub _scan_for_end {
+sub __TOKENIZER__scan_for_end {
 	my $t = $_[1];
 
 	# Loop as long as we can get new lines
