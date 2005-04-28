@@ -57,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -648,16 +648,10 @@ sub clone {
 	$clone;
 }
 
-sub _line {
+sub location {
 	my $self  = shift;
 	my $first = $self->{children}->[0] or return undef;
-	$first->_line;
-}
-
-sub _col {
-	my $self  = shift;
-	my $first = $self->{children}->[0] or return undef;
-	$first->_col;
+	$first->location;
 }
 
 sub DESTROY {

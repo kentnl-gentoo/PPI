@@ -62,7 +62,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 }
 
 
@@ -90,7 +90,11 @@ Returns a PPI::Document object, or C<undef> if parsing fails.
 
 sub new {
 	my $class = ref $_[0] ? ref shift : shift;
-	return $class->SUPER::new unless @_;
+	unless ( @_ ) {
+		my $self = $class->SUPER::new;
+		$self->{tab_width} = 1;
+		return $self;
+	}
 
 	# Check the source code
 	my $source = shift;
@@ -133,6 +137,28 @@ sub save {
 		{ err_mode => 'quiet' },
 		$self->serialize,
 		) ? 1 : undef;
+}
+
+=pod
+
+=head2 tab_width [ $width ]
+
+In order to handle support for C<location> correctly, C<Documents>
+need to understand the concept of tabs and tab width. The C<tab_width>
+method is used to get and set the size of the tab width.
+
+At the present time, PPI only support "naive" (width 1) tabs, but we do
+plan on supporting artibtrary, default and auto-sensing tab widths.
+
+Returns the tab width as an integer, or C<die>s if you attempt to set the
+tab width.
+
+=cut
+
+sub tab_width {
+	my $self = shift;
+	return $self->{tab_width} unless @_;
+	die "PPI FEATURE INCOMPLETE(Only naive tabs (width 1) are supported at this time)";
 }
 
 =pod
@@ -290,22 +316,23 @@ sub index_locations {
 	my $heredoc = 0;
 
 	# Find the first Token without a location
-	my $i;
-	my $location;
-	foreach $i ( 0 .. $#Tokens ) {
-		my $Token = $Tokens[$i];
+	my ($first, $location) = ();
+	foreach ( 0 .. $#Tokens ) {
+		my $Token = $Tokens[$_];
 		next if $Token->{_location};
 
 		# Found the first Token without a location
 		# Calculate the new location if needed.
-		$location = $i
-			? $self->_add_location( $location, $Tokens[$i-1], \$heredoc )
+		$location = $first
+			? $self->_add_location( $location, $Tokens[$_ - 1], \$heredoc )
 			: [ 1, 1 ];
+		$first = $_;
+		last;
 	}
 
 	# Calculate locations for the rest
-	foreach $i ( $i .. $#Tokens ) {
-		my $Token = $Tokens[$i];
+	foreach ( $first .. $#Tokens ) {
+		my $Token = $Tokens[$_];
 		$Token->{_location} = $location;
 		$location = $self->_add_location( $location, $Token, \$heredoc );
 
@@ -326,7 +353,7 @@ sub _add_location {
 	my $newlines =()= $content =~ /\n/g;
 	unless ( $newlines ) {
 		# Handle the simple case
-		return [ $start->[0], length($content) ];
+		return [ $start->[0], $start->[1] + length($content) ];
 	}
 
 	# This is the more complex case where we hit or

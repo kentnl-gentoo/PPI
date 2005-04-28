@@ -9,7 +9,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 	@EXPORT_OK = qw{_Document};
 }
 
@@ -24,6 +24,7 @@ BEGIN {
 # of different things, including file names, SCALAR source, etc.
 sub _Document {
 	shift if @_ > 1;
+	return undef unless defined $_[0];
 	return PPI::Document->load( shift ) unless ref $_[0];
 	return PPI::Document->new( shift ) if ref $_[0] eq 'SCALAR';
 	return shift if isa($_[0], 'PPI::Document');

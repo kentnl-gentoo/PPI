@@ -53,7 +53,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 }
 
 sub __LEXER__normal { '' }

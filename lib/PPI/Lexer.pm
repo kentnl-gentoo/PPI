@@ -49,7 +49,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 	$errstr  = '';
 }
 
@@ -102,7 +102,7 @@ Returns a PPI::Document object, or C<undef> on error.
 
 sub lex_file {
 	my $self = ref $_[0] ? shift : shift->new;
-	my $file = (-f $_[0] and -r $_[0]) ? shift : return undef;
+	my $file = (defined $_[0] and -f $_[0] and -r $_[0]) ? shift : return undef;
 
 	# Load the source and hand off to the next method
 	$self->lex_source( scalar File::Slurp::read_file $file );

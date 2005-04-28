@@ -21,7 +21,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 }
 
 
@@ -33,6 +33,7 @@ BEGIN {
 
 my @METHODS = (
 	remove_insignificant_elements => 1,
+	remove_useless_attributes     => 1,
 	remove_useless_pragma         => 2,
 	remove_statement_seperator    => 2,
 	remove_useless_return         => 2,
@@ -51,10 +52,18 @@ sub import {
 #####################################################################
 # Level 1 Transforms
 
-# Remove all insignificant things
+# Remove all insignificant elements
 sub remove_insignificant_elements {
 	my $Document = shift;
 	$Document->prune( sub { ! $_[1]->significant } );
+}
+
+# Remove custom attributes that are not relevant to normalization
+sub remove_useless_attributes {
+	my $Document = shift;
+	delete $Document->{tab_width};
+
+	### FIXME - Add support for more things
 }
 
 

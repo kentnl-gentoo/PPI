@@ -8,7 +8,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Pod__significant 0.900+

@@ -2,7 +2,7 @@ use inc::Module::Install;
 
 name          ( 'PPI'                           );
 abstract      ( 'Analyze and manipulate Perl code without using perl itself' );
-author        ( 'Adam Kennedy<cpan@ali.as>'     );
+author        ( 'Adam Kennedy <cpan@ali.as>'  );
 version_from  ( 'lib/PPI.pm'                    );
 license       ( 'perl'                          );
 

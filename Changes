@@ -1,5 +1,20 @@
 Revision history for Perl extension PPI
 
+0.906 Thu Apr 28 2005
+	General:
+	- Completed location support and added related unit tests
+	- Added API for future support of tab widths
+
+	Details:
+	- Removed PPI::Element::_line
+	- Removed PPI::Element::_col
+	- Fixed bugs in PPI::Document::index_location
+	- Fixed bugs in PPI::Element::location
+	- Added 12_location.t unit test
+	- Added PPI::Document::tab_width method
+	- Added PPI::Normal::Standard::remove_useless_attributes
+	  (to remove the ->{tab_width} attributes and later other things)
+
 0.905 Wed Apr 20 2005
 	General:
 	- Completely forgot to write unit tests for PPI::Util,

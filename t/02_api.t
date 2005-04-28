@@ -27,7 +27,7 @@ use PPI::Find;
 # use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2113;
+use Test::More tests => 2116;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -345,6 +345,7 @@ PPI::Structure=isa
 PPI::Node=isa
 load=method
 save=method
+tab_width=method
 serialize=method
 index_locations=method
 flush_locations=method
@@ -413,6 +414,7 @@ errstr=method
 [PPI::Normal::Standard]
 import=method
 remove_insignificant_elements=method
+remove_useless_attributes=method
 remove_useless_pragma=method
 remove_statement_seperator=method
 remove_useless_return=method

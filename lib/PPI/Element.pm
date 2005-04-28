@@ -34,7 +34,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.905';
+	$VERSION = '0.906';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -565,9 +565,27 @@ or if the PPI::Document object has not been indexed.
 
 sub location {
 	my $self = shift;
-	my $line = $self->_line or return undef; # Can never be 0
-	my $col  = $self->_col  or return undef; # Can never be 0
-	[ $line, $col ];
+	unless ( exists $self->{_location} ) {
+		# Are we inside a normal document?
+		my $Document = $self->document or return undef;
+		unless ( $Document->isa('PPI::Document::Fragment') ) {
+			# Because they can't be serialized, document fragments
+			# do not support the concept of location.
+			return undef;
+		}
+
+		# Generate the locations. If they need one location, then
+		# the chances are they'll want more, and it's better that
+		# everything is already pre-generated.
+		$Document->index_locations or return undef;
+		unless ( exists $self->{_location} ) {
+			# erm... something went very wrong here
+			return undef;
+		}
+	}
+
+	# Return a copy, not the original
+	return [ @{$self->{_location}} ];
 }
 
 # Although flush_locations is only publically a Document-level method,
@@ -604,14 +622,6 @@ sub _flush_location {
 
 	1;
 }
-
-
-
-
-
-# These should be implemented in the subclasses
-sub _line { undef }
-sub _col  { undef }
 
 
 
