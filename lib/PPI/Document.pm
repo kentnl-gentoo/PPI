@@ -14,8 +14,9 @@ PPI::Document - Object representation of a Perl document
 
 =head1 SYNOPSIS
 
+  use PPI;
+  
   # Load a document from a file
-  use PPI::Document;
   my $Document = PPI::Document->load('My/Module.pm');
   
   # Strip out comments
@@ -31,19 +32,20 @@ PPI::Document - Object representation of a Perl document
 
 =head1 DESCRIPTION
 
-The PPI::Document class represents a single Perl "document". A Document
-object acts as a normal L<PPI::Node>, with some additional convenience
-methods for loading and saving, and working with the line/column locations
-of Elements within a file.
+The C<PPI::Document> class represents a single Perl "document". A
+C<PPI::Document> object acts as a root L<PPI::Node>, with some
+additional methods for loading and saving, and working with
+the line/column locations of Elements within a file.
 
-The exemption to its ::Node-like behavior this is that a PPI::Document
-object can NEVER have a parent node, and is always the root node in a tree.
+The exemption to its L<PPI::Node>-like behavior this is that a
+C<PPI::Document> object can NEVER have a parent node, and is always
+the root node in a tree.
 
 =head1 METHODS
 
-Most of the things you are likely to want to do with a Document are probably
-going to involve the methods from L<PPI::Node> class, of which this is
-a subclass.
+Most of the things you are likely to want to do with a Document are
+probably going to involve the methods from L<PPI::Node> class, of which
+this is a subclass.
 
 The methods listed here are the remaining few methods that are truly
 Document-specific.
@@ -60,9 +62,10 @@ use PPI::Document::Fragment ();
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'content';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
+	$errstr  = '';
 }
 
 
@@ -74,22 +77,28 @@ BEGIN {
 
 =pod
 
-=head2 new $source
+=head2 new $file, \$source
 
-The C<new> constructor is slightly different for PPI::Document that for
-the base L<PPI::Node>.
+The C<new> constructor takes as argument a variety of different sources of
+Perl code, and attempt to create a single cohesive Perl C<PPI::Document>
+for it.
 
-Although it behaves the same when called with no arguments, if you pass
-it a defined string as the only argument, as a convenience the string
-will be parsed, and the Document object returned will be for the source
-code in the string.
+If passed a file name as a normal string, it will attempt to load the
+document from the file.
 
-Returns a PPI::Document object, or C<undef> if parsing fails.
+If passed a reference to a SCALAR, this is taken to be source code and
+parsed directly to create the document.
+
+If passed zero arguments, a "blank" document will be created that contains
+no content at all.
+
+Returns a C<PPI::Document> object, or C<undef> if parsing fails.
 
 =cut
 
 sub new {
 	my $class = ref $_[0] ? ref shift : shift;
+	
 	unless ( @_ ) {
 		my $self = $class->SUPER::new;
 		$self->{tab_width} = 1;
@@ -97,46 +106,50 @@ sub new {
 	}
 
 	# Check the source code
-	my $source = shift;
-	unless ( defined $source and length $source ) {
-		return undef;
+	my $Document;
+	if ( ! defined $_[0] ) {
+		$class->_error("An undefined value was passed to PPI::Document::new");
+
+	} elsif ( ! ref $_[0] ) {
+		# Catch people using the old API
+		if ( $_[0] =~ /(?:\012\015)/ ) {
+			die "API CHANGE: Code should now be passed to PPI::Document->new by reference";
+		}
+		$Document = PPI::Lexer->lex_file( shift );
+
+	} elsif ( ref $_[0] eq 'SCALAR' ) {
+		$Document = PPI::Lexer->lex_source( ${$_[0]} );
+
+	} else {
+		$class->_error("An unknown object or reference was passed to PPI::Document::new");
 	}
 
-	# Hand off to the lexer to build
-	# and return the Document object.
-	PPI::Lexer->lex_source( $source );
+	# Did the parsing go smoothly?
+	return $Document if $Document;
+
+	# Pull and store the error from the lexer
+	my $errstr = PPI::Lexer->errstr
+		|| "Unknown error returned by PPI::Lexer";
+	PPI::Lexer->_clear;
+	$class->_error( $errstr );
 }
 
-=pod
-
-=head2 load $file
-
-The C<load> constructor loads a Perl document from a file, parses it, and
-returns a new PPI::Document object. Returns C<undef> on error.
-
-=cut
-
 sub load {
-	PPI::Lexer->lex_file( $_[1] );
+	die "API CHANGE: File names should now be passed to PPI::Document->new to load a file";
 }
 
 =pod
 
 =head2 save $file
 
-The C<save> method serializes the PPI::Document object and saves the
+The C<save> method serializes the C<PPI::Document> object and saves the
 resulting Perl document to a file. Returns C<undef> on error.
 
 =cut
 
 sub save {
 	my $self = shift;
-
-	### FIXME - Check the return conditions for this
-	File::Slurp::write_file( shift,
-		{ err_mode => 'quiet' },
-		$self->serialize,
-		) ? 1 : undef;
+	File::Slurp::write_file( shift, $self->serialize );
 }
 
 =pod
@@ -428,6 +441,42 @@ sub normalized {
 ### XS -> PPI/XS.xs:_PPI_Document__scope 0.903+
 sub scope { 1 }
 
+
+
+
+
+
+#####################################################################
+# Error Handling
+
+# Set the error message
+sub _error {
+	$errstr = $_[1];
+	undef;
+}
+
+# Clear the error message.
+# Returns the object as a convenience.
+sub _clear {
+	$errstr = '';
+	$_[0];
+}
+
+=pod
+
+=head2 errstr
+
+For error that occur when loading and saving documents, you can use
+C<errstr>, as either a static or object method, to access the error message.
+
+If a Document loads or saves without error, C<errstr> will return false.
+
+=cut
+
+sub errstr {
+	$errstr;
+}
+
 1;
 
 =pod
@@ -448,7 +497,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

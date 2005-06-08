@@ -36,7 +36,7 @@ my $testsource = 'print "Hello World!\n"';
 #####################################################################
 # Test PPI::Util
 
-my $Document = PPI::Document->new( $testsource );
+my $Document = PPI::Document->new( \$testsource );
 isa_ok( $Document, 'PPI::Document' );
 
 # Good things

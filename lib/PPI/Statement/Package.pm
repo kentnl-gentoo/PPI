@@ -15,24 +15,26 @@ PPI::Statement::Package - A package statement
 
 =head1 DESCRIPTION
 
-Most L<PPI::Statement|PPI::Statement> subclasses are assigned based on the
-value of the first token or word found in the statement. When PPI encounters
-a statement starting with 'package', it converts it to a
-PPI::Statement::Package object.
+Most L<PPI::Statement> subclasses are assigned based on the value of the
+first token or word found in the statement. When PPI encounters a statement
+starting with 'package', it converts it to a C<PPI::Statement::Package>
+object.
 
 When working with package statements, please remember that packages only
 exist within their scope, and proper support for scoping has yet to be
 completed in PPI.
 
 However, if the immediate parent of the package statement is the
-top level L<PPI::Document|PPI::Document> object, then it can be considered
-to define everything found until the next top-level "file scoped" package
-statement.
+top level L<PPI::Document> object, then it can be considered to define
+everything found until the next top-level "file scoped" package statement.
 
 A file may, however, contain nested temporary package, in which case you
 are mostly on your own :)
 
 =head1 METHODS
+
+C<PPI::Statement::Package> has a number of methods in addition to the standard
+L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 
 =cut
 
@@ -42,7 +44,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 =pod
@@ -103,7 +105,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

@@ -31,10 +31,23 @@ token streams, in a variety of forms, and "lex" them into nested structures.
 
 Pretty much everything in this module happens behind the scenes at this
 point. In fact, at the moment you don't really need to instantiate the lexer
-at all, the three main methods will auto-instantiate themselves a PPI::Lexer
-object as needed.
+at all, the three main methods will auto-instantiate themselves a
+C<PPI::Lexer> object as needed.
 
-All methods do a one-shot "lex this and give me a PPI::Document object".
+All methods do a one-shot "lex this and give me a L<PPI::Document> object".
+
+In fact, if you are reading this, what you B<probably> want to do is to
+just "load a document", in which case you can do this in a much more
+direct and concise manner with one of the following.
+
+  use PPI;
+  
+  $Document = PPI::Document->load( $filename );
+  $Document = PPI::Document->new( $string );
+
+See L<PPI::Document> for more details.
+
+For more unusual tasks, by all means forge onwards.
 
 =head1 METHODS
 
@@ -49,7 +62,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 	$errstr  = '';
 }
 
@@ -64,20 +77,21 @@ BEGIN {
 
 =head2 new
 
-The C<new> constructor creates a new PPI::Lexer object. The object itself
+The C<new> constructor creates a new C<PPI::Lexer> object. The object itself
 is merely used to hold various buffers and state data during the lexing
 process, and holds no significant data between -E<gt>lex_xxxxx calls.
 
-Returns a new PPI::Lexer object
+Returns a new C<PPI::Lexer> object
 
 =cut
 
 sub new {
+	my $class = shift->_clear;
 	bless {
 		Tokenizer => undef, # Where we store the tokenizer for a run
 		buffer    => [],    # The input token buffer
 		delayed   => [],    # The "delayed insignificant tokens" buffer
-		}, shift;
+		}, $class;
 }
 
 
@@ -92,20 +106,31 @@ sub new {
 =head2 lex_file $filename
 
 The C<lex_file> method takes a filename as argument. It then loads the file,
-creates a PPI::Tokenizer for the content and lexes the token stream
+creates a L<PPI::Tokenizer> for the content and lexes the token stream
 produced by the tokenizer. Basically, a sort of all-in-one method for
-getting a PPI::Document object from a file name.
+getting a L<PPI::Document> object from a file name.
 
-Returns a PPI::Document object, or C<undef> on error.
+Returns a L<PPI::Document> object, or C<undef> on error.
 
 =cut
 
 sub lex_file {
 	my $self = ref $_[0] ? shift : shift->new;
-	my $file = (defined $_[0] and -f $_[0] and -r $_[0]) ? shift : return undef;
+	my $file = (defined $_[0] and ! ref $_[0]) ? shift : return $self->_error(
+		"Did not pass a filename to PPI::Lexer::lex_file"
+		);
 
-	# Load the source and hand off to the next method
-	$self->lex_source( scalar File::Slurp::read_file $file );
+	# Create the Tokenizer and hand off
+	my $Tokenizer = PPI::Tokenizer->new( $file );
+	unless ( $Tokenizer ) {
+		# Import the tokenizer error
+		my $errstr = PPI::Tokenizer->errstr
+			|| "Unknown error creating PPI::Tokenizer";
+		PPI::Tokenizer->_clear;
+		return $self->_error( $errstr );
+	}
+
+	$self->lex_tokenizer( $Tokenizer );
 }
 
 =pod
@@ -113,19 +138,29 @@ sub lex_file {
 =head2 lex_source $string
 
 The C<lex_source> method takes a normal scalar string as argument. It
-creates a PPI::Tokenizer object for the string, and then lexes the
+creates a L<PPI::Tokenizer> object for the string, and then lexes the
 resulting token stream.
 
-Returns a PPI::Document object, or C<undef> on error.
+Returns a L<PPI::Document> object, or C<undef> on error.
 
 =cut
 
 sub lex_source {
 	my $self   = ref $_[0] ? shift : shift->new;
-	my $source = defined $_[0] ? shift : return undef;
+	my $source = (defined $_[0] and ! ref $_[0]) ? shift : return $self->_error(
+		"Did not pass a string to PPI::Lexer::lex_source"
+		);
 
 	# Create the Tokenizer and hand off to the next method
-	my $Tokenizer = PPI::Tokenizer->new( $source ) or return undef;
+	my $Tokenizer = PPI::Tokenizer->new( \$source );
+	unless ( $Tokenizer ) {
+		# Import the tokenizer error
+		my $errstr = PPI::Tokenizer->errstr
+			|| "Unknown error creating PPI::Tokenizer";
+		PPI::Tokenizer->_clear;
+		return $self->_error( $errstr );
+	}
+
 	$self->lex_tokenizer( $Tokenizer );
 }
 
@@ -133,18 +168,20 @@ sub lex_source {
 
 =head2 lex_tokenizer $Tokenizer
 
-The C<lex_tokenizer> takes as argument a PPI::Tokenizer object. It
-lexes the token stream from the tokenizer into a PPI::Document object.
+The C<lex_tokenizer> takes as argument a L<PPI::Tokenizer> object. It
+lexes the token stream from the tokenizer into a L<PPI::Document> object.
 
-Returns a PPI::Document object, or C<undef> on error.
+Returns a L<PPI::Document> object, or C<undef> on error.
 
 =cut
 
 sub lex_tokenizer {
 	my $self      = ref $_[0] ? shift : shift->new;
-	my $Tokenizer = isa(ref $_[0], 'PPI::Tokenizer') ? shift : return undef;
+	my $Tokenizer = isa(ref $_[0], 'PPI::Tokenizer') ? shift : return $self->_error(
+		"Did not pass a PPI::Tokenizer object to PPI::Lexer::lex_tokenizer"
+		);
 
-	# Create the Document
+	# Create the empty
 	my $Document = PPI::Document->new;
 
 	# Lex the token stream into the document
@@ -166,7 +203,7 @@ sub lex_tokenizer {
 # Lex Methods - Document Object
 
 sub _lex_document {
-	my $self = shift;
+	my $self     = shift;
 	my $Document = isa(ref $_[0], 'PPI::Document') ? shift : return undef;
 
 	# Start the processing loop
@@ -182,7 +219,7 @@ sub _lex_document {
 			# It's a semi-colon on it's own.
 			# We call this a null statement.
 			my $Statement = PPI::Statement::Null->new( $Token ) or return undef;
-			$self->_add_element( $Document, $Statement ) or return undef;
+			$self->_add_element( $Document, $Statement )        or return undef;
 			next;
 		}
 
@@ -193,7 +230,7 @@ sub _lex_document {
 			my $Statement = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the statement
-			$self->_add_delayed( $Document ) or return undef;
+			$self->_add_delayed( $Document )    or return undef;
 			$self->_lex_statement( $Statement ) or return undef;
 
 			# Add the completed Statement to the document
@@ -208,7 +245,7 @@ sub _lex_document {
 			my $Structure = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the structure
-			$self->_add_delayed( $Document ) or return undef;
+			$self->_add_delayed( $Document )    or return undef;
 			$self->_lex_structure( $Structure ) or return undef;
 
 			# Add the resolved Structure to the Document $self-
@@ -230,8 +267,12 @@ sub _lex_document {
 		return undef;
 	}
 
-	# Did we leave the main loop because of an error?
-	return undef unless defined $Token;
+	# Did we leave the main loop because of a Tokenizer error?
+	unless ( defined $Token ) {
+		my $errstr = $self->{Tokenizer} ? $self->{Tokenizer}->errstr : '';
+		$errstr ||= 'Unknown Tokenizer error';
+		return $self->_error( $errstr );
+	}
 
 	# No error, it's just the end of file.
 	# Add any insignificant trailing tokens.
@@ -983,6 +1024,19 @@ sub errstr {
 	$errstr;
 }
 
+
+
+
+
+#####################################################################
+# PDOM Extensions
+#
+# This is something of a future expansion... ignore it for now :)
+#
+# use PPI::Statement::Sub ();
+#
+# sub PPI::Statement::Sub::__LEXER__normal { '' }
+
 1;
 
 =pod
@@ -1000,7 +1054,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

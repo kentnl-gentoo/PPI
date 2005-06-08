@@ -1,12 +1,52 @@
 package PPI::Token::Operator;
 
+=pod
+
+=head1 NAME
+
+PPI::Token::Operator - Token class for operators
+
+=head1 INHERITANCE
+
+  PPI::Token::Magic
+  isa PPI::Token::Symbol
+      isa PPI::Token
+          isa PPI::Element
+
+=head1 SYNOPSIS
+
+  # This is the list of valid operators
+  ++   --   **   !    ~    +    -
+  =~   !~   *    /    %    x
+  <<   >>   lt   gt   le   ge   cmp
+  ==   !=   <=>  .    ..   ...  ,
+  &    |    ^    &&   ||   //
+  ?    :    =    +=   -=   *=   .=
+  <    >    <=   >=   <>   =>   ->
+  and  or   dor  not  eq   ne
+
+=head1 DESCRIPTION
+
+All operators in PPI are created as C<PPI::Token::Operator> objects,
+including the ones that may superficially look like a L<PPI::Token::Word>
+object.
+
+=head1 METHODS
+
+There are no additional methods beyond those provided by the parent
+L<PPI::Token> and L<PPI::Element> classes.
+
+Got any ideas for methods? Submit a report to rt.cpan.org!
+
+=cut
+
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly
@@ -25,6 +65,13 @@ BEGIN {
 		}, ',' 	# Avoids "comma in qw{}" warning
 		);
 }
+
+
+
+
+
+#####################################################################
+# Tokenizer Methods
 
 sub __TOKENIZER__on_char {
 	my $t    = $_[1];
@@ -54,3 +101,25 @@ sub __TOKENIZER__on_char {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

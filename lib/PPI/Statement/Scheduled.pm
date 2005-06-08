@@ -53,7 +53,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 sub __LEXER__normal { '' }
@@ -63,7 +63,7 @@ sub __LEXER__normal { '' }
 =head2 type
 
 The C<type> method returns the type of scheduled block, which should always be
-one of 'BEGIN', 'CHECK', 'INIT' or 'END'.
+one of C<'BEGIN'>, C<'CHECK'>, C<'INIT'> or C<'END'>.
 
 =cut
 
@@ -79,9 +79,9 @@ sub type {
 
 =head2 block
 
-With its name and implementation shared with
-L<PPI::Statement::Sub|PPI::Statement::Sub>, the C<block> method finds and
-returns the actual Structure object of the block for this scheduled block.
+With its name and implementation shared with L<PPI::Statement::Sub>, the
+C<block> method finds and returns the actual Structure object of the block
+for this scheduled block.
 
 Returns false if it cannot find a block (although why this might happen
 I'm not sure).
@@ -108,7 +108,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

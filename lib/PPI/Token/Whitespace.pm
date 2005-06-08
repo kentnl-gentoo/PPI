@@ -1,7 +1,46 @@
 package PPI::Token::Whitespace;
 
-# The 'Whitespace' class represents the normal default state of the parser.
-# That is, the whitespace area 'outside' the code.
+=pod
+
+=head1 NAME
+
+PPI::Token::Whitespace - Tokens representing ordinary white space
+
+=head1 INHERITANCE
+
+  PPI::Token::Whitespace
+  isa PPI::Token
+      isa PPI::Element
+
+=head1 DESCRIPTION
+
+As a full "round-trip" parser, PPI records every last byte in a
+file and ensure that it is included in the L<PPI::Document> object.
+
+This even includes whitespace. In fact, Perl documents are seen
+as "floating in a sea of whitespace", and thus any document will
+contain vast quantities of C<PPI::Token::Whitespace> objects.
+
+For the most part, you shouldn't notice them. Or at least, you
+shouldn't B<have> to notice them.
+
+This means doing things like consistently using the "S for significant"
+series of L<PPI::Node> and L<PPI::Element> methods to do things.
+
+If you want the nth child element, you should be using C<schild> rather
+than C<child>, and likewise C<snext_sibling>, C<sprevious_sibling>, and
+so on and so forth.
+
+=head1 METHODS
+
+Again, for the most part you should really B<need> to do anything very
+significant with whitespace.
+
+But there are a couple of convenience methods provided, beyond those
+provided by the parent L<PPI::Token> and L<PPI::Element>
+classes.
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -9,17 +48,50 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
-# Create a null whitespace token
+=pod
+
+=head2 null
+
+Because PPI sees documents as sitting on a sort of substrate made of
+whitespace, there is a couple of corner cases that get particularly
+nasty if they don't find whitespace in certain places.
+
+Imagine walking down the beach to go into the ocean, and then quite
+unexpectedly falling off the side of the planet. Well it's somewhat
+equivalent to that, including the whole screaming death bit.
+
+The C<null> method is a convenience provided to get some internals
+out of some of these corner cases.
+
+Specifically it create a whitespace token that represents nothing,
+or at least the null string C<''>. It's a handy way to have some
+"whitespace" right where you need it, without having to have any
+actual characters.
+
+=cut
+
 sub null { $_[0]->new('') }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Whitespace__significant 0.900+
 sub significant { '' }
 
-# Horozintal space before a newline is not needed.
-# The ->tidy method removes it.
+=pod
+
+=head2 tidy
+
+C<tidy> is a convenience method for removing unneeded whitespace.
+
+Specifically, it removes any whitespace from the end of a line.
+
+Note that this B<doesn't> include in POD, where you may well need
+to keep certain types of whitespace. The entire POD chunk lives
+in it's own L<PPI::Token::Pod> object.
+
+=cut
+
 sub tidy {
 	my $self = shift;
 	$self->{content} =~ s/^\s+?(?>\n)//;
@@ -51,6 +123,9 @@ BEGIN {
 	$CLASSMAP[ord '`']  = 'QuoteLike::Backtick';
 	$CLASSMAP[ord '\\'] = 'Cast';
 	$CLASSMAP[ord '_']  = 'Word';
+	$CLASSMAP[9]        = 'Whitespace'; # A horizontal tab
+	$CLASSMAP[10]       = 'Whitespace'; # A newline
+	$CLASSMAP[13]       = 'Whitespace'; # A carriage return
 	$CLASSMAP[32]       = 'Whitespace'; # A normal space
 }
 
@@ -241,10 +316,33 @@ sub __TOKENIZER__on_char {
 		return PPI::Token::Word->__TOKENIZER__commit($t);
 	}
 
-	# This SHOULD BE is just normal base stuff
-	'Whitespace';
+	# All the whitespaces are covered, so what to do
+	### For now, die
+	return $t->_error("Encountered unexpected character '$_'");
 }
 
 sub __TOKENIZER__on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

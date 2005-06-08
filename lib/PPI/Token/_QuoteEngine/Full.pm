@@ -8,7 +8,7 @@ use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -47,10 +47,26 @@ BEGIN {
 
 
 
+=pod
+
+=begin testing new 4
+
+# Verify that Token::Quote, Token::QuoteLike and Token::Regexp
+# do not have ->new functions
+use_ok( 'Class::Inspector' );
+foreach ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
+	my $functions = Class::Inspector->functions($_);
+	is( scalar(grep { $_ eq 'new' } @$functions), 0,
+		"$_ does not have a new function" );
+}
+
+=end testing
+
+=cut
 
 sub new {
 	my $class = shift;
-	my $init = defined $_[0] ? shift : return undef;
+	my $init  = defined $_[0] ? shift : return undef;
 
 	# Create the token
 	### This manual SUPER'ing ONLY works because none of
@@ -59,8 +75,12 @@ sub new {
 	my $self = PPI::Token::new( $class, $init ) or return undef;
 
 	# Do we have a prototype for the intializer? If so, add the extra fields
-	my $options = $quotes{$init} or return $self->_error( "Unknown quote type '$init'" );
-	$self->{$_} = $options->{$_} foreach keys %$options;
+	my $options = $quotes{$init} or return $self->_error(
+		"Unknown quote type '$init'"
+		);
+	foreach ( keys %$options ) {
+		$self->{$_} = $options->{$_};
+	}
 
 	# Set up the modifiers hash if needed
 	$self->{modifiers} = {} if $self->{modifiers};
@@ -75,8 +95,8 @@ sub new {
 
 sub _fill {
 	my $class = shift;
-	my $t = shift;
-	my $self = $t->{token} or return undef;
+	my $t     = shift;
+	my $self  = $t->{token} or return undef;
 
 	# Load in the operator stuff if needed
 	if ( $self->{operator} ) {
@@ -122,10 +142,9 @@ sub _fill {
 	my $char;
 	my $len = 0;
 	while ( ($char = substr( $t->{line}, $t->{line_cursor} + 1, 1 )) =~ /\w/ ) {
-		if ( $char eq '_' ) {
-			return $self->_error( "Syntax error. Cannot use underscore '_' as regex modifier" );
-		}
-
+		$char eq '_' and return $self->_error(
+			"Syntax error. Cannot use underscore '_' as regex modifier"
+			);
 		$len++;
 		$self->{content} .= $char;
 		$self->{modifiers}->{lc $char} = 1;
@@ -173,7 +192,7 @@ sub _fill_normal {
 
 	# Complete the properties of the second section
 	$self->{sections}->[1] = {
-		position => length $self->{content},
+		position => length($self->{content}),
 		size     => length($string) - 1
 		};
 	$self->{content} .= $string;
@@ -267,3 +286,25 @@ sub _fill_braced {
 sub _sections { wantarray ? @{$_[0]->{sections}} : scalar @{$_[0]->{sections}} }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

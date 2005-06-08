@@ -1,5 +1,5 @@
 NAME
-    PPI - BETA: Analyze and manipulate Perl code without using perl itself
+    PPI - Parse, Analyze and Manipulate Perl (without perl) - BETA 2
 
 SYNOPSIS
       use PPI;
@@ -44,21 +44,6 @@ STATUS
     Most of the non-core distributions have also been brought up to date.
 
     The following packages are all also considered up to date.
-
-    PPI::Tester - Wx-based Interactive Testing Application
-    PPI::HTML - HTML Syntax Highlighting
-    PPI::XS - XS Acceleration for PPI (negligable speed up at this point,
-    but should improve over time)
-    PPI::Processor - Framework for bulk-analysis of Perl documents
-
-    The following packages are stale and currently being updated or killed
-
-    PPI::Format::Apache - This module is redundant and will be replaced with
-    an alternative module.
-    Perl::Compare - This module is currently being updated
-    Perl::Signature - This module is currently being updated
-    Perl::SAX - This module was a proof of concept only, and requires
-    re-implementation.
 
 DESCRIPTION
   About this Document
@@ -253,14 +238,14 @@ Overview of the Perl Document Object Model
     main core classes.
 
       PPI::Element
-          PPI::Token
-              PPI::Token::*
-          PPI::Node
-              PPI::Statement
-                  PPI::Statement::*
-              PPI::Structure
-                  PPI::Structure::*
-              PPI::Document
+        PPI::Token
+          PPI::Token::*
+        PPI::Node
+          PPI::Statement
+            PPI::Statement::*
+          PPI::Structure
+            PPI::Structure::*
+          PPI::Document
 
     To summarize the above layout, all PDOM objects inherit from the
     PPI::Element class.
@@ -561,7 +546,7 @@ SUPPORT
     author.
 
 AUTHOR
-    Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
+    Adam Kennedy, <http://ali.as/>, cpan@ali.as
 
 ACKNOWLEDGMENTS
     Thank you to Phase N (<http://phase-n.com/>) for permitting the original

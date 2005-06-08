@@ -9,9 +9,9 @@ PPI::Document::Fragment - A fragment of a Perl Document
 =head1 DESCRIPTION
 
 In some situations you might want to work with a fragment of a larger
-document. PPI::Document::Fragment is a class intended for this purpose. It
-is functionaly almost identical to a normal L<PPI::Document|PPI::Document>,
-except that it is not possible to get line/column positions for the elements
+document. C<PPI::Document::Fragment> is a class intended for this purpose.
+It is functionaly almost identical to a normal L<PPI::Document>, except
+that it is not possible to get line/column positions for the elements
 within it, and it does not represent a scope.
 
 =head1 METHODS
@@ -24,7 +24,7 @@ use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 
@@ -77,7 +77,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

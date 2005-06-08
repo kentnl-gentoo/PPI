@@ -6,9 +6,26 @@ package PPI::Statement::Variable;
 
 PPI::Statement::Variable - Variable declaration statements
 
+=head1 SYNOPSIS
+
+  # All of the following are variable declarations
+  my $foo = 1;
+  my ($foo, $bar) = (1, 2);
+  our $foo = 1;
+  local $foo;
+  local $foo = 1;
+  LABEL: my $foo = 1;
+
+=head1 INHERITANCE
+
+  PPI::Statement::Variable
+  isa PPI::Statement
+      isa PPI::Node
+          isa PPI::Element
+
 =head1 DESCRIPTION
 
-The main intent of the PPI::Statement::Variable class is to describe
+The main intent of the C<PPI::Statement::Variable> class is to describe
 simple statements that explicitly declare new local or global variables.
 
 =head1 METHODS
@@ -21,7 +38,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 =pod
@@ -31,7 +48,8 @@ BEGIN {
 The C<type> method checks and returns the declaration type of the statement,
 which will be one of either 'my', 'local' or 'our'.
 
-Returns a string or the type, or C<undef> if the type cannot be detected
+Returns a string of the type, or C<undef> if the type cannot be detected
+(which is probably a bug).
 
 =cut
 
@@ -97,7 +115,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

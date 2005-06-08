@@ -60,7 +60,7 @@ foreach my $key ( sort keys %tests ) {
 	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
 	# Load the file as a Document
-	my $Document = PPI::Document->load( $file );
+	my $Document = PPI::Document->new( $file );
 	ok( isa(ref $Document, 'PPI::Document' ), "$key: PPI::Document object created" );
 
 	# Serialize it back out, and compare with the raw version

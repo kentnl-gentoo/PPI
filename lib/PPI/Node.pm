@@ -37,27 +37,27 @@ PPI::Node - Abstract PPI Node class, an Element that can contain other Elements
 
 =head1 DESCRIPTION
 
-The PPI::Node class provides an abstract base class for the Element classes
-that are able to contain other elements, L<PPI::Document|PPI::Document>,
-L<PPI::Statement|PPI::Statement>, and L<PPI::Structure|PPI::Structure>.
+The C<PPI::Node> class provides an abstract base class for the Element
+classes that are able to contain other elements L<PPI::Document>,
+L<PPI::Statement>, and L<PPI::Structure>.
 
 As well as those listed below, all of the methods that apply to
-L<PPI::Element|PPI::Element> objects also apply to PPI::Node objects.
+L<PPI::Element> objects also apply to C<PPI::Node> objects.
 
 =head1 METHODS
 
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Element';
 use Scalar::Util 'refaddr';
+use Params::Util '_INSTANCE';
 use List::MoreUtils ();
 use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -96,13 +96,13 @@ sub scope { '' }
 
 =head2 add_element $Element
 
-The C<add_element> method adds a PPI::Element object to the end of a
-PPI::Node. Because Elements maintain links to their parent, an
+The C<add_element> method adds a L<PPI::Element> object to the end of a
+C<PPI::Node>. Because Elements maintain links to their parent, an
 Element can only be added to a single Node.
 
-Returns true if the PPI::Element was added. Returns C<undef> if the
+Returns true if the L<PPI::Element> was added. Returns C<undef> if the
 Element was already within another Node, or the method is not passed 
-a PPI::Element object.
+a L<PPI::Element> object.
 
 =cut
 
@@ -110,7 +110,7 @@ sub add_element {
 	my $self = shift;
 
 	# Check the element
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 	$_PARENT{refaddr $Element} and return undef;
 
 	# Add the argument to the elements
@@ -125,7 +125,7 @@ sub add_element {
 # In a typical run profile, add_element is the number 1 resource drain.
 # This is a highly optimised unsafe version, for internal use only.
 sub __add_element {
-	Scalar::Util::weaken( 
+	Scalar::Util::weaken(
 		$_PARENT{refaddr $_[1]} = $_[0]
 		);
 	push @{$_[0]->{children}}, $_[1];
@@ -136,10 +136,11 @@ sub __add_element {
 =head2 elements
 
 The C<elements> method accesses all child elements B<structurally> within
-the PPI::Node object. Note that in the base of the PPI::Structure classes,
-this C<DOES> include the brace tokens at either end of the structure.
+the C<PPI::Node> object. Note that in the base of the L<PPI::Structure>
+classes, this C<DOES> include the brace tokens at either end of the
+structure.
 
-Returns a list of zero or more PPI::Element objects.
+Returns a list of zero or more L<PPI::Element> objects.
 
 Alternatively, if called in the scalar context, the C<elements> method
 returns a count of the number of elements.
@@ -155,11 +156,11 @@ sub elements {
 =head2 first_element
 
 The C<first_element> method accesses the first element structurally within
-the PPI::Node object. As for the C<elements> method, this does include the
-brace tokens for PPI::Structure objects.
+the C<PPI::Node> object. As for the C<elements> method, this does include
+the brace tokens for L<PPI::Structure> objects.
 
-Returns a PPI::Element object, or C<undef> if for some reason the PPI::Node
-object does not contain any elements.
+Returns a L<PPI::Element> object, or C<undef> if for some reason the
+C<PPI::Node> object does not contain any elements.
 
 =cut
 
@@ -173,11 +174,11 @@ sub first_element {
 =head2 last_element
 
 The C<last_element> method accesses the last element structurally within
-the PPI::Node object. As for the C<elements> method, this does include the
-brace tokens for PPI::Structure objects.
+the C<PPI::Node> object. As for the C<elements> method, this does include
+the brace tokens for L<PPI::Structure> objects.
 
-Returns a PPI::Element object, or C<undef> if for some reason the PPI::Node
-object does not contain any elements.
+Returns a L<PPI::Element> object, or C<undef> if for some reason the
+C<PPI::Node> object does not contain any elements.
 
 =cut
 
@@ -191,10 +192,11 @@ sub last_element {
 =head2 children
 
 The C<children> method accesses all child elements lexically within the
-PPI::Node object. Note that in the case of the PPI::Structure classes, this
-does B<NOT> include the brace tokens at either end of the structure.
+C<PPI::Node> object. Note that in the case of the L<PPI::Structure>
+classes, this does B<NOT> include the brace tokens at either end of the
+structure.
 
-Returns a list of zero of more PPI::Element objects.
+Returns a list of zero of more L<PPI::Element> objects.
 
 Alternatively, if called in the scalar context, the C<children> method
 returns a count of the number of lexical children.
@@ -228,10 +230,10 @@ sub schildren {
 
 =head2 child $index
 
-The C<child> method accesses a child PPI::Element object by its
+The C<child> method accesses a child L<PPI::Element> object by its
 position within the Node.
 
-Returns a PPI::Element object, or C<undef> if there is no child
+Returns a L<PPI::Element> object, or C<undef> if there is no child
 element at that node.
 
 =cut
@@ -245,7 +247,7 @@ sub child {
 =head2 schild $index
 
 The lexical structure of the Perl language ignores 'insignificant' items,
-such as whitespace and comments, while PPI treats these items as valid
+such as whitespace and comments, while L<PPI> treats these items as valid
 tokens so that it can reassemble the file at any time. Because of this,
 in many situations there is a need to find an Element within a Node by
 index, only counting lexically significant Elements.
@@ -279,20 +281,20 @@ sub schild {
 
 =head2 contains $Element
 
-The C<contains> method is used to determine if another PPI::Element object
-is logically "within" a PPI::Node. For the special case of the brace tokens
-at either side of a PPI::Structure object, they are generally considered
-"within" a PPI::Structure object, even if they are not actually in the
-elements for the PPI::Structure.
+The C<contains> method is used to determine if another L<PPI::Element>
+object is logically "within" a C<PPI::Node>. For the special case of the
+brace tokens at either side of a L<PPI::Structure> object, they are
+generally considered "within" a L<PPI::Structure> object, even if they are
+not actually in the elements for the L<PPI::Structure>.
 
-Returns true if the PPI::Element is within us, false if not, or C<undef>
+Returns true if the L<PPI::Element> is within us, false if not, or C<undef>
 on error.
 
 =cut
 
 sub contains {
 	my $self    = shift;
-	my $Element = isa(ref $_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 
 	# Iterate up the Element's parent chain until we either run out
 	# of parents, or get to ourself.
@@ -307,8 +309,8 @@ sub contains {
 
 =head2 find $class | \&wanted
 
-The C<find> method is used to search within a code tree for PPI::Element
-objects that meet a particular condition.
+The C<find> method is used to search within a code tree for
+L<PPI::Element> objects that meet a particular condition.
 
 To specify the condition, the method can be provided with either a simple
 class name (full or shortened), or an anonymous subroutine.
@@ -339,10 +341,10 @@ value indicating match or no match.
 Note that the same wanted logic is used for all methods documented to
 have a C<\&wanted> parameter, as this one does.
 
-The C<find> method returns a reference to an array of PPI::Element objects
-that match the condition, false (but defined) if no Elements match the
-condition, or C<undef> if you provide a bad condition, or an error occurs
-during the search process.
+The C<find> method returns a reference to an array of L<PPI::Element>
+objects that match the condition, false (but defined) if no Elements match
+the condition, or C<undef> if you provide a bad condition, or an error
+occurs during the search process.
 
 In the case of a bad condition, a warning will be emitted as well.
 
@@ -457,35 +459,36 @@ not, or C<undef> if given an invalid condition, or an error occurs.
 
 sub find_any {
 	my $self = shift;
-	my $rv = $self->find_first(@_);
-	return $rv ? 1 : $rv; # false or undef
+	my $rv   = $self->find_first(@_);
+	$rv ? 1 : $rv; # false or undef
 }
 
 =pod
 
 =head2 remove_child $Element
 
-If passed a L<PPI::Element|PPI::Element> object that is a direct child of
-the Node, the C<remove_element> method will remove the Element intact,
-along with any of its children. As such, this method acts essentially as
-a lexical 'cut' function.
+If passed a L<PPI::Element> object that is a direct child of the Node,
+the C<remove_element> method will remove the C<Element> intact, along
+with any of its children. As such, this method acts essentially as a
+'cut' function.
 
 =cut
 
 sub remove_child {
 	my $self  = shift;
-	my $child = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $child = _INSTANCE(shift, 'PPI::Element') or return undef;
 
 	# Find the position of the child
-	my $key      = refaddr $child;
-	my $position = List::MoreUtils::firstidx { refaddr $_ == $key } @{$self->{children}};
-	return undef unless defined $position;
+	my $key = refaddr $child;
+	my $p   = List::MoreUtils::firstidx {
+		refaddr $_ == $key
+		} @{$self->{children}};
+	return undef unless defined $p;
 
 	# Splice it out, and remove the child's parent entry
-	splice( @{$self->{children}}, $position, 1 );
+	splice( @{$self->{children}}, $p, 1 );
 	delete $_PARENT{refaddr $child};
 
-	# Return the child as a convenience
 	$child;
 }
 
@@ -493,22 +496,21 @@ sub remove_child {
 
 =head2 prune $class | \&wanted
 
-The C<prune> method is used to strip PPI::Element objects out of a code tree.
-The argument is the same as for the C<find> method, either a class name, or
-an anonymous subroutine which returns true/false. Any Element that matches
-the class|wanted will be deleted from the code tree, along with any
-of its children.
+The C<prune> method is used to strip L<PPI::Element> objects out of a code
+tree. The argument is the same as for the C<find> method, either a class
+name, or an anonymous subroutine which returns true/false. Any Element
+that matches the class|wanted will be deleted from the code tree, along
+with any of its children.
 
-The C<prune> method returns the number of Element objects that matched and
-were removed, B<NOT> including the child Elements of those that matched
-the wanted. This might also be zero, so avoid a simple true/false test
-on the return false of the C<prune> method. It returns C<undef> on error,
-which you probably B<SHOULD> test for.
+The C<prune> method returns the number of C<Element> objects that matched
+and were removed, B<non-recursively>. This might also be zero, so avoid a
+simple true/false test on the return false of the C<prune> method. It
+returns C<undef> on error, which you probably B<should> test for.
 
 =cut
 
 sub prune {
-	my $self      = shift;
+	my $self   = shift;
 	my $wanted = $self->_wanted(shift) or return undef;
 
 	# Use a depth-first queue search
@@ -526,7 +528,7 @@ sub prune {
 			# Support the undef == "don't descend"
 			next unless defined $rv;
 
-			if ( isa($element, 'PPI::Node') ) {
+			if ( _INSTANCE($element, 'PPI::Node') ) {
 				# Depth-first keeps the queue size down
 				unshift @queue, $element->children;
 			}
@@ -561,7 +563,7 @@ sub _wanted {
 
 	# The first argument should be an Element class, possibly in shorthand
 	$it = "PPI::$it" unless substr($it, 0, 5) eq 'PPI::';
-	unless ( isa($it, 'PPI::Element') ) {
+	unless ( UNIVERSAL::isa($it, 'PPI::Element') ) {
 		# We got something, but it isn't an element
 		Carp::carp("Cannot create search condition for '$it': Not a PPI::Element") if $^W;
 		return undef;
@@ -609,12 +611,12 @@ sub _wanted {
 # PPI::Element overloaded methods
 
 sub tokens {
-	map { $_->tokens } @{$_[0]->{children}}
+	map { $_->tokens } @{$_[0]->{children}};
 }
 
 ### XS -> PPI/XS.xs:_PPI_Element__content 0.900+
 sub content {
-	join '', map { $_->content } @{$_[0]->{children}}
+	join '', map { $_->content } @{$_[0]->{children}};
 }
 
 # Clone as normal, but then go down and relink all the _PARENT entries
@@ -630,19 +632,17 @@ sub clone {
 			Scalar::Util::weaken(
 				$_PARENT{refaddr($Element)} = $Node
 				);
-			unshift @queue, $Element if isa($Element, 'PPI::Node');
+			unshift @queue, $Element if $Element->isa('PPI::Node');
 		}
 
 		# If it's a structure, relink the open/close braces
-		next unless isa($Node, 'PPI::Structure');
+		next unless $Node->isa('PPI::Structure');
 		Scalar::Util::weaken(
 			$_PARENT{refaddr($Node->start)}  = $Node
-			)
-			if $Node->start;
+			) if $Node->start;
 		Scalar::Util::weaken(
 			$_PARENT{refaddr($Node->finish)} = $Node
-			)
-			if $Node->finish;
+			) if $Node->finish;
 	}
 
 	$clone;
@@ -653,6 +653,13 @@ sub location {
 	my $first = $self->{children}->[0] or return undef;
 	$first->location;
 }
+
+
+
+
+
+#####################################################################
+# Internal Methods
 
 sub DESTROY {
 	if ( $_[0]->{children} ) {
@@ -670,6 +677,60 @@ sub DESTROY {
 	delete $_PARENT{refaddr $_[0]};
 }
 
+# Find the position of a child
+sub __position {
+	my $key = refaddr $_[1];
+	List::MoreUtils::firstidx { refaddr $_ == $key } @{$_[0]->{children}};
+}
+
+# Insert one or more elements before a child
+sub __insert_before_child {
+	my $self = shift;
+	my $key  = refaddr shift;
+	my $p    = List::MoreUtils::firstidx {
+	         refaddr $_ == $key
+	         } @{$self->{children}};
+	foreach ( @_ ) {
+		Scalar::Util::weaken(
+			$_PARENT{refaddr $_} = $self
+			);
+	}
+	splice( @{$self->{children}}, $p, 0, @_ );
+	1;
+}
+
+# Replace a child
+sub __insert_after_child {
+	my $self = shift;
+	my $key  = refaddr shift;
+	my $p    = List::MoreUtils::firstidx {
+	         refaddr $_ == $key
+	         } @{$self->{children}};
+	foreach ( @_ ) {
+		Scalar::Util::weaken(
+			$_PARENT{refaddr $_} = $self
+			);
+	}
+	splice( @{$self->{children}}, $p + 1, 0, @_ );
+	1;
+}
+
+# Replace a child
+sub __replace_child {
+	my $self = shift;
+	my $key  = refaddr shift;
+	my $p    = List::MoreUtils::firstidx {
+	         refaddr $_ == $key
+	         } @{$self->{children}};
+	foreach ( @_ ) {
+		Scalar::Util::weaken(
+			$_PARENT{refaddr $_} = $self
+			);
+	}
+	splice( @{$self->{children}}, $p, 1, @_ );
+	1;
+}
+
 1;
 
 =pod
@@ -684,7 +745,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

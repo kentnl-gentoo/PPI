@@ -10,8 +10,8 @@ PPI::Tokenizer - The Perl Document Tokenizer
 
   # Create a tokenizer for a file, array or string
   $Tokenizer = PPI::Tokenizer->new( 'filename.pl' );
-  $Tokenizer = PPI::Tokenizer->new( \@lines       );
-  $Tokenizer = PPI::Tokenizer->new( \$source      );
+  $Tokenizer = PPI::Tokenizer->new( \@lines        );
+  $Tokenizer = PPI::Tokenizer->new( \$source       );
   
   # Return all the tokens for the document
   my $tokens = $Tokenizer->all_tokens;
@@ -70,16 +70,16 @@ in private methods.
 use strict;
 use UNIVERSAL 'isa';
 
-# Make sure everything we need is loaded, without 
-# resorting to loading all of PPI if possible.
+# Make sure everything we need is loaded, so we
+# don't have to go and load all of PPI.
 use List::MoreUtils ();
 use PPI::Element    ();
 use PPI::Token      ();
 use File::Slurp     ();
 
-use vars qw{$VERSION $errstr $ALLOW_NONASCII};
+use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 	$errstr  = '';
 }
 
@@ -137,8 +137,8 @@ sub new {
 		return $self->_error( "No source provided to Tokenizer" );
 
 	} elsif ( ! ref $_[0] ) {
-		# Simple text
-		$self->{source} = shift;
+		### FIXME - Croaks on error by default. Should we catch this?
+		$self->{source} = File::Slurp::read_file($_[0]);
 
 	} elsif ( isa($_[0], 'SCALAR') ) {
 		$self->{source} = ${shift()};
@@ -158,11 +158,6 @@ sub new {
 	$self->{source_bytes} = length $self->{source};
 	unless ( $self->{source_bytes} ) {
 		return $self->_error( "Nothing to parse" );
-	}
-
-	# Check for non-standard characters
-	if ( $ALLOW_NONASCII or $self->{source} =~ /([^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789;\[\]{}()=?|+<>.!~^*\$\@&:\%#,'"`\\\/_ \n\t-])/ ) {
-		return $self->_error( "Source code contains unsupported characters (first one encountered was '$1')" );
 	}
 
 	# Split into the line array
@@ -196,24 +191,6 @@ sub new {
 	}
 
 	$self;
-}
-
-=pod
-
-=head2 load $filename
-
-When creating a new Tokenizer from a file, a dedicated C<load> constructor
-is provided.
-
-Returns a PPI::Tojenizer object on success, or C<undef> on error.
-
-=cut
-
-sub load {
-	my $class    = shift;
-	my $filename = shift or return undef;
-	my $source   = File::Slurp::read_file($filename, reference => 1) or return undef;
-	$class->new( $source );
 }
 
 
@@ -852,11 +829,11 @@ character at the current position, and handle it.
 As the handler methods in the various token classes are called, they
 build up a output token array for the source code.
 
-Various parts of the Tokenisier use look-ahead, arbitrary-distance
+Various parts of the Tokenizer use look-ahead, arbitrary-distance
 look-behind (although currently the maximum is three significant tokens),
 or both, and various other heuristic guesses.
 
-I've been told it can be officially described as a I<"backtracking parser
+I've been told it is officially termed a I<"backtracking parser
 with infinite lookaheads">.
 
 =head2 State Variables
@@ -1042,7 +1019,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

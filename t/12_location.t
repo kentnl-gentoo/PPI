@@ -22,7 +22,7 @@ BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 
 # Execute the tests
-use Test::More tests => 103;
+use Test::More tests => 105;
 
 my $test_source = <<'END_PERL';
 my $foo = 'bar';
@@ -77,7 +77,7 @@ my @test_locations = (
 # Test the locations of everything in the test code
 
 # Prepare
-my $Document = PPI::Document->new( $test_source );
+my $Document = PPI::Document->new( \$test_source );
 isa_ok( $Document, 'PPI::Document' );
 ok( $Document->index_locations, '->index_locations returns true' );
 
@@ -91,5 +91,8 @@ foreach my $i ( 0 .. $#test_locations ) {
 	ok( ($location->[0] > 0 and $location->[1] > 0), "Token $i: ->location returns two positive positions" );
 	is_deeply( $test_locations[$i], $tokens[$i]->location, "Token $i: ->location matches expected" );
 }
+
+ok( $Document->flush_locations, '->flush_locations returns true' );
+is( scalar(grep { defined $_->{_location} } $Document->tokens), 0, 'All _location attributes removed' );
 
 1;

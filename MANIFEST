@@ -1,10 +1,8 @@
-Build.PL
 Changes
 inc/Config/Tiny.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
-inc/Module/Install/Build.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
 inc/Module/Install/Include.pm
@@ -122,6 +120,7 @@ t.data/08_regression/03_rt_cpan_9614.dump
 t.data/08_regression/04_tinderbox.code
 t.data/08_regression/04_tinderbox.dump
 t.data/11_util/test.pm
+t.data/13_data/Foo.pm
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t
@@ -136,4 +135,6 @@ t/09_normal.t
 t/10_statement.t
 t/11_util.t
 t/12_location.t
+t/13_data.t
+t/14_charsets.t
 t/99_pod.t

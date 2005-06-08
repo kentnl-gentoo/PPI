@@ -1,5 +1,12 @@
 Revision history for Perl extension PPI
 
+0.990 Sed Jun  8 2005
+	General:
+	- Last version (hopefully) to make API changes
+	- Slight API shuffle in the constructors
+	- Completed all PPI::Statement::* API documentation
+	- Enabled latin-1 support in the appropriate places
+
 0.906 Thu Apr 28 2005
 	General:
 	- Completed location support and added related unit tests

@@ -1,11 +1,38 @@
 package PPI::Token::Number;
 
-# The perl numeric token are
-#    $n = 1234;       # decimal integer
-#    $n = 0b1110011;  # binary integer
-#    $n = 01234;      # octal integer
-#    $n = 0x1234;     # hexadecimal integer
-#    $n = 12.34e-56;  # exponential notation ( currently not working )
+=pod
+
+=head1 NAME
+
+PPI::Token::Number - Token class for a number
+
+=head1 SYNOPSIS
+
+  $n = 1234;       # decimal integer
+  $n = 0b1110011;  # binary integer
+  $n = 01234;      # octal integer
+  $n = 0x1234;     # hexadecimal integer
+  $n = 12.34e-56;  # exponential notation ( currently not working )
+
+=head1 INHERITANCE
+
+  PPI::Token::Number
+  isa PPI::Token
+      isa PPI::Element
+
+=head1 DESCRIPTION
+
+The C<PPI::Token::Number> class is used for tokens that represent numbers,
+in the various types that Perl supports.
+
+=head1 METHODS
+
+There are no additional methods beyond those provided by the parent
+L<PPI::Token> and L<PPI::Element> classes.
+
+Got any ideas for methods? Submit a report to rt.cpan.org!
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -13,8 +40,15 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
+
+
+
+
+
+#####################################################################
+# Tokenizer Methods
 
 sub __TOKENIZER__on_char {
 	my $class = shift;
@@ -105,3 +139,25 @@ sub __TOKENIZER__on_char {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

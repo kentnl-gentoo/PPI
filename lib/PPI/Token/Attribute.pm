@@ -1,7 +1,36 @@
 package PPI::Token::Attribute;
 
-# Attributes are a relatively recent addition in perl terms.
-# Given C< sub foo : bar(something) {} >, bar(something) is the attribute
+=pod
+
+=head1 NAME
+
+PPI::Token::Attribute - A token for a subroutine attribute
+
+=head1 INHERITANCE
+
+  PPI::Token::Attribute
+  isa PPI::Token
+      isa PPI::Element
+
+=head1 DESCRIPTION
+
+In Perl, attributes are a relatively recent addition to the language.
+
+Given the code C< sub foo : bar(something) {} >, the C<bar(something)>
+part is the attribute.
+
+A C<PPI::Token::Attribute> token represents the entire of the attribute,
+as the braces and its contents are not parsed into the tree, and are
+treated by Perl (and thus by us) as a single string.
+
+=head1 METHODS
+
+This class provides some additional methods beyond those provided by its
+L<PPI::Token> and L<PPI::Element> parent classes.
+
+Got any ideas for methods? Submit a report to rt.cpan.org!
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -9,8 +38,59 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
+
+
+
+
+
+#####################################################################
+# PPI::Token::Attribute Methods
+
+=pod
+
+=head2 identifier
+
+The C<identifier> attribute returns the identifier part of the attribute.
+
+That is, for the attribute C<foo(bar)>, the C<identifier> method would
+return C<"foo">.
+
+=cut
+
+sub identifier {
+	my $self = shift;
+	$self->{content} =~ /^(.+?)\(/ ? $1 : $self->{content};
+}
+
+=pod
+
+=head2 parameters
+
+The C<parameters> method returns the parameter strong for the attribute.
+
+That is, for the attribute C<foo(bar)>, the C<parameters> method would
+return C<"bar">.
+
+Returns the parameters as a string (including the null string C<''> for
+the case of an attribute such as C<foo()>.
+
+Returns C<undef> if the attribute does not have parameters.
+
+=cut
+
+sub parameters {
+	my $self = shift;
+	$self->{content} =~ /\((.+)\)$/ ? $1 : undef;
+}
+
+
+
+
+
+#####################################################################
+# Tokenizer Methods
 
 sub __TOKENIZER__on_char {
 	my $class = shift;
@@ -79,16 +159,26 @@ sub __TOKENIZER__scan_for_end {
 	\$string;
 }
 
-# Returns the attribute identifier
-sub identifier {
-	my $self = shift;
-	$self->{content} =~ /^(.+?)\(/ ? $1 : $self->{content};
-}
-
-# Returns the attribute parameters, or undef if it has none
-sub parameters {
-	my $self = shift;
-	$self->{content} =~ /\((.+)\)$/ ? $1 : undef;
-}
-
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

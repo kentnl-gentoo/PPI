@@ -27,7 +27,7 @@ use PPI::Find;
 # use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2116;
+use Test::More tests => 2119;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -139,6 +139,7 @@ merge=method
 
 [PPI::Token::Data]
 PPI::Token=isa
+handle=method
 
 [PPI::Token::End]
 PPI::Token=isa
@@ -198,13 +199,13 @@ PPI::Token=isa
 
 [PPI::Token::_QuoteEngine::Simple]
 PPI::Token::_QuoteEngine=isa
-string=method
 
 [PPI::Token::_QuoteEngine::Full]
 PPI::Token::_QuoteEngine=isa
 
 [PPI::Token::Quote]
 PPI::Token=isa
+string=method
 
 [PPI::Token::Quote::Single]
 PPI::Token=isa
@@ -350,6 +351,7 @@ serialize=method
 index_locations=method
 flush_locations=method
 normalized=method
+errstr=method
 
 [PPI::Document::Fragment]
 PPI::Document=isa
@@ -365,7 +367,6 @@ PPI::Document=isa
 
 [PPI::Tokenizer]
 new=method
-load=method
 get_token=method
 all_tokens=method
 increment_cursor=method

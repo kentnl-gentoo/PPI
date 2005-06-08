@@ -1,18 +1,37 @@
 package PPI::Token::Unknown;
 
-# This large, seperate class is used when we have a limited
-# number of characters that could yet mean a variety of
-# different things.
-#
-# All the unknown cases are character by character problems,
-# so this class only needs to implement __TOKENIZER__on_char()
+=pod
+
+=head1 NAME
+
+PPI::Token::Unknown - Token of unknown or as-yet indetermined type
+
+=head1 INHERITANCE
+
+  PPI::Token::Unknown
+  isa PPI::Token
+      isa PPI::Element
+
+=head1 DESCRIPTION
+
+Object of type C<PPI::Token::Unknown> exist primarily inside the tokenizer,
+where they are temporarily brought into existing for a very short time to
+represent a token that could be one of a number of types.
+
+Generally, they only exist for a character or two, after which they are
+resolved and converted into the correct type. For an object of this type
+to survive the parsing process is considered a major bug.
+
+Please report any you encounter in a L<PPI::Document> object.
+
+=cut
 
 use strict;
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 
@@ -20,7 +39,7 @@ BEGIN {
 
 
 #####################################################################
-# Parsing Methods
+# Tokenizer Methods
 
 sub __TOKENIZER__on_char {
 	my $t = $_[1];                                    # Tokenizer object
@@ -213,3 +232,25 @@ sub __TOKENIZER__is_an_attribute {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

@@ -13,7 +13,7 @@ use Class::Autouse   ();
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '0.906';
+	$VERSION       = '0.990';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -44,7 +44,7 @@ __END__
 
 =head1 NAME
 
-PPI - BETA: Analyze and manipulate Perl code without using perl itself
+PPI - Parse, Analyze and Manipulate Perl (without perl) - BETA 2
 
 =head1 SYNOPSIS
 
@@ -91,35 +91,6 @@ can also be considered frozen.
 Most of the non-core distributions have also been brought up to date.
 
 The following packages are all also considered up to date.
-
-=over
-
-=item L<PPI::Tester> - Wx-based Interactive Testing Application
-
-=item L<PPI::HTML> - HTML Syntax Highlighting
-
-=item L<PPI::XS> - XS Acceleration for PPI (negligable speed up at this
-point, but should improve over time)
-
-=item L<PPI::Processor> - Framework for bulk-analysis of Perl documents
-
-=back
-
-The following packages are stale and currently being updated or killed
-
-=over
-
-=item L<PPI::Format::Apache> - This module is redundant and will be replaced
-with an alternative module.
-
-=item L<Perl::Compare> - This module is currently being updated
-
-=item L<Perl::Signature> - This module is currently being updated
-
-=item L<Perl::SAX> - This module was a proof of concept only, and requires
-re-implementation.
-
-=back
 
 =head1 DESCRIPTION
 
@@ -246,10 +217,9 @@ Perl documents contained in CPAN. This means the entire file in each case.
 
 =head2 General Layout
 
-PPI is built upon two primary "parsing" components,
-L<PPI::Tokenizer|PPI::Tokenizer> and L<PPI::Lexer|PPI::Lexer>, and a large
-tree of nearly 50 classes which implement the various objects within the
-Perl Document Object Model (PDOM).
+PPI is built upon two primary "parsing" components, L<PPI::Tokenizer>
+and L<PPI::Lexer>, and a large tree of nearly 50 classes which implement
+the various objects within the Perl Document Object Model (PDOM).
 
 The Perl Document Object Model is somewhat similar in style and intent to the
 regular DOM, but contains many differences to handle perl-specific cases.
@@ -297,8 +267,8 @@ The target rate is about 5000 lines per gigacycle.
 The main avenue for making it to this speed has now become L<PPI::XS>, a
 drop-in XS accelerator for miscellaneous parts of PPI.
 
-Since PPI::XS has only just gotten off the ground and is currently only at
-proof-of-concept stage, this may take a little while.
+Since L<PPI::XS> has only just gotten off the ground and is currently only
+at proof-of-concept stage, this may take a little while.
 
 =head2 The Lexer
 
@@ -323,14 +293,14 @@ order or details, the following is a rough inheritance layout of the
 main core classes.
 
   PPI::Element
-      PPI::Token
-          PPI::Token::*
-      PPI::Node
-          PPI::Statement
-              PPI::Statement::*
-          PPI::Structure
-              PPI::Structure::*
-          PPI::Document
+    PPI::Token
+      PPI::Token::*
+    PPI::Node
+      PPI::Statement
+        PPI::Statement::*
+      PPI::Structure
+        PPI::Structure::*
+      PPI::Document
 
 To summarize the above layout, all PDOM objects inherit from the
 L<PPI::Element> class.
@@ -646,7 +616,7 @@ author.
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 ACKNOWLEDGMENTS
 

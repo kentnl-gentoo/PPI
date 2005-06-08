@@ -6,6 +6,20 @@ package PPI::Statement::Compound;
 
 PPI::Statement::Compound - Describes all compound statements
 
+=head1 SYNOPSIS
+
+  # A compound if statement
+  if ( foo ) {
+      bar();
+  } else {
+      baz();
+  }
+  
+  # A compound loop statement
+  foreach ( @list ) {
+      bar($_);
+  }
+
 =head1 INHERITANCE
 
   PPI::Statement::Compound
@@ -15,13 +29,13 @@ PPI::Statement::Compound - Describes all compound statements
 
 =head1 DESCRIPTION
 
-PPI::Statement::Compound objects are used to describe all current forms of
-compound statements, as described in L<perlsyn>.
+C<PPI::Statement::Compound> objects are used to describe all current forms
+of compound statements, as described in L<perlsyn>.
 
-This covers blocks using C<if>, C<unless>, C<for>, C<foreach>, C<while>, and
-C<continue>. Please note this does B<not> cover "simple" statements with
-trailing conditions. Please note also that "do" is also not part of a
-compound statement.
+This covers blocks using C<if>, C<unless>, C<for>, C<foreach>, C<while>,
+and C<continue>. Please note this does B<not> cover "simple" statements
+with trailing conditions. Please note also that "do" is also not part of
+a compound statement.
 
   # This is NOT a compound statement
   my $foo = 1 if $condition;
@@ -31,6 +45,9 @@ compound statement.
 
 =head1 METHODS
 
+C<PPI::Statement::Compound> has a number of methods in addition to the
+standard L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
+
 =cut
 
 use strict;
@@ -39,7 +56,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 
 	# Keyword type map
 	%TYPES = (
@@ -69,17 +86,17 @@ The C<type> method returns the fundamental type of the compound statement.
 
 There are three basic compound statement types.
 
-The 'if' type includes all vatiations of the if and unless statements,
-including any 'elsif' or 'else' parts of the compount statement.
+The C<'if'> type includes all vatiations of the if and unless statements,
+including any C<'elsif'> or C<'else'> parts of the compount statement.
 
-The 'while' type describes the standard while statement, but again does
+The C<'while'> type describes the standard while statement, but again does
 B<not> describes simple statements with a trailing while.
 
-The 'for' type covers both of 'for' and 'foreach' statements.
+The C<'for'> type covers both of C<'for'> and C<'foreach'> statements.
 
 All of the compounds are a variation on one of these three.
 
-Returns the simple string 'if', 'for' or 'while', or C<undef> if the type
+Returns the simple string C<'if'>, C<'for'> or C<'while'>, or C<undef> if the type
 cannot be determined.
 
 =cut
@@ -109,7 +126,7 @@ sub type {
 # PPI::Node Methods
 
 sub scope {
-	
+	1;
 }
 
 1;
@@ -126,7 +143,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

@@ -25,6 +25,9 @@ include anonymous subroutines, as these are merely part of a normal statement.
 
 =head1 METHODS
 
+C<PPI::Statement::Sub> has a number of methods in addition to the standard
+L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
+
 =cut
 
 use strict;
@@ -34,7 +37,7 @@ use List::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 # Lexer clue
@@ -88,10 +91,9 @@ sub prototype {
 
 =head2 block
 
-With its name and implementation shared with
-L<PPI::Statement::Scheduled|PPI::Statement::Scheduled>, the C<block> method
-finds and returns the actual Structure object of the code block for this
-subroutine.
+With its name and implementation shared with L<PPI::Statement::Scheduled>,
+the C<block> method finds and returns the actual Structure object of the
+code block for this subroutine.
 
 Returns false if this is a forward declaration, or otherwise does not have a
 code block.
@@ -156,7 +158,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

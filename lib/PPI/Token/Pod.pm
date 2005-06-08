@@ -1,6 +1,30 @@
 package PPI::Token::Pod;
 
-# Represents a section of POD
+=pod
+
+=head1 NAME
+
+PPI::Token::Pod - Sections of POD in Perl documents
+
+=head1 INHERITANCE
+
+  PPI::Token::Pod
+  isa PPI::Token
+      isa PPI::Element
+
+=head1 DESCRIPTION
+
+A single C<PPI::Token::Pod> object represents a complete section of POD
+documentation within a Perl document.
+
+=head1 METHODS
+
+This class provides some additional methods beyond those provided by its
+L<PPI::Token> and L<PPI::Element> parent classes.
+
+Got any ideas for methods? Submit a report to rt.cpan.org!
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -8,11 +32,93 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
+
+
+
+
+
+#####################################################################
+# PPI::Token::Pod Methods
+
+=pod
+
+=head2 merge @podtokens
+
+The C<merge> constructor takes a number of C<PPI::Token::Pod> objects,
+and returns a new object that represents one combined POD block with
+the content of all of them.
+
+Returns a new C<PPI::Token::Pod> object, or C<undef> on error.
+
+=cut
+
+sub merge {
+	my $class = (! ref $_[0]) ? shift : return undef;
+
+	# Check there are no bad arguments
+	if ( grep { ! isa( ref $_, 'PPI::Token::Pod' ) } @_ ) {
+		return undef;
+	}
+
+	# Get the tokens, and extract the lines
+	my @content = (map { $_->lines } @_) or return undef;
+
+	# Remove the leading =pod tags, trailing =cut tags, and any empty lines
+	# between them and the pod contents.
+	foreach my $pod ( @content ) {
+		# Leading =pod tag
+		if ( @$pod and $pod->[0] =~ /^=pod\b/o ) {
+			shift @$pod;
+		}
+
+		# Trailing =cut tag
+		if ( @$pod and $pod->[-1] =~ /^=cut\b/o ) {
+			pop @$pod;
+		}
+
+		# Leading and trailing empty lines
+		while ( @$pod and $pod->[0]  eq '' ) { shift @$pod }
+		while ( @$pod and $pod->[-1] eq '' ) { pop @$pod   }
+	}
+
+	# Remove any empty pod sections, and add the =pod and =cut tags
+	# for the merged pod back to it.
+	@content = ( [ '=pod' ], grep { @$_ } @content, [ '=cut' ] );
+
+	# Create the new object
+	$class->new( join "\n", map { join( "\n", @$_ ) . "\n" } @content );
+}
+
+=pod
+
+=head2 lines
+
+The C<lines> method takes the string of POD and breaks it into lines,
+returning them as a list.
+
+=cut
+
+sub lines { split /(?:\015{1,2}\012|\015|\012)/, $_[0]->{content} }
+
+
+
+
+
+
+#####################################################################
+# PPI::Element Methods
 
 ### XS -> PPI/XS.xs:_PPI_Token_Pod__significant 0.900+
 sub significant { '' }
+
+
+
+
+
+#####################################################################
+# Tokenizer Methods
 
 sub __TOKENIZER__on_line_start {
 	my $t = $_[1];
@@ -29,64 +135,26 @@ sub __TOKENIZER__on_line_start {
 	0;
 }
 
-# Breaks the pod into lines, returned as a reference to an array
-sub lines { [ split /(?:\015{1,2}\012|\015|\012)/, $_[0]->{content} ] }
-
-# Merges one or more Pod tokens.
-# Can be called as either a class or object method.
-# If called as a class method, returns a new Pod token object.
-# If called as an object method, modifies the object, and also returns
-# it as a convenience.
-sub merge {
-	my $either = $_[0];
-
-	# Check there are no bad arguments
-	if ( grep { ! isa( $_, 'PPI::Token::Pod' ) } @_ ) {
-		return undef;
-	}
-
-	# Get the tokens, and extract the lines
-	my @content = map { $_->lines } grep { ref $_ } @_;
-	return undef unless @content; # No pod tokens...
-
-	# Remove the leading =pod tags, trailing =cut tags, and any empty lines
-	# between them and the pod contents.
-	foreach my $pod ( @content ) {
-		# Leading =pod tag
-		if ( @$pod and $pod->[0] =~ /^=pod\b/o ) {
-			shift @$pod;
-		}
-
-		# Trailing =cut tag
-		if ( @$pod and $pod->[-1] =~ /^=cut\b/o ) {
-			pop @$pod;
-		}
-
-		# Leading and trailing empty lines
-		while ( @$pod and $pod->[0] eq '' ) {
-			shift @$pod;
-		}
-		while ( @$pod and $pod->[-1] eq '' ) {
-			pop @$pod;
-		}
-	}
-
-	# Remove any empty pod sections, and add the =pod and =cut tags
-	# for the merged pod back to it.
-	@content = ( [ '=pod' ], grep { @$_ } @content, [ '=cut' ] );
-
-	# Convert back into a single string
-	my $merged = join "\n", map { join( "\n", @$_ ) . "\n" } @content;
-
-	# Was this an object method
-	if ( ref $either ) {
-		$either->{content} = $merged;
-		return $either;
-
-	}
-
-	# Return the static method response
-	$either->new( $merged );
-}
-
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

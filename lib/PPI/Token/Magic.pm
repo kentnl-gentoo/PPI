@@ -1,6 +1,45 @@
 package PPI::Token::Magic;
 
-# Magic variables
+=pod
+
+=head1 NAME
+
+PPI::Token::Magic - Tokens representing magic variables
+
+=head1 INHERITANCE
+
+  PPI::Token::Magic
+  isa PPI::Token::Symbol
+      isa PPI::Token
+          isa PPI::Element
+
+=head1 SYNOPSIS
+
+  # When we say magic variables, we mean these...
+  $1   $2   $3   $4   $5   $6   $7   $8   $9
+  $_   $&   $`   $'   $+   @+   $*   $.   $/    $|
+  $\\  $"   $;   $%   $=   $-   @-   $)   $#
+  $~   $^   $:   $?   $!   %!   $@   $$   $<    $>
+  $(   $0   $[   $]   @_   @*   $}   $,   $#+   $#-
+  $^L  $^A  $^E  $^C  $^D  $^F  $^H
+  $^I  $^M  $^N  $^O  $^P  $^R  $^S
+  $^T  $^V  $^W  $^X
+
+=head1 DESCRIPTION
+
+C<PPI::Token::Magic> is a sub-class of L<PPI::Token::Symbol> which
+identifies the token as "magic variable", one of the strange and
+unusual variables that are connected to "things" behind the scenes.
+
+Some are extremely common, like C<$_>, and others you will quite
+probably never encounter in your Perl career.
+
+=head1 METHODS
+
+The class provides no additional methods, beyond those provided by it's
+L<PPI::Token::Symbol>, L<PPI::Token> and L<PPI::Element>.
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -8,7 +47,7 @@ use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.
@@ -91,7 +130,29 @@ sub __TOKENIZER__on_char {
 	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
-# Our version is canonical is much simple
+# Our version of canonical is plain simple
 sub canonical { $_[0]->content }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

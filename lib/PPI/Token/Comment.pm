@@ -1,12 +1,70 @@
 package PPI::Token::Comment;
 
+=pod
+
+=head1 NAME
+
+PPI::Token::Comment - A comment in Perl source code
+
+=head1 INHERITANCE
+
+  PPI::Token::Comment
+  isa PPI::Token
+      isa PPI::Element
+
+=head1 SYNOPSIS
+
+  # This is a PPI::Token::Comment
+  
+  print "Hello World!"; # So it this
+  
+  $string =~ s/ foo  # This, unfortunately, is not :(
+        bar
+  	/w;
+
+=head1 DESCRIPTION
+
+In PPI, comments are represented by C<PPI::Token::Comment> objects.
+
+These come in two flavours, line comment and inline comments.
+
+A line comment is a comment that stands on it's own line. These comments
+hold their own newline and whitespace (both leading and trailing) as part
+of the one C<PPI::Token::Comment> object.
+
+An inline comment is a comment that appears after some code, and
+continues to the end of the line. This does B<not> include whitespace,
+and the terminating newlines is considered a separate
+L<PPI::Token::Whitespace> token.
+
+This is largely a convenience, simplifying a lot of normal code relating
+to the common things people do with comments.
+
+Most commonly, it means when you C<prune> or C<delete> a comment, a line
+comment disapears taking the entire line with it, and an inline comment
+is removed from the inside of the line, allowing the newline to drop
+back onto the end of the code, as you would expect.
+
+It also means you can move comments around in blocks much more easily.
+
+For now, this is a suitably handy way to do things. However, I do reserve
+the right to change my mind on this one if it gets dangerously
+anachronistic somewhere down the line.
+
+=head1 METHODS
+
+Only very limited methods are available, beyond those provided by our
+parent L<PPI::Token> and L<PPI::Element> classes.
+
+=cut
+
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Comment__significant 0.900+
@@ -51,10 +109,40 @@ sub __TOKENIZER__on_line_end {
 	1;
 }
 
-# Is this comment an entire line?
+=pod
+
+=head2 line
+
+The C<line> accessor returns true if the C<PPI::Token::Comment> is a
+line comment, or false if it is an inline comment.
+
+=cut
+
 sub line {
 	# Entire line comments have a newline at the end
 	$_[0]->{content} =~ /\n$/ ? 1 : 0;
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module
+
+=head1 AUTHOR
+
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

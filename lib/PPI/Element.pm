@@ -12,7 +12,7 @@ PPI::Element - The abstract Element class, a base for all source objects
 
 =head1 DESCRIPTION
 
-The abstract PPI::Element serves as a base class for all source-related
+The abstract C<PPI::Element> serves as a base class for all source-related
 objects, from a single whitespace token to an entire document. It provides
 a basic set of methods to provide a common interface and basic
 implementations.
@@ -24,6 +24,8 @@ implementations.
 use strict;
 use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
+use Params::Util '_INSTANCE',
+                 '_ARRAY';
 use PPI::Node       ();
 use Storable        ();
 use List::MoreUtils ();
@@ -34,7 +36,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.906';
+	$VERSION = '0.990';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -53,10 +55,10 @@ BEGIN {
 =head2 significant
 
 Because we treat whitespace and other non-code items as Tokens (in order to
-be able to "round trip" the PPI::Document back to a file) the C<significant>
-method allows us to distinguish between tokens that form a part of the code,
-and tokens that arn't significant, such as whitespace, POD, or the portion
-of a file after (and including) the __END__ token.
+be able to "round trip" the L<PPI::Document> back to a file) the
+C<significant> method allows us to distinguish between tokens that form a
+part of the code, and tokens that arn't significant, such as whitespace,
+POD, or the portion of a file after (and including) the C<__END__> token.
 
 Returns true if the Element is significant, or false it not.
 
@@ -69,12 +71,12 @@ sub significant { 1 }
 
 =head2 tokens
 
-The C<tokens> method returns a list of PPI::Token objects for the
-Element, essentially getting back that part of the document as if it had not
-been lexed.
+The C<tokens> method returns a list of L<PPI::Token> objects for the
+Element, essentially getting back that part of the document as if it had
+not been lexed.
 
-This also means there are no Statements and no Structures in the list, just
-the Token classes.
+This also means there are no Statements and no Structures in the list,
+just the Token classes.
 
 =cut
 
@@ -84,16 +86,16 @@ sub tokens { $_[0] }
 
 =head2 content
 
-For B<any> PPI::Element, the C<content> method will reconstitute the base
-code for it as a single string. This method is also the method used for
-overloading stringification. When an Element is used in a double-quoted string
-for example, this is the method that is called.
+For B<any> C<PPI::Element>, the C<content> method will reconstitute the
+base code for it as a single string. This method is also the method used
+for overloading stringification. When an Element is used in a double-quoted
+string for example, this is the method that is called.
 
 B<WARNING:>
 
 You should be aware that because of the way that here-docs are handled, any
-here-doc content is not included in C<content>, and as such you should NOT
-eval or execute the result if it contains any L<PPI::Token::HereDoc>.
+here-doc content is not included in C<content>, and as such you should
+B<not> eval or execute the result if it contains any L<PPI::Token::HereDoc>.
 
 The L<PPI::Document> method C<serialize> should be used to stringify a PDOM
 document into something that can be executed as expected.
@@ -116,11 +118,12 @@ sub content { '' }
 
 =head2 parent
 
-Elements themselves are not intended to contain other Elements, that is left
-to the L<PPI::Node|PPI::Node> abstract class, a subclass of PPI::Element.
+Elements themselves are not intended to contain other Elements, that is
+left to the L<PPI::Node> abstract class, a subclass of C<PPI::Element>.
 However, all Elements can be contained B<within> a parent Node.
 
-If an Element is within a parent Node, the C<parent> method returns the Node.
+If an Element is within a parent Node, the C<parent> method returns the
+Node.
 
 =cut
 
@@ -130,19 +133,21 @@ sub parent { $_PARENT{refaddr $_[0]} }
 
 =head2 statement
 
-For a PPI::Element that is contained (at some depth) within a PPI::Statment,
-the C<statement> method will return the first parent Statement object
-lexically 'above' the Element.
+For a C<PPI::Element> that is contained (at some depth) within a
+L<PPI::Statment>, the C<statement> method will return the first parent
+Statement object lexically 'above' the Element.
 
-Returns a L<PPI::Statement|PPI::Statement> object, which may be the same
-Element if the Element is itself a PPI::Statement object. Returns false
-if the Element is not within a Statement and is not itself a Statement.
+Returns a L<PPI::Statement> object, which may be the same Element if the
+Element is itself a L<PPI::Statement> object.
+
+Returns false if the Element is not within a Statement and is not itself
+a Statement.
 
 =cut
 
 sub statement {
 	my $cursor = shift;
-	while ( ! isa($cursor, 'PPI::Statement') ) {
+	while ( ! _INSTANCE($cursor, 'PPI::Statement') ) {
 		$cursor = $_PARENT{refaddr $cursor} or return '';
 	}
 	$cursor;
@@ -152,7 +157,7 @@ sub statement {
 
 =head2 top
 
-For a PPI::Element that is contained within a PDOM tree, the C<top> method
+For a C<PPI::Element> that is contained within a PDOM tree, the C<top> method
 will return the top-level Node in the tree. Most of the time this should be
 a L<PPI::Document> object, however this will not always be so. For example,
 if a subroutine has been removed from its Document, to be moved to another
@@ -176,14 +181,14 @@ sub top {
 For an Element that is contained within a L<PPI::Document> object,
 the C<document> method will return the top-level Document for the Element.
 
-Returns the PPI::Document for this Element, or false if the Element is not
+Returns the L<PPI::Document> for this Element, or false if the Element is not
 contained within a Document.
 
 =cut
 
 sub document {
 	my $top = shift->top;
-	isa($top, 'PPI::Document') and $top;
+	_INSTANCE($top, 'PPI::Document') and $top;
 }
 
 =pod
@@ -191,7 +196,7 @@ sub document {
 =head2 next_sibling
 
 All L<PPI::Node> objects (specifically, our parent Node) contain a number of
-PPI::Element objects. The C<next_sibling> method returns the PPI::Element
+C<PPI::Element> objects. The C<next_sibling> method returns the C<PPI::Element>
 immediately after the current one, or false if there is no next sibling.
 
 =cut
@@ -212,9 +217,9 @@ sub next_sibling {
 =head2 snext_sibling
 
 As per the other 's' methods, the C<snext_sibling> method returns the next
-B<significant> sibling of the PPI::Element object.
+B<significant> sibling of the C<PPI::Element> object.
 
-Returns a PPI::Element object, or false if there is no 'next' significant
+Returns a C<PPI::Element> object, or false if there is no 'next' significant
 sibling.
 
 =cut
@@ -238,9 +243,9 @@ sub snext_sibling {
 =head2 previous_sibling
 
 All L<PPI::Node> objects (specifically, our parent Node) contain a number of
-PPI::Element objects. The C<previous_sibling> method returns the Element
+C<PPI::Element> objects. The C<previous_sibling> method returns the Element
 immediately before the current one, or false if there is no 'previous'
-PPI::Element object.
+C<PPI::Element> object.
 
 =cut
 
@@ -260,9 +265,9 @@ sub previous_sibling {
 =head2 sprevious_sibling
 
 As per the other 's' methods, the C<sprevious_sibling> method returns
-the previous B<significant> sibling of the PPI::Element object.
+the previous B<significant> sibling of the C<PPI::Element> object.
 
-Returns a PPI::Element object, or false if there is no 'previous' significant
+Returns a C<PPI::Element> object, or false if there is no 'previous' significant
 sibling.
 
 =cut
@@ -289,12 +294,12 @@ tokens and actual Perl content, the C<first_token> method finds the first
 PPI::Token object within or equal to this one.
 
 That is, if called on a L<PPI::Node> subclass, it will descend until it
-finds a L<PPI::Token>. If called on a PPI::Token object, it will return the
-same object.
+finds a L<PPI::Token>. If called on a L<PPI::Token> object, it will return
+the same object.
 
-Returns a PPI::Token object, or dies on error (which should be extremely rare
-and only occur if an illegal empty L<PPI::Statement|PPI::Structure> exists
-below the current Element somewhere.
+Returns a L<PPI::Token> object, or dies on error (which should be extremely
+rare and only occur if an illegal empty L<PPI::Statement> exists below the
+current Element somewhere.
 
 =cut
 
@@ -317,12 +322,12 @@ tokens and actual Perl content, the C<last_token> method finds the last
 PPI::Token object within or equal to this one.
 
 That is, if called on a L<PPI::Node> subclass, it will descend until it
-finds a L<PPI::Token>. If called on a PPI::Token object, it will return the
-itself.
+finds a L<PPI::Token>. If called on a L<PPI::Token> object, it will return
+the itself.
 
-Returns a L<PPI::Token> object, or dies on error (which should be extremely rare
-and only occur if an illegal empty L<PPI::Statement|PPI::Structure> exists
-below the current Element somewhere.
+Returns a L<PPI::Token> object, or dies on error (which should be extremely
+rare and only occur if an illegal empty L<PPI::Statement> exists below the
+current Element somewhere.
 
 =cut
 
@@ -340,17 +345,17 @@ sub last_token {
 =head2 next_token
 
 As a support method for higher-order algorithms that deal specifically with
-tokens and actual Perl content, the C<next_token> method finds the PPI::Token
-object that is immediately after the current Element, even if it is not within
-the same parent L<PPI::Node|PPI::Node> as the one for which the method is
-being called.
+tokens and actual Perl content, the C<next_token> method finds the
+L<PPI::Token> object that is immediately after the current Element, even if
+it is not within the same parent L<PPI::Node> as the one for which the
+method is being called.
 
-Note that this is B<not> defined as a PPI::Token-specific method, because it
-can be useful to find the next token that is after, say, a
-L<PPI::Statement|PPI::Statement>, although obviously it would be useless to
-want the next token after a L<PPI::Document|PPI::Document>.
+Note that this is B<not> defined as a L<PPI::Token>-specific method,
+because it can be useful to find the next token that is after, say, a
+L<PPI::Statement>, although obviously it would be useless to want the
+next token after a L<PPI::Document>.
 
-Returns a PPI::Token object, or false if there are no more token after
+Returns a L<PPI::Token> object, or false if there are no more token after
 the Element.
 
 =cut
@@ -374,7 +379,7 @@ sub next_token {
 	###       using it in a slightly unsafe context. Again though, in
 	###       the class structure as of the time this method was written,
 	###       this is safe.
-	while ( ! isa($Element, 'PPI::Token') ) {
+	while ( ! $Element->isa('PPI::Token') ) {
 		defined($Element = $Element->first_element) or return '';
 	}
 
@@ -387,22 +392,24 @@ sub next_token {
 
 As a support method for higher-order algorithms that deal specifically with
 tokens and actual Perl content, the C<previous_token> method finds the
-PPI::Token object that is immediately before the current Element, even if it
-is not within the same parent L<PPI::Node|PPI::Node> as this one.
+L<PPI::Token> object that is immediately before the current Element, even
+if it is not within the same parent L<PPI::Node> as this one.
 
-Note that this is not defined as a PPI::Token-only method, because it can be
-useful to find the token is before, say, a PPI::Statement, although
-obviously it would be useless to want the next token before a  PPI::Document
+Note that this is not defined as a L<PPI::Token>-only method, because it can
+be useful to find the token is before, say, a L<PPI::Statement>, although
+obviously it would be useless to want the next token before a
+L<PPI::Document>.
 
-Returns a PPI::Token object, or false if there are no more tokens before
-the Element.
+Returns a L<PPI::Token> object, or false if there are no more tokens before
+the C<Element>.
 
 =cut
 
 sub previous_token {
 	my $cursor = shift;
 
-	# Start with the next Element. Go up via our parents if needed.
+	# Start with the next Element.
+	# Go up via our parents if needed.
 	my $Element;
 	while ( defined($Element = $cursor->previous_sibling) ) {
 		$cursor = $_PARENT{refaddr $cursor} or return '';
@@ -410,7 +417,7 @@ sub previous_token {
 
 	# If the Element is not itself a Token, work our way downwards
 	# through the last child of each level till we find one
-	while ( ! isa($Element, 'PPI::Token') ) {
+	while ( ! $Element->isa('PPI::Token') ) {
 		defined($Element = $Element->last_element) or return '';
 	}
 
@@ -428,13 +435,13 @@ sub previous_token {
 
 =head2 clone
 
-As per the Clone module, the C<clone> method makes a perfect copy of
+As per the L<Clone> module, the C<clone> method makes a perfect copy of
 an Element object. In the generic case, the implementation is done using
-the Clone module's mechanism itself. In higher-order cases, such as for
+the L<Clone> module's mechanism itself. In higher-order cases, such as for
 Nodes, there is more work involved to keep the parent-child links intact.
 
-NOTE: This has temporarily been moved to Storable::dclone until a critical
-but in Clone can be fixed.
+NOTE: This has temporarily been moved to C<Storable::dclone> until a
+critical but in L<Clone> can be fixed.
 
 =cut
 
@@ -447,11 +454,12 @@ sub clone {
 =head2 insert_before @Elements
 
 The C<insert_before> method allows you to insert lexical perl content, in
-the form of PPI::Element objects, before the calling Element. You need to be
-very careful when modifying perl code, as it's easy to break things.
+the form of C<PPI::Element> objects, before the calling C<Element>. You
+need to be very careful when modifying perl code, as it's easy to break
+things.
 
-B<This method is not yet implemented, mainly due to the difficulty in making
-it Do What You Mean.>
+B<This method is not yet implemented, mainly due to the difficulty in
+making it Do What You Mean.>
 
 =cut
 
@@ -460,7 +468,7 @@ sub insert_before {
 }
 
 # The internal version, which trusts the data we are given
-sub _insert_before {
+sub __insert_before {
 	my $self = shift;
 	
 }
@@ -470,8 +478,8 @@ sub _insert_before {
 =head2 insert_after @Elements
 
 The C<insert_after> method allows you to insert lexical perl content, in
-the form of PPI::Element objects, after the calling Element. You need to be
-very careful when modifying perl code, as it's easy to break things.
+the form of C<PPI::Element> objects, after the calling C<Element>. You need
+to be very careful when modifying perl code, as it's easy to break things.
 
 B<This method is not yet implemented, mainly due to the difficulty in making
 it Do What You Mean.>
@@ -483,7 +491,7 @@ sub insert_after {
 }
 
 # The internal version, which trusts the data we are given
-sub _insert_after {
+sub __insert_after {
 	my $self = shift;
 	
 }
@@ -492,16 +500,16 @@ sub _insert_after {
 
 =head2 remove
 
-For a given PPI::Element, the C<remove> method will remove it from its
+For a given C<PPI::Element>, the C<remove> method will remove it from its
 parent B<intact>, along with all of its children.
 
-Returns the Element itself as a convenience, or C<undef> if an error
-occurs while trying to remove the Element.
+Returns the C<Element> itself as a convenience, or C<undef> if an error
+occurs while trying to remove the C<Element>.
 
 =cut
 
 sub remove {
-	my $self = ref $_[0] ? shift : return undef;
+	my $self   = shift;
 	my $parent = $self->parent or return $self;
 	$parent->remove_child( $self );
 }
@@ -510,19 +518,18 @@ sub remove {
 
 =head2 delete
 
-For a given Element, the C<remove> method will remove it from its
-parent, immediately deleting the Element and all of its children (if it has
-any).
+For a given C<PPI::Element>, the C<remove> method will remove it from its
+parent, immediately deleting the C<Element> and all of its children (if it
+has any).
 
-Returns true if the Element was successfully deleted, or C<undef> if
-an error occurs while trying to remove the Element.
+Returns true if the C<Element> was successfully deleted, or C<undef> if
+an error occurs while trying to remove the C<Element>.
 
 =cut
 
 sub delete {
-	my $self = ref $_[0] ? shift : return undef;
-	$self->remove or return undef;
-	$self->DESTROY;
+	$_[0]->remove or return undef;
+	$_[0]->DESTROY;
 	1;
 }
 
@@ -531,19 +538,18 @@ sub delete {
 =head2 replace $Element
 
 Although some higher level class support more exotic forms of replace,
-at the basic level the C<replace> method takes a single Element as
-an argument and replaces the current Element with it.
+at the basic level the C<replace> method takes a single C<Element> as
+an argument and replaces the current C<Element> with it.
 
 To prevent accidental damage to code, in this initial implementation the
-replacement element MUST be of exactly the same class as the one being
+replacement element B<must> be of exactly the same class as the one being
 replaced.
 
 =cut
 
 sub replace {
-	my $self = ref $_[0] ? shift : return undef;
+	my $self    = ref $_[0] ? shift : return undef;
 	my $Element = isa(ref $_[0], ref $self) ? shift : return undef;
-
 	die "The ->replace method has not yet been implemented";
 }
 
@@ -551,7 +557,7 @@ sub replace {
 
 =head2 location
 
-If the Element exists within a L<PPI::Document|PPI::Document> that has
+If the Element exists within a L<PPI::Document> that has
 indexed the Element locations using C<PPI::Document::index_locations>, the
 C<location> method will return the location of the first character of the
 Element within the Document.
@@ -559,7 +565,7 @@ Element within the Document.
 Returns the location as a reference to a two-element array in the form
 C<[ $line, $col ]>. The values are in a human format, with the first
 character of the file located at C<[ 1, 1 ]>. Returns C<undef> on error,
-or if the PPI::Document object has not been indexed.
+or if the L<PPI::Document> object has not been indexed.
 
 =cut
 
@@ -592,10 +598,10 @@ sub location {
 # we are able to implement it at an Element level, allowing us to
 # selectively flush only the part of the document that occurs after the
 # element for which the flush is called.
-sub _flush_location {
+sub _flush_locations {
 	my $self  = shift;
 	unless ( $self == $self->top ) {
-		return $self->top->_flush_location( $self );
+		return $self->top->_flush_locations( $self );
 	}
 
 	# Get the full list of all Tokens
@@ -617,7 +623,7 @@ sub _flush_location {
 
 	# Iterate over any remaining Tokens and flush their location
 	foreach my $Token ( @Tokens ) {
-		delete $_->{_location};
+		delete $Token->{_location};
 	}
 
 	1;
@@ -647,13 +653,13 @@ sub _clear {
 # Therefore we don't need to remove ourselves from our parent,
 # just the index ( just in case ).
 ### XS -> PPI/XS.xs:_PPI_Element__DESTROY 0.900+
-sub DESTROY { delete $_PARENT{refaddr shift} }
+sub DESTROY { delete $_PARENT{refaddr $_[0]} }
 
 # Operator overloads
 sub __equals { ref $_[1] and refaddr($_[0]) == refaddr($_[1]) }
 sub __eq {
-	my $self  = isa(ref $_[0], 'PPI::Element') ? shift->content : shift;
-	my $other = isa(ref $_[0], 'PPI::Element') ? shift->content : shift;
+	my $self  = _INSTANCE($_[0], 'PPI::Element') ? $_[0]->content : $_[0];
+	my $other = _INSTANCE($_[1], 'PPI::Element') ? $_[1]->content : $_[1];
 	$self eq $other;
 }
 
@@ -676,7 +682,7 @@ See the L<support section|PPI/SUPPORT> in the main module
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 

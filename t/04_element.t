@@ -134,7 +134,7 @@ use Scalar::Util ();
 
 # Build a basic source tree to test with
 my $source   = 'my@foo =  (1,   2);';
-my $Document = PPI::Lexer->lex_source( \$source );
+my $Document = PPI::Lexer->lex_source( $source );
 isa_ok( $Document, 'PPI::Document' );
 is( $Document->content, $source, "Document round-trips ok" );
 is( scalar($Document->tokens), 12, "Basic source contains the correct number of tokens" );
@@ -393,7 +393,7 @@ ok( ! defined $Braces->parent, "Braces are detached from parent" );
 	my $k2;
 	my $k3;
 	{
-		my $NodeDocument = PPI::Document->load( $INC{"PPI/Node.pm"} );
+		my $NodeDocument = PPI::Document->new( $INC{"PPI/Node.pm"} );
 		isa_ok( $NodeDocument, 'PPI::Document' );
 		$k2 = scalar keys %PPI::Element::_PARENT;
 		ok( $k2 > ($k1 + 3000), 'PARENT keys increases after loading document' );
@@ -410,7 +410,7 @@ ok( ! defined $Braces->parent, "Braces are detached from parent" );
 	my $k2;
 	my $k3;
 	{
-		my $NodeDocument = PPI::Document->load( $INC{"PPI/Node.pm"} );
+		my $NodeDocument = PPI::Document->new( $INC{"PPI/Node.pm"} );
 		isa_ok( $NodeDocument, 'PPI::Document' );
 		$k2 = scalar keys %PPI::Element::_PARENT;
 		ok( $k2 > ($k1 + 3000), 'PARENT keys increases after loading document' );
