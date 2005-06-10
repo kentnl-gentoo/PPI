@@ -64,7 +64,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.990';
+	$VERSION = '0.991';
 	$errstr  = '';
 }
 
@@ -112,8 +112,8 @@ sub new {
 
 	} elsif ( ! ref $_[0] ) {
 		# Catch people using the old API
-		if ( $_[0] =~ /(?:\012\015)/ ) {
-			die "API CHANGE: Code should now be passed to PPI::Document->new by reference";
+		if ( $_[0] =~ /(?:\012|\015)/ ) {
+			die "API CHANGE: Source code should only be passed to PPI::Document->new as a SCALAR reference";
 		}
 		$Document = PPI::Lexer->lex_file( shift );
 

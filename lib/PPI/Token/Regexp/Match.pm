@@ -49,7 +49,7 @@ use base 'PPI::Token::_QuoteEngine::Full',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.990';
+	$VERSION = '0.991';
 }
 
 1;

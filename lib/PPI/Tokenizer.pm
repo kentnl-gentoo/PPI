@@ -79,7 +79,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.990';
+	$VERSION = '0.991';
 	$errstr  = '';
 }
 

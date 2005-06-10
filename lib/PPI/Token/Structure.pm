@@ -34,7 +34,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.990';
+	$VERSION = '0.991';
 }
 
 # Set the matching braces, done as an array

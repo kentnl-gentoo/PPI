@@ -34,7 +34,7 @@ use IO::Scalar ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.990';
+	$VERSION = '0.991';
 }
 
 
