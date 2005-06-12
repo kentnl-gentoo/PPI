@@ -1,5 +1,9 @@
 Revision history for Perl extension PPI
 
+0.992 Sun Jun 12 2005
+	General:
+	- Added the PPI::Transform API
+
 0.991 Fri Jun 10 2005
 	- Typo. I wasn't dieing on newlines to PPI::Document->new( string )
 	  correctly, and thus dieing without the API CHANGE message.

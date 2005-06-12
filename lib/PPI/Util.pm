@@ -9,7 +9,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.991';
+	$VERSION = '0.992';
 	@EXPORT_OK = qw{_Document};
 }
 

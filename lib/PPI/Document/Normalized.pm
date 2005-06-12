@@ -44,7 +44,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.991';
+	$VERSION = '0.992';
 }
 
 # For convenience (and since this isn't really a public class), import

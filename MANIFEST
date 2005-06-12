@@ -84,6 +84,7 @@ lib/PPI/Token/Unknown.pm
 lib/PPI/Token/Whitespace.pm
 lib/PPI/Token/Word.pm
 lib/PPI/Tokenizer.pm
+lib/PPI/Transform.pm
 lib/PPI/Util.pm
 LICENSE
 Makefile.PL
@@ -121,6 +122,8 @@ t.data/08_regression/04_tinderbox.code
 t.data/08_regression/04_tinderbox.dump
 t.data/11_util/test.pm
 t.data/13_data/Foo.pm
+t.data/15_transform/sample1.pm
+t.data/15_transform/sample1.pm.out
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t
@@ -137,4 +140,5 @@ t/11_util.t
 t/12_location.t
 t/13_data.t
 t/14_charsets.t
+t/15_transform.t
 t/99_pod.t

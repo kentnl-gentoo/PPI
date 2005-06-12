@@ -64,7 +64,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.991';
+	$VERSION = '0.992';
 	$errstr  = '';
 }
 
@@ -483,13 +483,8 @@ sub errstr {
 
 =head1 TO DO
 
-- Write proper unit and regression tests
-
 - May need to overload some methods to forcefully prevent Document
 objects becoming children of another Node.
-
-- May be worth adding a PPI::Document::Normalized sub-class to formally
-recognise the normalisation work going on in L<Perl::Compare> and the like.
 
 =head1 SUPPORT
 
