@@ -115,13 +115,13 @@ use Scalar::Util ();
 
 
 
-# Test interaction between weaken and Storable::dclone
+# Test interaction between weaken and Clone
 {
 	my $object = { a => undef };
 	# my $object = bless { a => undef }, 'Foo';
 	my $object2 = $object;
 	Scalar::Util::weaken($object2);
-	my $clone = Storable::dclone($object);
+	my $clone = Clone::clone($object);
 	is_deeply( $clone, $object, 'Object is cloned OK when a different reference is weakened' );
 }
 

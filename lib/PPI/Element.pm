@@ -27,7 +27,7 @@ use Scalar::Util 'refaddr';
 use Params::Util '_INSTANCE',
                  '_ARRAY';
 use PPI::Node       ();
-use Storable        ();
+use Clone           ();
 use List::MoreUtils ();
 use overload 'bool' => sub () { 1 },
              '""'   => 'content',
@@ -36,7 +36,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.992';
+	$VERSION = '0.993';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -440,13 +440,10 @@ an Element object. In the generic case, the implementation is done using
 the L<Clone> module's mechanism itself. In higher-order cases, such as for
 Nodes, there is more work involved to keep the parent-child links intact.
 
-NOTE: This has temporarily been moved to C<Storable::dclone> until a
-critical but in L<Clone> can be fixed.
-
 =cut
 
 sub clone {
-	Storable::dclone(shift);
+	Clone::clone(shift);
 }
 
 =pod

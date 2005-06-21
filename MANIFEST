@@ -1,5 +1,6 @@
 Changes
 inc/Config/Tiny.pm
+inc/ExtUtils/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm

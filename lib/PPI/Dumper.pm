@@ -9,7 +9,7 @@ PPI::Dumper - Dumping of PDOM trees
 =head1 SYNOPSIS
 
   # Load a document
-  my $Module = PPI::Document->read('MyModule.pm');
+  my $Module = PPI::Document->new( 'MyModule.pm' );
   
   # Create the dumper
   my $Dumper = PPI::Dumper->new( $Module );
@@ -20,7 +20,7 @@ PPI::Dumper - Dumping of PDOM trees
 =head1 DESCRIPTION
 
 The PDOM trees in PPI are quite complex, and getting a dump of their
-structure for development and debugging purposes is quite important.
+structure for development and debugging purposes is important.
 
 This module provides that functionality.
 
@@ -33,11 +33,11 @@ generate the dump content itself.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.992';
+	$VERSION = '0.993';
 }
 
 
@@ -49,14 +49,14 @@ BEGIN {
 
 =pod
 
-=head2 new $Element, param => value
+=head2 new $Element, param => value, ...
 
 The C<new> constructor creates a dumper, and takes as argument a single
 L<PPI::Element> object of any type to serve as the root of the tree to
-be dumped, and a number of key->value parameters to control the output
+be dumped, and a number of key-E<gt>value parameters to control the output
 format of the Dumper. Details of the parameters are listed below.
 
-Returns a new PPI::Dumper object, or C<undef> if the constructor
+Returns a new C<PPI::Dumper> object, or C<undef> if the constructor
 is not passed a correct L<PPI::Element> root object.
 
 =over
@@ -99,8 +99,8 @@ comment tokens. True/value value, on by default.
 =cut
 
 sub new {
-	my $class = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $class   = shift;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 
 	# Create the object
 	my $self = bless {
@@ -195,21 +195,21 @@ sub list {
 
 sub _dump {
 	my $self    = ref $_[0] ? shift : shift->new(shift);
-	my $Element = isa($_[0], 'PPI::Element') ? shift : $self->{root};
+	my $Element = _INSTANCE($_[0], 'PPI::Element') ? shift : $self->{root};
 	my $indent  = shift || '';
 	my $output  = shift || [];
 
 	# Print the element if needed
 	my $show = 1;
-	if ( isa( $Element, 'PPI::Token::Whitespace' ) ) {
+	if ( $Element->isa('PPI::Token::Whitespace') ) {
 		$show = 0 unless $self->{display}->{whitespace};
-	} elsif ( isa( $Element, 'PPI::Token::Comment' ) ) {
+	} elsif ( $Element->isa('PPI::Token::Comment') ) {
 		$show = 0 unless $self->{display}->{comments};
 	}
 	push @$output, $self->_element_string( $Element, $indent ) if $show;
 
 	# Recurse into our children
-	if ( isa($Element, 'PPI::Node') ) {
+	if ( $Element->isa('PPI::Node') ) {
 		my $child_indent = $indent . $self->{indent_string};
 		foreach my $child ( @{$Element->{children}} ) {
 			$self->_dump( $child, $child_indent, $output );
@@ -220,10 +220,10 @@ sub _dump {
 }
 
 sub _element_string {
-	my $self = ref $_[0] ? shift : shift->new(shift);
-	my $Element = isa( $_[0], 'PPI::Element' ) ? shift : $self->{root};
-	my $indent = shift || '';
-	my $string = '';
+	my $self    = ref $_[0] ? shift : shift->new(shift);
+	my $Element = _INSTANCE($_[0], 'PPI::Element') ? shift : $self->{root};
+	my $indent  = shift || '';
+	my $string  = '';
 
 	# Add the memory location
 	if ( $self->{display}->{memaddr} ) {
@@ -240,7 +240,7 @@ sub _element_string {
 		$string .= ref $Element;
 	}
 
-	if ( isa( $Element, 'PPI::Token' ) ) {
+	if ( $Element->isa('PPI::Token') ) {
 		# Add the content
 		if ( $self->{display}->{content} ) {
 			my $content = $Element->content;
@@ -249,7 +249,7 @@ sub _element_string {
 			$string .= "  \t'$content'";
 		}
 
-	} elsif ( isa( $Element, 'PPI::Structure' ) ) {
+	} elsif ( $Element->isa('PPI::Structure') ) {
 		# Add the content
 		if ( $self->{display}->{content} ) {
 			my $start = $Element->start

@@ -1,5 +1,16 @@
 Revision history for Perl extension PPI
 
+0.993 Tue Jun 21 2005
+	General:
+	- Various minor code, packaging and POD cleanups
+
+	Details:
+	- Corrected a POD bug in PPI::Dumper
+	- Upgraded PPI::Dumper param checking to Params::Util
+	- Restored PPI::Element->clone to using Clone::clone ( 0.17+ )
+	- Removed dependency on Storable
+	- Until it fixes the problem, explicitly include ExtUtils::AutoInstall
+
 0.992 Sun Jun 12 2005
 	General:
 	- Added the PPI::Transform API
