@@ -1,7 +1,24 @@
 package PPI::Token;
 
-# This package represents a single token ( chunk of characters ) in a perl
-# source code file
+=pod
+
+=head1 NAME
+
+PPI::Token - A single token of Perl source code
+
+=head1 INHERITANCE
+
+  PPI::Token
+  isa PPI::Element
+
+=head1 DESCRIPTION
+
+C<PPI::Token> is the abstract base class for all Tokens. In PPI terms, a "Token" is
+a L<PPI::Element> that directly represents bytes of source code.
+
+=head1 METHODS
+
+=cut
 
 use strict;
 use UNIVERSAL 'isa';
@@ -9,7 +26,7 @@ use base 'PPI::Element';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 # We don't load the abstracts, they are loaded
@@ -53,7 +70,9 @@ use PPI::Token::Unknown               ();
 
 
 
-# Create a new token
+#####################################################################
+# Constructor and Related
+
 sub new {
 	if ( @_ == 2 ) {
 		# PPI::Token->new( $content );
@@ -74,8 +93,7 @@ sub new {
 }
 
 sub set_class {
-	my $self = shift;
-	return undef unless @_;
+	my $self  = shift; @_ or return undef;
 	my $class = substr( $_[0], 0, 12 ) eq 'PPI::Token::' ? shift : 'PPI::Token::' . shift;
 
 	# Find out if the current and new classes are complex
@@ -104,33 +122,87 @@ sub set_class {
 
 
 #####################################################################
-# Overloaded PPI::Element methods
+# PPI::Token Methods
 
-sub _line { $_[0]->{_line} }
+=pod
 
-sub _col  { $_[0]->{_col}  }
+=head2 set_content $string
 
+The C<set_content> method allows to set/change the string that the
+C<PPI::Token> object represents.
 
+Returns the string you set the Token to
 
+=cut
 
+sub set_content {
+	$_[0]->{content} = $_[1];
+}
 
-#####################################################################
-# Content related
+=pod
 
-sub content     { $_[0]->{content} }
+=head2 add_content $string
 
-sub set_content { $_[0]->{content} = $_[1] }
+The C<add_content> method allows you to add additional bytes of code
+to the end of the Token.
+
+Returns the new full string after the bytes have been added.
+
+=cut
 
 sub add_content { $_[0]->{content} .= $_[1] }
 
-sub length      { &CORE::length($_[0]->{content}) }
+=pod
+
+=head2 length
+
+The C<length> method returns the length of the string in a Token.
+
+=cut
+
+sub length { &CORE::length($_[0]->{content}) }
 
 
 
 
 
 #####################################################################
-# Tokenizer Default Methods
+# Overloaded PPI::Element methods
+
+sub content {
+	$_[0]->{content};
+}
+
+# You can insert either a statement, or a non-significant token.
+sub insert_before {
+	my $self    = shift;
+	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	if ( $Element->isa('PPI::Structure') ) {
+		return $self->__insert_before($Element);
+	} elsif ( $Element->isa('PPI::Token') ) {
+		return $self->__insert_before($Element);
+	}
+	'';
+}
+
+# As above, you can insert a statement, or a non-significant token
+sub insert_after {
+	my $self    = shift;
+	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	if ( $Element->isa('PPI::Structure') ) {
+		return $self->__insert_after($Element);
+	} elsif ( $Element->isa('PPI::Token') ) {
+		return $self->__insert_after($Element);
+	}
+	'';
+}
+
+
+
+
+
+#####################################################################
+# Tokenizer Methods
 
 sub __TOKENIZER__on_line_start { 1 }
 sub __TOKENIZER__on_line_end   { 1 }
@@ -141,29 +213,18 @@ sub __TOKENIZER__on_char       { 'Unknown' }
 
 
 #####################################################################
-# Structure Related Tests
+# Lexer Methods
 
-sub _opens  { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\(|\[|\{)/ }
-sub _closes { ref($_[0]) eq 'PPI::Token::Structure' and $_[0]->{content} =~ /(?:\)|\]|\})/ }
+sub __LEXER__opens {
+	ref($_[0]) eq 'PPI::Token::Structure'
+	and
+	$_[0]->{content} =~ /(?:\(|\[|\{)/
+}
 
-
-
-
-
-#####################################################################
-# Miscellaneous Analysis and Utilities
-
-# Provide a more detailed test on a token
-sub _isa {
-	my $self = shift;
-
-	# Test the class
-	my $class = substr( $_[0], 0, 12 ) eq 'PPI::Token::' ? shift
-		: 'PPI::Token::' . shift;
-	return '' unless isa( $self, $class );
-
-	# Test the content if needed
-	! (@_ and $self->{content} ne shift);
+sub __LEXER__closes {
+	ref($_[0]) eq 'PPI::Token::Structure'
+	and
+	$_[0]->{content} =~ /(?:\)|\]|\})/
 }
 
 1;

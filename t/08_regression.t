@@ -31,7 +31,7 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 37;
+use Test::More tests => 49;
 use File::Slurp ();
 
 use vars qw{$testdir};
@@ -66,6 +66,14 @@ foreach my $codefile ( @code ) {
 	my $Document = $Lexer->lex_file( $codefile );
 	ok( $Document,                          "$codefile: Lexer->Document returns true" );
 	ok( isa( $Document, 'PPI::Document' ),  "$codefile: Lexer creates Document object" );
+
+	# Are there any unknown things?
+	is( $Document->find_any('Token::Unknown'), '',
+		"$codefile: Contains no PPI::Token::Unknown elements" );
+	is( $Document->find_any('Structure::Unknown'), '',
+		"$codefile: Contains no PPI::Structure::Unknown elements" );
+	is( $Document->find_any('Statement::Unknown'), '',
+		"$codefile: Contains no PPI::Statement::Unknown elements" );
 
 	# Get the dump array ref for the Document object
 	my $Dumper = PPI::Dumper->new( $Document );

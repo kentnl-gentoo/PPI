@@ -1,6 +1,6 @@
 name: PPI
-version: 0.993
-abstract: Parse, Analyze and Manipulate Perl (without perl)
+version: 0.995
+abstract: Parse, Analyze and Manipulate Perl (without perl) - RELEASE CANDIDATE 1
 author: Adam Kennedy <cpan@ali.as>
 license: perl
 distribution_type: module

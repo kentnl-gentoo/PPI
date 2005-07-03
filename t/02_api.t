@@ -27,7 +27,7 @@ use PPI::Find;
 # use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2119;
+use Test::More tests => 2170;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -100,6 +100,7 @@ content=method
 tokens=method
 significant=method
 location=method
+class=method
 
 [PPI::Node]
 PPI::Element=isa

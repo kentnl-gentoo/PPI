@@ -48,7 +48,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 =pod
@@ -185,11 +185,21 @@ sub __TOKENIZER__on_char {
 		my $tokens = $t->_previous_significant_tokens( 3 );
 		if ( $tokens ) {
 			# A normal subroutine declaration
-			if ( $tokens->[0]->isa('PPI::Token::Word')
-				and $tokens->[1]->_isa('Word', 'sub')
+			my $p1 = $tokens->[1];
+			my $p2 = $tokens->[2];
+			if (
+				$tokens->[0]->isa('PPI::Token::Word')
+				and
+				$p1->isa('PPI::Token::Word')
+				and
+				$p1->content eq 'sub'
 				and (
-					$tokens->[2]->isa('PPI::Token::Structure')
-					or $tokens->[2]->_isa('Whitespace', '')
+					$p2->isa('PPI::Token::Structure')
+					or (
+						$p2->isa('PPI::Token::Whitespace')
+						and
+						$p2->content eq ''
+					)
 				)
 			) {
 				# This is a sub prototype
@@ -197,7 +207,8 @@ sub __TOKENIZER__on_char {
 			}
 
 			# An prototyped anonymous subroutine
-			if ( $tokens->[0]->_isa( 'Word', 'sub' ) ) {
+			my $p0 = $tokens->[0];
+			if ( $p0->isa('PPI::Token::Word') and $p0->content eq 'sub') {
 				return 'Prototype';
 			}
 		}
@@ -211,16 +222,16 @@ sub __TOKENIZER__on_char {
 
 		# This is either "less than" or "readline quote-like"
 		# Do some context stuff to guess which.
-		my $previous = $t->_last_significant_token;
+		my $prev = $t->_last_significant_token;
 
 		# The most common group of less-thans are used like
 		# $foo < $bar
 		# 1 < $bar
 		# $#foo < $bar
-		return 'Operator' if $previous->isa('PPI::Token::Symbol');
-		return 'Operator' if $previous->isa('PPI::Token::Magic');
-		return 'Operator' if $previous->isa('PPI::Token::Number');
-		return 'Operator' if $previous->isa('PPI::Token::ArrayIndex');
+		return 'Operator' if $prev->isa('PPI::Token::Symbol');
+		return 'Operator' if $prev->isa('PPI::Token::Magic');
+		return 'Operator' if $prev->isa('PPI::Token::Number');
+		return 'Operator' if $prev->isa('PPI::Token::ArrayIndex');
 
 		# If it is <<... it's a here-doc instead
 		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
@@ -231,11 +242,18 @@ sub __TOKENIZER__on_char {
 		# The most common group of readlines are used like
 		# while ( <...> )
 		# while <>;
-		return 'QuoteLike::Readline' if $previous->_isa( 'Structure', '('     );
-		return 'QuoteLike::Readline' if $previous->_isa( 'Word',      'while' );
-		return 'QuoteLike::Readline' if $previous->_isa( 'Operator',  '='     );
+		my $prec = $prev->content;
+		if ( $prev->isa('PPI::Token::Structure') and $prec eq '(' ) {
+			return 'QuoteLike::Readline';
+		}
+		if ( $prev->isa('PPI::Token::Word') and $prec eq 'while' ) {
+			return 'QuoteLike::Readline';
+		}
+		if ( $prev->isa('PPI::Token::Operator') and $prec eq '=' ) {
+			return 'QuoteLike::Readline';
+		}
 
-		if ( $previous->_isa( 'Structure', '}' ) ) {
+		if ( $prev->isa('PPI::Token::Structure') and $prec eq '}' ) {
 			# Could go either way... do a regex check
 			# $foo->{bar} < 2;
 			# grep { .. } <foo>;
@@ -257,7 +275,8 @@ sub __TOKENIZER__on_char {
 		# This is either a "divided by" or a "start regex"
 		# Do some context stuff to guess ( ack ) which.
 		# Hopefully the guess will be good enough.
-		my $previous = $t->_last_significant_token;
+		my $prev = $t->_last_significant_token;
+		my $prec = $prev->content;
 
 		# Most times following an operator, we are a regex.
 		# This includes cases such as:
@@ -265,27 +284,45 @@ sub __TOKENIZER__on_char {
 		# .. - The second condition in a flip flop
 		# =~ - A bound regex
 		# !~ - Ditto
-		return 'Regexp::Match' if $previous->isa('PPI::Token::Operator');
+		return 'Regexp::Match' if $prev->isa('PPI::Token::Operator');
 
 		# After a symbol
-		return 'Operator' if $previous->isa('PPI::Token::Symbol');
-		return 'Operator' if $previous->_isa( 'Structure', ']' );
+		return 'Operator' if $prev->isa('PPI::Token::Symbol');
+		return 'Operator' if $prev->isa('PPI::Token::Structure') && $prec eq ']';
 
 		# After another number
-		return 'Operator' if $previous->isa('PPI::Token::Number');
+		return 'Operator' if $prev->isa('PPI::Token::Number');
 
 		# After going into scope/brackets
-		return 'Regexp::Match' if $previous->_isa( 'Structure', '(' );
-		return 'Regexp::Match' if $previous->_isa( 'Structure', '{' );
-		return 'Regexp::Match' if $previous->_isa( 'Structure', ';' );
+		if (
+			$prev->isa('PPI::Token::Structure')
+			and (
+				$prec eq '('
+				or
+				$prec eq '{'
+				or
+				$prec eq ';'
+			)
+		) {
+			return 'Regexp::Match';
+		}
 
 		# Functions that we know use commonly use regexs as an argument
-		return 'Regexp::Match' if $previous->_isa( 'Word', 'split' );
+		return 'Regexp::Match' if $prev->isa('PPI::Token::Word') && $prec eq 'split';
 
 		# After a keyword
-		return 'Regexp::Match' if $previous->_isa( 'Word', 'if' );
-		return 'Regexp::Match' if $previous->_isa( 'Word', 'unless' );
-		return 'Regexp::Match' if $previous->_isa( 'Word', 'grep' );
+		if (
+			$prev->isa('PPI::Token::Word')
+			and (
+				$prec eq 'if'
+				or
+				$prec eq 'unless'
+				or
+				$prec eq 'grep'
+			)
+		) {
+			return 'Regexp::Match';
+		}
 
 		# What about the char after the slash? There's some things
 		# that would be highly illogical to see if its an operator.
@@ -304,10 +341,10 @@ sub __TOKENIZER__on_char {
 		# Handle an arcane special case where "string"x10 means the x is an operator.
 		# String in this case means ::Single, ::Double or ::Execute, or the operator versions or same.
 		my $nextchar = substr $t->{line}, $t->{line_cursor} + 1, 1;
-		my $previous = $t->_previous_significant_tokens(1);
-		$previous = ref $previous->[0];
-		if ( $nextchar =~ /\d/ and $previous ) {
-			if ( $previous =~ /::Quote::(?:Operator)?(?:Single|Double|Execute)$/ ) {
+		my $prev     = $t->_previous_significant_tokens(1);
+		$prev = ref $prev->[0];
+		if ( $nextchar =~ /\d/ and $prev ) {
+			if ( $prev =~ /::Quote::(?:Operator)?(?:Single|Double|Execute)$/ ) {
 				return 'Operator';
 			}
 		}

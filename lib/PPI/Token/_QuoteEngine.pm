@@ -1,29 +1,41 @@
 package PPI::Token::_QuoteEngine;
 
-# The PPI::Token::_QuoteEngine package is designed hold functionality
-# for processing quotes and quote like operators, including regex's.
-# These have special requirements in parsing.
-#
-# The PPI::Token::_QuoteEngine package itself provides various parsing
-# methods, which the PPI::Token::Quote::*, PPI::Token::QuoteLike::* and
-# PPI::Token::Regexp::* can inherit from. In this sense, it serves
-# as a base class.
-#
-# This file also contains the token classes for all the quotes, and
-# quote like operators.
-#
-# To use these, you should initialize them as normal 'Class->new',
-# and then call the 'fill' method, which will cause the specialised
-# parser to parse the quote to its end point.
-#
-# If ->fill returns true, finalise the token.
+=pod
+
+=head1 NAME
+
+PPI::Token::_QuoteEngine - The PPI Quote Engine
+
+=head1 DESCRIPTION
+
+The C<PPI::Token::_QuoteEngine> package is designed hold functionality
+for processing quotes and quote like operators, including regex's.
+These have special requirements in parsing.
+
+The C<PPI::Token::_QuoteEngine> package itself provides various parsing
+methods, which the L<PPI::Token::Quote>, L<PPI::Token::QuoteLike> and
+L<PPI::Token::Regexp> can inherit from. In this sense, it serves
+as a base class.
+
+=head2 Using this class
+
+I<(Refers only to internal uses. This class does not provide a
+public interface)>
+
+To use these, you should initialize them as normal C<'$Class-E<gt>new'>,
+and then call the 'fill' method, which will cause the specialised
+parser to scan forwards and parse the quote to its end point.
+
+If -E<gt>fill returns true, finalise the token.
+
+=cut
 
 use strict;
 use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 

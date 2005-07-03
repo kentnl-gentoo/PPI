@@ -64,7 +64,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 	$errstr  = '';
 }
 
@@ -97,6 +97,7 @@ Returns a C<PPI::Document> object, or C<undef> if parsing fails.
 =cut
 
 sub new {
+	local $_; # An extra one, just in case
 	my $class = ref $_[0] ? ref shift : shift;
 	
 	unless ( @_ ) {
@@ -441,6 +442,27 @@ sub normalized {
 ### XS -> PPI/XS.xs:_PPI_Document__scope 0.903+
 sub scope { 1 }
 
+
+
+
+
+#####################################################################
+# PPI::Element Methods
+
+sub insert_before {
+	return undef;
+	# die "Cannot insert_before a PPI::Document";
+}
+
+sub insert_after {
+	return undef;
+	# die "Cannot insert_after a PPI::Document";
+}
+
+sub replace {
+	return undef;
+	# die "Cannot replace a PPI::Document";
+}
 
 
 

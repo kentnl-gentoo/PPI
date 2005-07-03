@@ -1,5 +1,6 @@
 NAME
-    PPI - Parse, Analyze and Manipulate Perl (without perl) - BETA 2
+    PPI - Parse, Analyze and Manipulate Perl (without perl) - RELEASE
+    CANDIDATE 1
 
 SYNOPSIS
       use PPI;
@@ -29,21 +30,19 @@ SYNOPSIS
       $Document->save('Module.pm.stripped');
 
 STATUS
-    As of version 0.900, PPI is officially feature-frozen and in beta.
+    As of version 0.995, PPI is at release candidate status
 
-    The core PPI feature-set is now implemented, and the API now supports
-    all of the major language structures, and should be able to handle the
-    entire perl syntax.
+    The entire PPI feature-set is now implemented, the API now supports all
+    of the major language structures, and will handle the entire perl
+    syntax.
 
     Source filters are not and will not (and can not) be supported.
 
-    The class structure of the PDOM (Perl Document Object Model) is complete
-    and frozen. All of the analysis methods within the PDOM that are
-    documented can also be considered frozen.
-
-    Most of the non-core distributions have also been brought up to date.
-
-    The following packages are all also considered up to date.
+    The class structure of the PDOM (Perl Document Object Model) is
+    complete, frozen and documented. Most of the analysis methods within the
+    PDOM that are documented can also be considered frozen. Some small
+    changes may be made down the track, but everything is now considered
+    "done".
 
 DESCRIPTION
   About this Document
@@ -228,7 +227,7 @@ IMPLEMENTATION
     things that can be converted into one, and produces PPI::Document
     objects.
 
-Overview of the Perl Document Object Model
+THE PERL DOCUMENT OBJECT MODEL
     The PDOM is a structured collection of data classes that together
     provide a correct and scalable model for documents that follow the
     standard Perl syntax.
@@ -357,11 +356,7 @@ CLASSES
     are listed only by name, with no description.
 
     And second, a shorter list with descriptions for the primary classes in
-    the core PPI distribution. The list is in alphabetical order. Anything
-    with its own POD documentation can be considered stable, as the POD is
-    only written after the API is largely finalised and frozen. Still, don't
-    rely on anything here until after PPI official becomes a beta, in the
-    0.9xx versions.
+    the core PPI distribution.
 
   Perl Document Object Model Classes
        PPI::Element
@@ -427,21 +422,21 @@ CLASSES
              PPI::Token::Attribute
              PPI::Token::Unknown
 
-  Class Summary
+  Primary Class Overview
     PPI::Tokenizer
         The PPI Tokenizer consumes chunks of text and provides access to a
-        stream of PPI::Token objects. The Tokenizer is really nastily
+        stream of PPI::Token objects. The Tokenizer is very very
         complicated, to the point where even the author treads a bit
         carefully when working with it.
 
         Most of the complication is the result of optimizations which have
         tripled the tokenization speed, at the expense of maintainability.
-        Yeah, I know...
+        We cope with the spagetti by heavily comment everything.
 
         Because the Tokenizer holds the array of Tokens internally,
         providing cursor-based access to it, an instantiate Tokenizer object
-        can only be used once, unlike the Lexer which just spits out a
-        single PPI::Document object and can be reused as needed.
+        can only be used once, unlike the Lexer which just spits out single
+        PPI::Document objects and can be reused as needed.
 
     PPI::Lexer
         The PPI Lexer. Converts Token streams into PDOM trees.
@@ -465,9 +460,11 @@ CLASSES
         The Document object, the top of the PDOM
 
     PPI::Document::Fragment
-        A cohesive fragment of a larger Document. Currently Incomplete.
+        A cohesive fragment of a larger Document. Although not of any
+        current use, it is planned for use in certain internal tree
+        manipulation algortihms.
 
-        Will be used later on for cut/paste/insert etc. Very similar to
+        i.e. For doing things like cut/paste/insert etc. Very similar to
         PPI::Document, but has some additional methods, and does not
         represent a lexical scope boundary.
 
@@ -493,17 +490,13 @@ CLASSES
         language construct consisting of matching braces containing a set of
         other elements.
 
-        See the PPI::Structure documentation (not yet written) for a
-        description and list of all of the different structure
-        types/classes.
+        See the PPI::Structure documentation for a description and list of
+        all of the different structure types/classes.
 
     PPI::Token
         A token is the basic unit of content. At its most basic, a Token is
         just a string tagged with metadata (its class, some additional flags
         in some cases).
-
-        See the PPI::Token documentation (not yet written) for a description
-        and list of all of the different Token types/classes
 
 INSTALLING
     The core PPI distribution is pure perl and has been kept as tight as
@@ -517,28 +510,23 @@ INSTALLING
 
 EXTENDING
     For the time being, the PPI namespace is to be reserved for the sole use
-    of the Parse::Perl project and its modules.
+    of the modules under the umbrella of the Parse::Perl project.
 
     <http://sf.net/parseperl>
 
     You are recommended to use the PPIx:: namespace for PPI-specific
-    modifications, or Perl:: for modules which provide a general Perl
-    language-related functions.
+    modifications or prototypes thereof, or Perl:: for modules which provide
+    a general Perl language-related functions.
 
 TO DO
-    - Complete documentation for the remaining PPI classes
+    - More analysis methods for PDOM classes (post 1.000)
 
-    - More analysis methods for PDOM classes
+    - Creation of a PPI tutorial (OSCON)
 
-    - Creation of a PPI tutorial
-
-    - Expansion of the unit test suite
-
-    - More documentation
+    - We can _always_ write more tests
 
 SUPPORT
-    Anything documented is considered to be loosely frozen, and bugs should
-    always be reported at:
+    Bugs should be reported vi the following URI
 
     <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
@@ -549,8 +537,8 @@ AUTHOR
     Adam Kennedy, <http://ali.as/>, cpan@ali.as
 
 ACKNOWLEDGMENTS
-    Thank you to Phase N (<http://phase-n.com/>) for permitting the original
-    open sourcing and release of this distribution.
+    A huge thank you to Phase N (<http://phase-n.com/>) for permitting the
+    open sourcing and release of this distribution from commercial work.
 
     Completion funding provided by The Perl Foundation
     (<http://www.perlfoundation.org/>)

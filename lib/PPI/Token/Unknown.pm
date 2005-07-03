@@ -31,7 +31,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 
@@ -197,31 +197,42 @@ sub __TOKENIZER__on_char {
 sub __TOKENIZER__is_an_attribute {
 	my $t      = $_[1]; # Tokenizer object
 	my $tokens = $t->_previous_significant_tokens( 3 ) or return undef;
+	my $p0     = $tokens->[0];
 
 	# If we just had another attribute, we are also an attribute
-	if ( $tokens->[0]->isa('PPI::Token::Attribute') ) {
+	if ( $p0->isa('PPI::Token::Attribute') ) {
 		return 1;
 	}
 
 	# If we just had a prototype, then we are an attribute
-	if ( $tokens->[0]->isa('PPI::Token::Prototype') ) {
+	if ( $p0->isa('PPI::Token::Prototype') ) {
 		return 1;
 	}
 
 	# Other than that, we would need to have had a bareword
-	unless ( $tokens->[0]->isa('PPI::Token::Word') ) {
+	unless ( $p0->isa('PPI::Token::Word') ) {
 		return '';
 	}
 
 	# We could be an anonymous subroutine
-	if ( $tokens->[0]->_isa('Word', 'sub') ) {
+	if ( $p0->isa('PPI::Token::Word') and $p0->content eq 'sub' ) {
 		return 1;
 	}
 
 	# Or, we could be a named subroutine
-	if ( $tokens->[1]->_isa('Word', 'sub')
-		and ( $tokens->[2]->isa('PPI::Token::Structure')
-			or $tokens->[2]->_isa('Whitespace','')
+	my $p1 = $tokens->[1];
+	my $p2 = $tokens->[2];
+	if (
+		$p1->isa('PPI::Token::Word')
+		and
+		$p1->content eq 'sub'
+		and (
+			$p2->isa('PPI::Token::Structure')
+			or (
+				$p2->isa('PPI::Token::Whitespace')
+				and
+				$p2->content eq ''
+			)
 		)
 	) {
 		return 1;

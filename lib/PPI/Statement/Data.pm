@@ -41,12 +41,11 @@ Perl code itself.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 1;

@@ -43,7 +43,7 @@ unless ( %tests ) {
 }
 
 # Declare our plan
-Test::More::plan( tests => scalar(keys %tests) * 4 );
+Test::More::plan( tests => scalar(keys %tests) * 7 );
 
 
 
@@ -67,6 +67,14 @@ foreach my $key ( sort keys %tests ) {
 	my $content = $Document->content;
 	ok( length($content), "$key: PPI::Document serializes" );
 	is( $content, $source, "$key: Round trip was successful" );
+
+	# Are there any unknown things?
+	is( $Document->find_any('Token::Unknown'), '',
+		"$key: Contains no PPI::Token::Unknown elements" );
+	is( $Document->find_any('Structure::Unknown'), '',
+		"$key: Contains no PPI::Structure::Unknown elements" );
+	is( $Document->find_any('Statement::Unknown'), '',
+		"$key: Contains no PPI::Statement::Unknown elements" );
 }
 
 1;

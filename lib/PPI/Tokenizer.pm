@@ -79,7 +79,7 @@ use File::Slurp     ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 	$errstr  = '';
 }
 
@@ -521,7 +521,7 @@ sub _handle_raw_input {
 
 		# Add some extra links, so these will know where its other parts are
 		$rawinput->{_operator} = $operator;
-		$operator->{_string} = $rawinput;
+		$operator->{_string}   = $rawinput;
 
 		# Start looking at lines, and pull new ones until we find the
 		# termination string.

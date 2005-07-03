@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
 name           ( 'PPI'                           );
-abstract       ( 'Parse, Analyze and Manipulate Perl (without perl)' );
+abstract       ( 'Parse, Analyze and Manipulate Perl (without perl) - RELEASE CANDIDATE 1' );
 author         ( 'Adam Kennedy <cpan@ali.as>'    );
 version_from   ( 'lib/PPI.pm'                    );
 license        ( 'perl'                          );

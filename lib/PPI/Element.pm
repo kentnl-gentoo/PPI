@@ -36,7 +36,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -66,6 +66,21 @@ Returns true if the Element is significant, or false it not.
 
 ### XS -> PPI/XS.xs:_PPI_Element__significant 0.845+
 sub significant { 1 }
+
+=pod
+
+=head2 class
+
+The C<class> method is provided as a convenience, and really does nothing
+more than returning C<ref($self)>. However, some people have found that
+they appreciate the lazyness of C<$Foo-E<gt>class eq 'whatever'>, so I
+have caved to popular demand and included it.
+
+Returns the class of the Element as a string
+
+=cut
+
+sub class { ref($_[0]) }
 
 =pod
 
@@ -455,14 +470,17 @@ the form of C<PPI::Element> objects, before the calling C<Element>. You
 need to be very careful when modifying perl code, as it's easy to break
 things.
 
-B<This method is not yet implemented, mainly due to the difficulty in
-making it Do What You Mean.>
+In its initial incarnation, this method allows you to insert a single
+Element, and will perform some basic checking to prevent you inserting
+something that would be structurally wrong (in PDOM terms).
+
+In future, this method may be enhanced to allow the insertion of multiple
+Elements, inline-parsed code strings or L<PPI::Document::Fragment> objects.
+
+Returns true if the Element was inserted, false if it can not be inserted,
+or C<undef> if you do not provide a L<PPI::Element> object as a parameter.
 
 =cut
-
-sub insert_before {
-	die "The ->insert_before method has not been implemented";
-}
 
 # The internal version, which trusts the data we are given
 sub __insert_before {
@@ -478,14 +496,17 @@ The C<insert_after> method allows you to insert lexical perl content, in
 the form of C<PPI::Element> objects, after the calling C<Element>. You need
 to be very careful when modifying perl code, as it's easy to break things.
 
-B<This method is not yet implemented, mainly due to the difficulty in making
-it Do What You Mean.>
+In its initial incarnation, this method allows you to insert a single
+Element, and will perform some basic checking to prevent you inserting
+something that would be structurally wrong (in PDOM terms).
+
+In future, this method may be enhanced to allow the insertion of multiple
+Elements, inline-parsed code strings or L<PPI::Document::Fragment> objects.
+
+Returns true if the Element was inserted, false if it can not be inserted,
+or C<undef> if you do not provide a L<PPI::Element> object as a parameter.
 
 =cut
-
-sub insert_after {
-	die "The ->insert_after method has not been implemented";
-}
 
 # The internal version, which trusts the data we are given
 sub __insert_after {
@@ -539,8 +560,8 @@ at the basic level the C<replace> method takes a single C<Element> as
 an argument and replaces the current C<Element> with it.
 
 To prevent accidental damage to code, in this initial implementation the
-replacement element B<must> be of exactly the same class as the one being
-replaced.
+replacement element B<must> be of the same class (or a subclass) as the
+one being replaced.
 
 =cut
 
@@ -624,6 +645,27 @@ sub _flush_locations {
 	}
 
 	1;
+}
+
+
+
+
+
+#####################################################################
+# XML Compatibility Methods
+
+sub _xml_name {
+	my $class = ref $_[0] || $_[0];
+	my $name  = lc join( '_', split /::/, $class );
+	substr($name, 4);
+}
+
+sub _xml_attr {
+	return {};
+}
+
+sub _xml_content {
+	defined $_[0]->{content} ? $_[0]->{content} : '';
 }
 
 

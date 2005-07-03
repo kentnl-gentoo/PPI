@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -29,8 +29,7 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $Token = (isa( ref $_[0], 'PPI::Token::Structure' ) && $_[0]->_opens)
-		? shift : return undef;
+	my $Token = PPI::Token::__LEXER__opens($_[0]) ? shift : return undef;
 
 	# Create the object
 	my $self = bless {
@@ -141,6 +140,30 @@ sub content {
 	}
 	$content .= $self->{finish}->content if $self->{finish};
 	$content;
+}
+
+# You can insert either another structure, or a token
+sub insert_before {
+	my $self    = shift;
+	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	if ( $Element->isa('PPI::Structure') ) {
+		return $self->__insert_before($Element);
+	} elsif ( $Element->isa('PPI::Token') ) {
+		return $self->__insert_before($Element);
+	}
+	'';
+}
+
+# As above, you can insert either another structure, or a token
+sub insert_after {
+	my $self    = shift;
+	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	if ( $Element->isa('PPI::Structure') ) {
+		return $self->__insert_after($Element);
+	} elsif ( $Element->isa('PPI::Token') ) {
+		return $self->__insert_after($Element);
+	}
+	'';
 }
 
 1;

@@ -62,7 +62,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 	$errstr  = '';
 }
 
@@ -239,7 +239,7 @@ sub _lex_document {
 		}
 
 		# Is this the opening of a structure?
-		if ( $Token->_opens ) {
+		if ( $Token->__LEXER__opens ) {
 			# Resolve the class for the Structure and create it
 			my $_class = $self->_resolve_new_structure($Document, $Token) or return undef;
 			my $Structure = $_class->new( $Token ) or return undef;
@@ -254,7 +254,7 @@ sub _lex_document {
 		}
 
 		# Is this the close of a structure.
-		if ( $Token->_closes ) {
+		if ( $Token->__LEXER__closes ) {
 			# Because we are at the top of the tree, this is an error.
 			# This means either a mis-parsing, or an mistake in the code.
 			# To handle this, we create a "Naked Close" statement
@@ -421,7 +421,7 @@ sub _lex_statement {
 
 		# Structual closes, and __DATA__ and __END__ tags implicitly
 		# end every type of statement
-		if ( $Token->_closes or $Token->isa('PPI::Token::Separator') ) {
+		if ( $Token->__LEXER__closes or $Token->isa('PPI::Token::Separator') ) {
 			# Rollback and end the statement
 			return $self->_rollback( $Token );
 		}
@@ -533,13 +533,30 @@ sub _statement_continues {
 		# If the token before the block is an 'else',
 		# it's over, no matter what.
 		my $NextLast = $Statement->schild(-2);
-		if ( $NextLast and $NextLast->isa('PPI::Token') and $NextLast->_isa('Word','else') ) {
+		if (
+			$NextLast
+			and
+			$NextLast->isa('PPI::Token')
+			and
+			$NextLast->isa('PPI::Token::Word')
+			and
+			$NextLast->content eq 'else'
+		) {
 			return '';
 		}
 
 		# Otherwise, we continue for 'elsif' or 'else' only.
-		return 1 if $Token->_isa('Word', 'else');
-		return 1 if $Token->_isa('Word', 'elsif');
+		if (
+			$Token->isa('PPI::Token::Word')
+			and (
+				$Token->content eq 'else'
+				or
+				$Token->content eq 'elsif'
+			)
+		) {
+			return 1;
+		}
+
 		return '';
 	}
 
@@ -574,7 +591,7 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) ...
 		# LABEL foreach VAR (LIST) ...
 		# Only a block will do
-		return $Token->_isa('Structure', '{');
+		return $Token->isa('PPI::Token::Structure') && $Token->content eq '{';
 	}
 
 	if ( $type eq 'for' ) {
@@ -582,7 +599,7 @@ sub _statement_continues {
 		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'for' ) {
 			# LABEL for ...
 			# Only an open braces will do
-			return $Token->_isa('Structure', '(');
+			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
 
 		} elsif ( isa($LastChild, 'PPI::Structure::Block') ) {
 			# LABEL for (EXPR; EXPR; EXPR) BLOCK
@@ -597,7 +614,7 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) BLOCK continue ...
 		# LABEL BLOCK continue ...
 		# Only a block will do
-		return $Token->_isa('Structure', '{');
+		return $Token->isa('PPI::Token::Structure') && $Token->content eq '{';
 	}
 
 	# Handle the common continuable block case
@@ -618,7 +635,7 @@ sub _statement_continues {
 		}
 
 		# Only a continue will do
-		return $Token->_isa('Word', 'continue');
+		return $Token->isa('PPI::Token::Word') && $Token->content eq 'continue';
 	}
 
 	if ( $type eq 'block' ) {
@@ -633,7 +650,7 @@ sub _statement_continues {
 		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'while' ) {
 			# LABEL while ...
 			# Only a condition structure will do
-			return $Token->_isa('Structure', '(');
+			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
 		}
 	}
 
@@ -647,18 +664,18 @@ sub _statement_continues {
 		if ( isa($LastChild, 'PPI::Token::Symbol') ) {
 			# LABEL foreach my $scalar ...
 			# Only an open round brace will do
-			return $Token->_isa('Structure', '(');
+			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
 		}
 
 		if ( $LastChild->content eq 'foreach' ) {
 			# There are three possibilities here
-			if ( $Token->_isa('Word', 'my') ) {
+			if ( $Token->isa('PPI::Token::Word') and $Token->content eq 'my' ) {
 				# VAR == 'my ...'
 				return 1;
 			} elsif ( $Token->content =~ /^\$/ ) {
 				# VAR == '$scalar'
 				return 1;
-			} elsif ( $Token->_isa('Structure', '(') ) {
+			} elsif ( $Token->isa('PPI::Token::Structure') and $Token->content eq '(' ) {
 				return 1;
 			} else {
 				return '';
@@ -843,7 +860,7 @@ sub _lex_structure {
 		}
 
 		# Is this the opening of another structure directly inside us?
-		if ( $Token->_opens ) {
+		if ( $Token->__LEXER__opens ) {
 			### FIXME - Now, we really shouldn't be creating Structures
 			###         inside of Structures. There really should be an
 			###         Statement::Expression in here somewhere.
@@ -861,7 +878,7 @@ sub _lex_structure {
 		}
 
 		# Is this the close of a structure ( which would be an error )
-		if ( $Token->_closes ) {
+		if ( $Token->__LEXER__closes ) {
 			# Is this OUR closing structure
 			if ( $Token->content eq $Structure->start->__LEXER__opposite ) {
 				# Add any delayed tokens, and the finishing token

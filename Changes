@@ -1,5 +1,26 @@
 Revision history for Perl extension PPI
 
+0.995 Fri Jun 24 2005
+	General:
+	- Added some internals to help with XML compatibility
+	- Completed primary POD docs
+	- Completed first versions of insert_before and insert_after
+	- Removed last uses of _isa
+	- Added final missing POD docs
+
+	Details:
+	- Added convenience method PPI::Element::class
+	- Added docs for all PPI::Structure classes
+	- Added additional tests to check for ::Unknown classes
+	- Added PPI::Document::insert_before to return an error
+	- Added PPI::Document::insert_after to return an error
+	- Added PPI::Document::replace to return an error
+	- Removed a number of unneeded UNIVERSAL::isa imports
+	- Removed PPI::Token::_isa before anyone starts using it.
+	  It was hacky and unsuitable to a production release
+
+0.994 skipped
+
 0.993 Tue Jun 21 2005
 	General:
 	- Various minor code, packaging and POD cleanups

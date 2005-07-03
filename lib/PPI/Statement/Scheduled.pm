@@ -53,7 +53,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 sub __LEXER__normal { '' }
@@ -68,7 +68,7 @@ one of C<'BEGIN'>, C<'CHECK'>, C<'INIT'> or C<'END'>.
 =cut
 
 sub type {
-	my $self = shift;
+	my $self     = shift;
 	my @children = $self->schildren or return undef;
 	$children[0]->content eq 'sub'
 		? $children[1]->content

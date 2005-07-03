@@ -4,7 +4,7 @@ package PPI::Token::QuoteLike::Command;
 
 =head1 NAME
 
-PPI::Token::QuoteLike::Backtick - The command quote-like operator
+PPI::Token::QuoteLike::Command - The command quote-like operator
 
 =head1 INHERITANCE
 
@@ -29,13 +29,12 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token::_QuoteEngine::Full',
          'PPI::Token::QuoteLike';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 1;

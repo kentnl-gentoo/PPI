@@ -13,7 +13,7 @@ use Class::Autouse   ();
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '0.993';
+	$VERSION       = '0.995';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -44,7 +44,7 @@ __END__
 
 =head1 NAME
 
-PPI - Parse, Analyze and Manipulate Perl (without perl) - BETA 2
+PPI - Parse, Analyze and Manipulate Perl (without perl) - RELEASE CANDIDATE 1
 
 =head1 SYNOPSIS
 
@@ -76,21 +76,17 @@ PPI - Parse, Analyze and Manipulate Perl (without perl) - BETA 2
 
 =head1 STATUS
 
-As of version 0.900, PPI is officially feature-frozen and in beta.
+As of version 0.995, PPI is at release candidate status
 
-The core PPI feature-set is now implemented, and the API now supports all
-of the major language structures, and should be able to handle the entire
-perl syntax.
+The entire PPI feature-set is now implemented, the API now supports all
+of the major language structures, and will handle the entire perl syntax.
 
 Source filters are not and will not (and can not) be supported.
 
-The class structure of the PDOM (Perl Document Object Model) is complete
-and frozen. All of the analysis methods within the PDOM that are documented
-can also be considered frozen.
-
-Most of the non-core distributions have also been brought up to date.
-
-The following packages are all also considered up to date.
+The class structure of the PDOM (Perl Document Object Model) is complete,
+frozen and documented. Most of the analysis methods within the PDOM that
+are documented can also be considered frozen. Some small changes may be
+made down the track, but everything is now considered "done".
 
 =head1 DESCRIPTION
 
@@ -282,7 +278,7 @@ when code is actually executed.
 An instantiated L<PPI::Lexer> object consumes L<PPI::Tokenizer> objects, or
 things that can be converted into one, and produces L<PPI::Document> objects.
 
-=head1 Overview of the Perl Document Object Model
+=head1 THE PERL DOCUMENT OBJECT MODEL
 
 The PDOM is a structured collection of data classes that together provide
 a correct and scalable model for documents that follow the standard Perl
@@ -373,7 +369,7 @@ characters noted.
 
 The L<PPI::Dumper> module can be used to generate similar trees yourself.
 
-Notice how PPI builds EVERYTHING into the model, including whitespace. This
+Notice how PPI builds B<EVERYTHING> into the model, including whitespace. This
 is needed in order to make the Document fully "round trip" compliant. That
 is, if you stringify the Document you get the same file you started with.
 
@@ -413,10 +409,7 @@ Firstly a large tree of all the classes contained in the PPI core. They are
 listed only by name, with no description.
 
 And second, a shorter list with descriptions for the primary classes in the
-core PPI distribution. The list is in alphabetical order. Anything with its
-own POD documentation can be considered stable, as the POD is only written
-after the API is largely finalised and frozen. Still, don't rely on anything
-here until after PPI official becomes a beta, in the 0.9xx versions.
+core PPI distribution.
 
 =head2 Perl Document Object Model Classes
 
@@ -483,23 +476,24 @@ here until after PPI official becomes a beta, in the 0.9xx versions.
          PPI::Token::Attribute
          PPI::Token::Unknown
 
-=head2 Class Summary
+=head2 Primary Class Overview
 
 =over 4
 
 =item L<PPI::Tokenizer>
 
 The PPI Tokenizer consumes chunks of text and provides access to a stream
-of PPI::Token objects. The Tokenizer is really nastily complicated, to the
+of L<PPI::Token> objects. The Tokenizer is very very complicated, to the
 point where even the author treads a bit carefully when working with it.
 
 Most of the complication is the result of optimizations which have tripled
-the tokenization speed, at the expense of maintainability. Yeah, I know...
+the tokenization speed, at the expense of maintainability. We cope with the
+spagetti by heavily comment everything.
 
 Because the Tokenizer holds the array of Tokens internally, providing
 cursor-based access to it, an instantiate Tokenizer object can only be used
-B<once>, unlike the Lexer which just spits out a single L<PPI::Document>
-object and can be reused as needed.
+B<once>, unlike the Lexer which just spits out single L<PPI::Document>
+objects and can be reused as needed.
 
 =item L<PPI::Lexer>
 
@@ -509,7 +503,7 @@ The PPI Lexer. Converts Token streams into PDOM trees.
 
 A simple class for dumping readable debugging version of PDOM structures
 
-=item PPI::Token::_QuoteEngine
+=item L<PPI::Token::_QuoteEngine>
 
 The L<PPI::Token::Quote> and L<PPI::Token::QuoteLike> classes provide
 abstract base classes for the many and varied types of quote and quote-like
@@ -526,11 +520,12 @@ The Document object, the top of the PDOM
 
 =item L<PPI::Document::Fragment>
 
-A cohesive fragment of a larger Document. Currently Incomplete.
+A cohesive fragment of a larger Document. Although not of any current use,
+it is planned for use in certain internal tree manipulation algortihms.
 
-Will be used later on for cut/paste/insert etc. Very similar to
-PPI::Document, but has some additional methods, and does not represent a
-lexical scope boundary.
+i.e. For doing things like cut/paste/insert etc. Very similar to
+L<PPI::Document>, but has some additional methods, and does not represent
+a lexical scope boundary.
 
 =item L<PPI::Element>
 
@@ -551,22 +546,19 @@ belong to one of its children.
 See the L<PPI::Statement> documentation for a longer description
 and list of all of the different statement types and subclasses.
 
-=item PPI::Structure
+=item L<PPI::Structure>
 
 The abstract base class for all structures. A Structure is a language
 construct consisting of matching braces containing a set of other elements.
 
-See the PPI::Structure documentation (not yet written) for a description and
+See the L<PPI::Structure> documentation for a description and
 list of all of the different structure types/classes.
 
-=item PPI::Token
+=item L<PPI::Token>
 
 A token is the basic unit of content. At its most basic, a Token is just
 a string tagged with metadata (its class, some additional flags in some
 cases).
-
-See the PPI::Token documentation (not yet written) for a description and
-list of all of the different Token types/classes
 
 =back
 
@@ -584,30 +576,25 @@ There are no special install instructions for PPI.
 =head1 EXTENDING
 
 For the time being, the PPI namespace is to be reserved for the sole
-use of the Parse::Perl project and its modules.
+use of the modules under the umbrella of the Parse::Perl project.
 
 L<http://sf.net/parseperl>
 
 You are recommended to use the PPIx:: namespace for PPI-specific
-modifications, or Perl:: for modules which provide a general Perl
-language-related functions.
+modifications or prototypes thereof, or Perl:: for modules which provide
+a general Perl language-related functions.
 
 =head1 TO DO
 
-- Complete documentation for the remaining PPI classes
+- More analysis methods for PDOM classes (post 1.000)
 
-- More analysis methods for PDOM classes
+- Creation of a PPI tutorial (OSCON)
 
-- Creation of a PPI tutorial
-
-- Expansion of the unit test suite
-
-- More documentation
+- We can _always_ write more tests
 
 =head1 SUPPORT
 
-Anything documented is considered to be loosely frozen, and bugs should
-always be reported at:
+Bugs should be reported vi the following URI
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
@@ -620,8 +607,8 @@ Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 ACKNOWLEDGMENTS
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the original open sourcing and release of this distribution.
+A huge thank you to Phase N (L<http://phase-n.com/>) for permitting
+the open sourcing and release of this distribution from commercial work.
 
 Completion funding provided by The Perl Foundation
 (L<http://www.perlfoundation.org/>)

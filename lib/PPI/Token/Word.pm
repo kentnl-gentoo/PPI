@@ -39,7 +39,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -273,7 +273,7 @@ sub __TOKENIZER__literal {
 		return 1 if $token->{content} eq '->';
 
 		# We are forced if we are a sub name
-		return 1 if $token->_isa('Word', 'sub');
+		return 1 if $token->isa('PPI::Token::Word') && $token->{content} eq 'sub';
 
 		# If we are contained in a pair of curly braces,
 		# we are probably a bareword hash key

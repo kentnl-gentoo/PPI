@@ -35,7 +35,7 @@ includes all C<BEGIN>, C<CHECK>, C<INIT> and C<END> blocks.
 
 A package declaration, as defined in L<perlfunc|perlfunc/package>.
 
-=head2 PPI::Statement::Include
+=head2 L<PPI::Statement::Include>
 
 A statement that loads or unloads another module.
 
@@ -45,14 +45,14 @@ This includes 'use', 'no', and 'require' statements.
 
 A named subroutine declaration, or forward declaration
 
-=head2 PPI::Statement::Variable
+=head2 L<PPI::Statement::Variable>
 
 A variable declaration statement. This could be either a straight
 declaration or also be an expression.
 
 This includes all 'my', 'local' and 'out' statements.
 
-=head2 PPI::Statement::Compound
+=head2 L<PPI::Statement::Compound>
 
 This covers the whole family of 'compound' statements, as described in
 L<perlsyn|perlsyn>.
@@ -64,26 +64,26 @@ differently.
 All compound statements have implicit ends. That is, they do not end with
 a ';' statement terminator.
 
-=head2 PPI::Statement::Break
+=head2 L<PPI::Statement::Break>
 
 A statement that breaks out of a structure.
 
 This includes all of 'redo', 'next', 'last' and 'return' statements.
 
-=head2 PPI::Statement::Data
+=head2 L<PPI::Statement::Data>
 
-A special statement which encompasses an entire __DATA__ block, including
-the initial '__DATA__' token itself and the entire contents.
+A special statement which encompasses an entire C<__DATA__> block, including
+the initial C<'__DATA__'> token itself and the entire contents.
 
-=head2 PPI::Statement::End
+=head2 L<PPI::Statement::End>
 
 A special statement which encompasses an entire __END__ block, including
 the initial '__END__' token itself and the entire contents, including any
 parsed PPI::Token::POD that may occur in it.
 
-=head2 PPI::Statement::Expression
+=head2 L<PPI::Statement::Expression>
 
-PPI::Statement::Expression is a little more speculative, and is intended
+L<PPI::Statement::Expression> is a little more speculative, and is intended
 to help represent the special rules relating to "expressions" such as in:
 
   # Several examples of expression statements
@@ -94,7 +94,7 @@ to help represent the special rules relating to "expressions" such as in:
   # Lists, such as for arguments
   Foo->bar( expression )
 
-=head2 PPI::Statement::Null
+=head2 L<PPI::Statement::Null>
 
 A null statement is a special case for where we encounter two consecutive
 statement terminators. ( ;; )
@@ -107,9 +107,9 @@ are superfluous and should be able to be removed without damage to the file.
 
 But don't do that, in case PPI has parsed something wrong.
 
-=head2 PPI::Statement::UnmatchedBrace
+=head2 L<PPI::Statement::UnmatchedBrace>
 
-Because PPI is intended for use when parsing incorrect or incomplete code,
+Because L<PPI> is intended for use when parsing incorrect or incomplete code,
 the problem arises of what to do with a stray closing brace.
 
 Rather than die, it is allocated its own "unmatched brace" statement,
@@ -117,10 +117,10 @@ which really means "unmatched closing brace". An unmatched open brace at the
 end of a file would become a structure with no contents and no closing brace.
 
 If the document loaded is intended to be correct and valid, finding a
-PPI::Statement::UnmatchedBrace in the PDOM is generally indicative of a
+L<PPI::Statement::UnmatchedBrace> in the PDOM is generally indicative of a
 misparse.
 
-=head2 PPI::Statement::Unknown
+=head2 L<PPI::Statement::Unknown>
 
 This is used temporarily mid-parsing to hold statements for which the lexer
 cannot yet determine what class it should be, usually because there are
@@ -130,7 +130,7 @@ You should never encounter these in a fully parsed PDOM tree.
 
 =head1 METHODS
 
-PPI::Statement itself has very few methods. Most of the time, you will be
+C<PPI::Statement> itself has very few methods. Most of the time, you will be
 working with the more generic L<PPI::Element> or L<PPI::Node> methods, or one
 of the methods that are subclass-specific.
 
@@ -155,7 +155,7 @@ use PPI::Statement::Variable       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.993';
+	$VERSION = '0.995';
 }
 
 # "Normal" statements end at a statement terminator ;
@@ -227,6 +227,37 @@ error.
 sub stable {
 	my $self = shift;
 	die "The ->stable method has not yet been implemented";	
+}
+
+
+
+
+
+#####################################################################
+# PPI::Element Methods
+
+# You can insert either a statement, or a non-significant token.
+sub insert_before {
+	my $self    = shift;
+	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	if ( $Element->isa('PPI::Statement') ) {
+		return $self->__insert_before($Element);
+	} elsif ( $Element->isa('PPI::Token') and ! $Element->significant ) {
+		return $self->__insert_before($Element);
+	}
+	'';
+}
+
+# As above, you can insert a statement, or a non-significant token
+sub insert_after {
+	my $self    = shift;
+	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	if ( $Element->isa('PPI::Statement') ) {
+		return $self->__insert_after($Element);
+	} elsif ( $Element->isa('PPI::Token') and ! $Element->significant ) {
+		return $self->__insert_after($Element);
+	}
+	'';
 }
 
 
