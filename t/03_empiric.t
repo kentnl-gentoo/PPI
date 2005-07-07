@@ -21,7 +21,6 @@ BEGIN {
 }
 
 # Load the API to test
-use Class::Autouse ':devel';
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 

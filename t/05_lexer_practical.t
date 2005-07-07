@@ -18,7 +18,6 @@ BEGIN {
 }
 
 # Load the code to test
-use Class::Autouse ':devel';
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer;
 use PPI::Dumper;
@@ -30,8 +29,7 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 102;
-use File::Slurp ();
+use Test::More tests => 112;
 
 use vars qw{$testdir};
 BEGIN {
@@ -90,10 +88,16 @@ foreach my $codefile ( @code ) {
 	is_deeply( \@dump_list, \@content, "$codefile: Generated dump matches stored dump" );
 
 	# Also, do a round-trip check
-	my $source = File::Slurp::read_file( $codefile );
-	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
+	my $rv = open( CODEFILE, '<', $codefile );
+	ok( $rv, "$codefile: Opened for reading" );
+	SKIP: {
+		skip "Failed to find file", 1 unless $rv;
+		my $source = do { local $/ = undef; <CODEFILE> };
+		close CODEFILE;
+		$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
-	is( $Document->serialize, $source, "$codefile: Round-trip back to source was ok" );
+		is( $Document->serialize, $source, "$codefile: Round-trip back to source was ok" );
+	}
 }
 
 exit();

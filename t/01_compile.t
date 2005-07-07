@@ -19,7 +19,6 @@ BEGIN {
 }
 
 use Test::More tests => 16;
-use Class::Autouse ':devel';
 
 
 

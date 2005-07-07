@@ -18,13 +18,10 @@ BEGIN {
 }
 
 # Load the code to test
-use Class::Autouse ':devel';
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 use PPI::Lexer;
-
 use Test::More; # Plan comes later
-use File::Slurp ();
 
 
 
@@ -43,7 +40,7 @@ unless ( %tests ) {
 }
 
 # Declare our plan
-Test::More::plan( tests => scalar(keys %tests) * 7 );
+Test::More::plan( tests => scalar(keys %tests) * 8 );
 
 
 
@@ -55,26 +52,32 @@ Test::More::plan( tests => scalar(keys %tests) * 7 );
 foreach my $key ( sort keys %tests ) {
 	# Load and clean the file
 	my $file = $tests{$key};
-	my $source = File::Slurp::read_file( $file );
-	ok( length $source, "$key: Loaded cleanly" );
-	$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
+	my $rv = open( FILE, '<', $file );
+	ok( $rv, "$key: Found file" );
+	SKIP: {
+		skip "No file to test", 7 unless $rv;
+		my $source = do { local $/ = undef; <FILE> };
+		close FILE;
+		ok( length $source, "$key: Loaded cleanly" );
+		$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
-	# Load the file as a Document
-	my $Document = PPI::Document->new( $file );
-	ok( isa(ref $Document, 'PPI::Document' ), "$key: PPI::Document object created" );
+		# Load the file as a Document
+		my $Document = PPI::Document->new( $file );
+		ok( isa(ref $Document, 'PPI::Document' ), "$key: PPI::Document object created" );
 
-	# Serialize it back out, and compare with the raw version
-	my $content = $Document->content;
-	ok( length($content), "$key: PPI::Document serializes" );
-	is( $content, $source, "$key: Round trip was successful" );
+		# Serialize it back out, and compare with the raw version
+		my $content = $Document->content;
+		ok( length($content), "$key: PPI::Document serializes" );
+		is( $content, $source, "$key: Round trip was successful" );
 
-	# Are there any unknown things?
-	is( $Document->find_any('Token::Unknown'), '',
-		"$key: Contains no PPI::Token::Unknown elements" );
-	is( $Document->find_any('Structure::Unknown'), '',
-		"$key: Contains no PPI::Structure::Unknown elements" );
-	is( $Document->find_any('Statement::Unknown'), '',
-		"$key: Contains no PPI::Statement::Unknown elements" );
+		# Are there any unknown things?
+		is( $Document->find_any('Token::Unknown'), '',
+			"$key: Contains no PPI::Token::Unknown elements" );
+		is( $Document->find_any('Structure::Unknown'), '',
+			"$key: Contains no PPI::Structure::Unknown elements" );
+		is( $Document->find_any('Statement::Unknown'), '',
+			"$key: Contains no PPI::Statement::Unknown elements" );
+	}
 }
 
 1;

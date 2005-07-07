@@ -20,12 +20,11 @@ BEGIN {
 }
 
 # Load the code to test
-use Class::Autouse ':devel';
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 172;
+use Test::More tests => 188;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -252,6 +251,35 @@ is( $Token1->previous_sibling,    '', "First token returns false for previous_si
 is_object( $Token2->previous_sibling, $Token1, "Second token sees first token as previous_sibling" );
 is_object( $Token3->previous_sibling, $Token2, "Third token sees second token as previous_sibling" );
 is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previous_sibling" );
+
+# Test the ->snext_sibling method
+my $Token4 = $Statement->{children}->[3];
+is( $Document->snext_sibling, '', "Document returns false for snext_sibling" );
+is( $Statement->snext_sibling, '', "Statement returns false for snext_sibling" );
+is_object( $Token1->snext_sibling, $Token2, "First token sees second token as snext_sibling" );
+is_object( $Token2->snext_sibling, $Token4, "Second token sees third token as snext_sibling" );
+is_object( $Braces->snext_sibling, $Token7, "Braces sees seventh token as snext_sibling" );
+is( $Token7->snext_sibling, '', 'Last token returns false for snext_sibling' );
+
+# Test the ->sprevious_sibling method
+is( $Document->sprevious_sibling,  '', "Document returns false for sprevious_sibling" );
+is( $Statement->sprevious_sibling, '', "Statement returns false for sprevious_sibling" );
+is( $Token1->sprevious_sibling,    '', "First token returns false for sprevious_sibling" );
+is_object( $Token2->sprevious_sibling, $Token1, "Second token sees first token as sprevious_sibling" );
+is_object( $Token3->sprevious_sibling, $Token2, "Third token sees second token as sprevious_sibling" );
+is_object( $Token7->sprevious_sibling, $Braces, "Last token sees braces as sprevious_sibling" );
+
+# Test snext_sibling and sprevious_sibling cases when inside a parent block
+{
+	my $cpan13454 = PPI::Document->new( \'{ 1 }' );
+	isa_ok( $cpan13454, 'PPI::Document' );
+	my $num = $cpan13454->find_first('Token::Number');
+	isa_ok( $num, 'PPI::Token::Number' );
+	my $prev = $num->sprevious_sibling;
+	is( $prev, '', '->sprevious_sibling returns false' );
+	my $next = $num->snext_sibling;
+	is( $next, '', '->snext_sibling returns false' );
+}
 
 
 

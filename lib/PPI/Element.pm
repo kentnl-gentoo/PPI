@@ -36,7 +36,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '0.995';
+	$VERSION = '0.996';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -295,9 +295,10 @@ sub sprevious_sibling {
 	my $position = List::MoreUtils::firstidx {
 		refaddr $_ == $key
 		} @$elements;
-	while ( defined(my $it = $elements->[--$position]) ) {
+	while ( $position-- and defined(my $it = $elements->[$position]) ) {
 		return $it if $it->significant;
 	}
+	'';
 }
 
 =pod

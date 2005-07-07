@@ -56,7 +56,6 @@ use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
 use List::MoreUtils ();
-use File::Slurp     ();
 use PPI             ();
 use PPI::Document::Fragment ();
 use overload 'bool' => sub () { 1 };
@@ -64,7 +63,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.995';
+	$VERSION = '0.996';
 	$errstr  = '';
 }
 
@@ -144,13 +143,17 @@ sub load {
 =head2 save $file
 
 The C<save> method serializes the C<PPI::Document> object and saves the
-resulting Perl document to a file. Returns C<undef> on error.
+resulting Perl document to a file. Returns C<undef> on failure to open
+or write to the file.
 
 =cut
 
 sub save {
 	my $self = shift;
-	File::Slurp::write_file( shift, $self->serialize );
+	open( PPIOUTPUT, ">", $_[0] )    or return undef;
+	print PPIOUTPUT $self->serialize or return undef;
+	close PPIOUTPUT                  or return undef;
+	1;
 }
 
 =pod
@@ -380,7 +383,7 @@ sub _add_location {
 
 	# Does the token have additional characters
 	# after their last newline.
-	if ( $content =~ /\n([^\n])$/ ) {
+	if ( $content =~ /\n([^\n]+?)\z/ ) {
 		$location->[1] += length($1);
 	}
 

@@ -121,6 +121,8 @@ t.data/08_regression/03_rt_cpan_9614.code
 t.data/08_regression/03_rt_cpan_9614.dump
 t.data/08_regression/04_tinderbox.code
 t.data/08_regression/04_tinderbox.dump
+t.data/08_regression/05_rt_cpan_13425.code
+t.data/08_regression/05_rt_cpan_13425.dump
 t.data/11_util/test.pm
 t.data/13_data/Foo.pm
 t.data/15_transform/sample1.pm

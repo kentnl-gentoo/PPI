@@ -17,17 +17,14 @@ BEGIN {
 }
 
 # Load the API to test
-use Class::Autouse ':devel';
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
-use PPI::Tokenizer;
-use PPI::Lexer;
 use PPI::Dumper;
 use PPI::Find;
-# use PPI::Transform;
+use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2170;
+use Test::More tests => 2173;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -49,7 +46,7 @@ PPI::Tokenizer=class
 PPI::Lexer=class
 PPI::Dumper=class
 PPI::Find=class
-# PPI::Transform=abstract
+PPI::Transform=abstract
 PPI::Normal=class
 
 # The abstract PDOM classes
@@ -294,6 +291,7 @@ reserved=method
 
 [PPI::Statement::Variable]
 PPI::Statement=isa
+PPI::Statement::Expression=isa
 type=method
 variables=method
 
@@ -396,15 +394,11 @@ match=method
 finish=method
 errstr=method
 
-# [PPI::Transform]
-# matches=method
-# matches_file=method
-# matches_source=method
-# matches_document=method
-# transform=method
-# transform_file=method
-# transform_source=method
-# transform_document=method
+[PPI::Transform]
+new=method
+document=method
+apply=method
+file=method
 
 [PPI::Normal]
 register=method

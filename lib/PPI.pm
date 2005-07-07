@@ -8,28 +8,25 @@ use strict;
 # use diagnostics;
 use UNIVERSAL 'isa';
 use Class::Inspector ();
-use Class::Autouse   ();
 
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '0.995';
+	$VERSION       = '0.996';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
 
-# Always load the entire PDOM
-use PPI::Element   ();
-use PPI::Token     ();
-use PPI::Statement ();
-use PPI::Structure ();
-
-# Autoload the remainder of the classes
-use Class::Autouse 'PPI::Document',
-                   'PPI::Document::Normalized',
-                   'PPI::Normal',
-                   'PPI::Tokenizer',
-                   'PPI::Lexer';
+# Load everything
+use PPI::Element              ();
+use PPI::Token                ();
+use PPI::Statement            ();
+use PPI::Structure            ();
+use PPI::Document             ();
+use PPI::Document::Normalized ();
+use PPI::Normal               ();
+use PPI::Tokenizer            ();
+use PPI::Lexer                ();
 
 # If it is installed, load in PPI::XS
 if ( Class::Inspector->installed('PPI::XS') ) {
@@ -44,7 +41,7 @@ __END__
 
 =head1 NAME
 
-PPI - Parse, Analyze and Manipulate Perl (without perl) - RELEASE CANDIDATE 1
+PPI - Parse, Analyze and Manipulate Perl (without perl) - RELEASE CANDIDATE 2
 
 =head1 SYNOPSIS
 
@@ -422,12 +419,12 @@ core PPI distribution.
             PPI::Statement::Package
             PPI::Statement::Include
             PPI::Statement::Sub
-            PPI::Statement::Variable
             PPI::Statement::Compound
             PPI::Statement::Break
             PPI::Statement::Data
             PPI::Statement::End
             PPI::Statement::Expression
+               PPI::Statement::Variable
             PPI::Statement::Null
             PPI::Statement::UnmatchedBrace
             PPI::Statement::Unknown

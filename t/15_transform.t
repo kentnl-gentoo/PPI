@@ -15,7 +15,6 @@ BEGIN {
 }
 
 # Load the code to test
-use Class::Autouse ':devel';
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 use PPI::Transform;

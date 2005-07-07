@@ -63,7 +63,7 @@ PPI::Document
     PPI::Token::Symbol  	'$foo'
     PPI::Token::Operator  	'->'
     PPI::Structure::Subscript  	{ ... }
-      PPI::Statement
+      PPI::Statement::Expression
         PPI::Token::Word  	'q'
     PPI::Token::Structure  	';'
   PPI::Token::Whitespace  	'\n'

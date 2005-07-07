@@ -67,19 +67,17 @@ in private methods.
 
 =cut
 
-use strict;
-use UNIVERSAL 'isa';
-
 # Make sure everything we need is loaded, so we
 # don't have to go and load all of PPI.
+use strict;
+use UNIVERSAL 'isa';
 use List::MoreUtils ();
 use PPI::Element    ();
 use PPI::Token      ();
-use File::Slurp     ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.995';
+	$VERSION = '0.996';
 	$errstr  = '';
 }
 
@@ -137,8 +135,10 @@ sub new {
 		return $self->_error( "No source provided to Tokenizer" );
 
 	} elsif ( ! ref $_[0] ) {
-		### FIXME - Croaks on error by default. Should we catch this?
-		$self->{source} = File::Slurp::read_file($_[0]);
+		local $/ = undef;
+		open( PPIINPUT, '<', $_[0] ) or return("open($_[0]) failed: $!");
+		$self->{source} = <PPIINPUT>;
+		close( PPIINPUT ) or return("close($_[0]) failed: $!");
 
 	} elsif ( isa($_[0], 'SCALAR') ) {
 		$self->{source} = ${shift()};

@@ -18,7 +18,7 @@ PPI::Lexer - The PPI Lexer
   my $Document = $Lexer->lex_tokenizer( $Tokenizer );
   
   # Build a PPI::Document object for some raw source
-  my $source = File::Slurp::read_file( 'My/Module.pm' );
+  my $source = "print 'Hello World!'; kill(Humans->all);";
   $Document = $Lexer->lex_source( $source );
   
   # Build a PPI::Document object for a particular file name
@@ -55,14 +55,13 @@ For more unusual tasks, by all means forge onwards.
 
 use strict;
 use UNIVERSAL 'isa';
-use File::Slurp   ();
 use PPI           ();
 use PPI::Token    ();
 use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.995';
+	$VERSION = '0.996';
 	$errstr  = '';
 }
 
@@ -335,10 +334,21 @@ sub _resolve_new_statement {
 	my $Parent = isa($_[0], 'PPI::Node')  ? shift : return undef;
 	my $Token  = isa($_[0], 'PPI::Token') ? shift : return undef;
 
-	# If it's a token in our list, use that class
-	if ( $STATEMENT_CLASSES{$Token->content} ) {
-		return $STATEMENT_CLASSES{$Token->content};
+	# Is it a token in our known classes list
+	my $class = $STATEMENT_CLASSES{$Token->content};
+
+	# Handle potential barewords for subscripts
+	if ( $Parent->isa('PPI::Structure::Subscript') ) {
+		if ( $class and $class->isa('PPI::Statement::Expression') ) {
+			# Still allowable in this context
+			return $class;
+		} else {
+			return 'PPI::Statement::Expression';
+		}
 	}
+
+	# If it's a token in our list, use that class
+	return $class if $class;
 
 	# Handle the more in-depth sub detection
 	if ( $Token->content eq 'sub' ) {

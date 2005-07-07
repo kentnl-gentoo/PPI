@@ -1,6 +1,6 @@
 NAME
     PPI - Parse, Analyze and Manipulate Perl (without perl) - RELEASE
-    CANDIDATE 1
+    CANDIDATE 2
 
 SYNOPSIS
       use PPI;
@@ -368,12 +368,12 @@ CLASSES
                 PPI::Statement::Package
                 PPI::Statement::Include
                 PPI::Statement::Sub
-                PPI::Statement::Variable
                 PPI::Statement::Compound
                 PPI::Statement::Break
                 PPI::Statement::Data
                 PPI::Statement::End
                 PPI::Statement::Expression
+                   PPI::Statement::Variable
                 PPI::Statement::Null
                 PPI::Statement::UnmatchedBrace
                 PPI::Statement::Unknown

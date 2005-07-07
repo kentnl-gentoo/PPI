@@ -19,9 +19,10 @@ PPI::Statement::Variable - Variable declaration statements
 =head1 INHERITANCE
 
   PPI::Statement::Variable
-  isa PPI::Statement
-      isa PPI::Node
-          isa PPI::Element
+  isa PPI::Statement::Expression
+      isa PPI::Statement
+          isa PPI::Node
+              isa PPI::Element
 
 =head1 DESCRIPTION
 
@@ -34,11 +35,11 @@ simple statements that explicitly declare new local or global variables.
 
 use strict;
 use UNIVERSAL 'isa';
-use base 'PPI::Statement';
+use base 'PPI::Statement::Expression';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.995';
+	$VERSION = '0.996';
 }
 
 =pod
