@@ -56,7 +56,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '0.996';
+	$VERSION = '1.000';
 
 	# Keyword type map
 	%TYPES = (
@@ -147,7 +147,7 @@ Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -24,7 +24,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2173;
+use Test::More tests => 2177;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -351,6 +351,8 @@ index_locations=method
 flush_locations=method
 normalized=method
 errstr=method
+STORABLE_freeze=method
+STORABLE_thaw=method
 
 [PPI::Document::Fragment]
 PPI::Document=isa

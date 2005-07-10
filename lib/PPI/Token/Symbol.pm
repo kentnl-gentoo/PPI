@@ -4,7 +4,7 @@ package PPI::Token::Symbol;
 
 =head1 NAME
 
-PPI::Token::Symbol - A token class for symbols of various types
+PPI::Token::Symbol - A token class for variables and other symbols
 
 =head1 INHERITANCE
 
@@ -19,7 +19,7 @@ variables and other things that start with a sigil.
 
 =head1 METHODS
 
-This class has sevelal methods beyond what is provided by its
+This class has several methods beyond what is provided by its
 L<PPI::Token> and L<PPI::Element> parent classes.
 
 Most are provided to help work out what the object is actually pointing at,
@@ -33,7 +33,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.996';
+	$VERSION = '1.000';
 }
 
 
@@ -208,7 +208,7 @@ Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

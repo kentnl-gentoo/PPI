@@ -1,5 +1,19 @@
 Revision history for Perl extension PPI
 
+1.000 Sat Jul  9 2005
+	General:
+	- Finalising POD, corrected the Copyright dates
+	- Rewrote much of the main PPI.pm docs
+	- Removing more unneeded dependencies
+	- Added native Storable support
+
+	Details:
+	- Removed dependency on Class::Inspector
+	- Added build dependency on Class::Inspector and include() it
+	  (although it's still needed at build time, this still does manage to
+	  reduce the number of files to download by one more)
+	- Added PPI::Document::STORABLE_freeze and PPI::Document::STORABLE_thaw
+
 0.996 Fri Jul  8 2005
 	General:
 	- RELEASE CANDIDATE 2

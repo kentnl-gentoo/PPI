@@ -1,4 +1,5 @@
 Changes
+inc/Class/Inspector.pm
 inc/Config/Tiny.pm
 inc/ExtUtils/AutoInstall.pm
 inc/Module/Install.pm
@@ -145,4 +146,5 @@ t/13_data.t
 t/14_charsets.t
 t/15_transform.t
 t/16_xml_compatibility.t
+t/17_storable.t
 t/99_pod.t

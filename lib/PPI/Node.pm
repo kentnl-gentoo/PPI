@@ -57,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '0.996';
+	$VERSION = '1.000';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -623,28 +623,7 @@ sub content {
 sub clone {
 	my $self  = shift;
 	my $clone = $self->SUPER::clone;
-
-	# Relink all our children ( depth first )
-	my @queue = ( $clone );
-	while ( my $Node = shift @queue ) {
-		# Link our immediate children
-		foreach my $Element ( @{$Node->{children}} ) {
-			Scalar::Util::weaken(
-				$_PARENT{refaddr($Element)} = $Node
-				);
-			unshift @queue, $Element if $Element->isa('PPI::Node');
-		}
-
-		# If it's a structure, relink the open/close braces
-		next unless $Node->isa('PPI::Structure');
-		Scalar::Util::weaken(
-			$_PARENT{refaddr($Node->start)}  = $Node
-			) if $Node->start;
-		Scalar::Util::weaken(
-			$_PARENT{refaddr($Node->finish)} = $Node
-			) if $Node->finish;
-	}
-
+	$clone->__link_children;
 	$clone;
 }
 
@@ -731,6 +710,35 @@ sub __replace_child {
 	1;
 }
 
+# Create PARENT links for an entire tree.
+# Used when cloning or thawing.
+sub __link_children {
+	my $self = shift;
+
+	# Relink all our children ( depth first )
+	my @queue = ( $self );
+	while ( my $Node = shift @queue ) {
+		# Link our immediate children
+		foreach my $Element ( @{$Node->{children}} ) {
+			Scalar::Util::weaken(
+				$_PARENT{refaddr($Element)} = $Node
+				);
+			unshift @queue, $Element if $Element->isa('PPI::Node');
+		}
+
+		# If it's a structure, relink the open/close braces
+		next unless $Node->isa('PPI::Structure');
+		Scalar::Util::weaken(
+			$_PARENT{refaddr($Node->start)}  = $Node
+			) if $Node->start;
+		Scalar::Util::weaken(
+			$_PARENT{refaddr($Node->finish)} = $Node
+			) if $Node->finish;
+	}
+
+	1;
+}
+
 1;
 
 =pod
@@ -749,7 +757,7 @@ Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

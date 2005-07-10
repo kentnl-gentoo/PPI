@@ -1,12 +1,11 @@
 use inc::Module::Install;
 
 name           ( 'PPI'                           );
-abstract       ( 'Parse, Analyze and Manipulate Perl (without perl) - RELEASE CANDIDATE 2' );
+abstract       ( 'Parse, Analyze and Manipulate Perl (without perl)' );
 author         ( 'Adam Kennedy <cpan@ali.as>'    );
 version_from   ( 'lib/PPI.pm'                    );
 license        ( 'perl'                          );
 requires       ( 'perl'             => '5.005'   );
-requires       ( 'Class::Inspector' => '1.07'    );
 requires       ( 'Clone'            => '0.17'    );
 requires       ( 'List::Util'       => '1.11'    );
 requires       ( 'List::MoreUtils'  => '0.04'    );
@@ -17,6 +16,7 @@ build_requires ( 'Test::More'       => '0.47'    );
 build_requires ( 'Test::ClassAPI'   => '1.02'    );
 include        ( 'ExtUtils::AutoInstall'         );
 include        ( 'Test::ClassAPI'                );
+include        ( 'Class::Inspector'              );
 include        ( 'Config::Tiny'                  );
 no_index       ( directory          => 't.data'  );
 

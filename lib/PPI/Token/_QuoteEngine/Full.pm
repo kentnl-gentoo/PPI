@@ -8,7 +8,7 @@ use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '0.996';
+	$VERSION = '1.000';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -45,18 +45,17 @@ BEGIN {
 		);
 }
 
-
-
 =pod
 
 =begin testing new 4
 
 # Verify that Token::Quote, Token::QuoteLike and Token::Regexp
 # do not have ->new functions
-use_ok( 'Class::Inspector' );
-foreach ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
-	my $functions = Class::Inspector->functions($_);
-	is( scalar(grep { $_ eq 'new' } @$functions), 0,
+foreach my $name ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
+	my @functions = sort grep { /$RE_SYMBOL/o }
+		grep { defined &{"${name}::$_"} }
+		keys %{"${name}::"};
+	is( scalar(grep { $_ eq 'new' } @functions), 0,
 		"$_ does not have a new function" );
 }
 
@@ -299,7 +298,7 @@ Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

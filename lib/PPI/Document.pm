@@ -17,7 +17,7 @@ PPI::Document - Object representation of a Perl document
   use PPI;
   
   # Load a document from a file
-  my $Document = PPI::Document->load('My/Module.pm');
+  my $Document = PPI::Document->new('My/Module.pm');
   
   # Strip out comments
   $Document->prune( 'PPI::Token::Comment' );
@@ -41,6 +41,16 @@ The exemption to its L<PPI::Node>-like behavior this is that a
 C<PPI::Document> object can NEVER have a parent node, and is always
 the root node in a tree.
 
+=head2 Storable Support
+
+C<PPI::Document> implements the necesary C<STORABLE_freeze> and
+C<STORABLE_thaw> hooks to provide native support for L<Storable>,
+if you have it installed.
+
+However if you want to clone clone a Document, you are highly recommeded
+to use the internal C<$Document-E<gt>clone> method rather than Storable's
+C<dclone> function (although dclone should still work).
+
 =head1 METHODS
 
 Most of the things you are likely to want to do with a Document are
@@ -63,7 +73,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '0.996';
+	$VERSION = '1.000';
 	$errstr  = '';
 }
 
@@ -502,6 +512,29 @@ sub errstr {
 	$errstr;
 }
 
+
+
+
+
+#####################################################################
+# Native Storable Support
+
+sub STORABLE_freeze {
+	my $self  = shift;
+	my $class = ref $self;
+	my %hash  = %$self;
+	return ($class, \%hash);
+}
+
+sub STORABLE_thaw {
+	my ($self, undef, $class, $hash) = @_;
+	bless $self, $class;
+	foreach ( keys %$hash ) {
+		$self->{$_} = delete $hash->{$_};
+	}
+	$self->__link_children;
+}
+
 1;
 
 =pod
@@ -521,7 +554,7 @@ Adam Kennedy, L<http://ali.as/>, cpan@ali.as
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
