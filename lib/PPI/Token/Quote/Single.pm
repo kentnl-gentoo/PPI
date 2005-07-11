@@ -40,7 +40,7 @@ use base 'PPI::Token::_QuoteEngine::Simple',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.000';
+	$VERSION = '1.001';
 }
 
 
@@ -52,9 +52,9 @@ BEGIN {
 
 =pod
 
-=begin testing string
+=begin testing string 3
 
-my $Document = PPI::Document->new( "print 'foo';" );
+my $Document = PPI::Document->new( \"print 'foo';" );
 isa_ok( $Document, 'PPI::Document' );
 my $Single = $Document->find_first('Token::Quote::Single');
 isa_ok( $Single, 'PPI::Token::Quote::Single' );

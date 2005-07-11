@@ -34,7 +34,7 @@ use base 'PPI::Token::_QuoteEngine::Full',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.000';
+	$VERSION = '1.001';
 }
 
 
@@ -46,18 +46,18 @@ BEGIN {
 
 =pod
 
-=begin testing string
+=begin testing string 8
 
-my $Document = PPI::Document->new( "print q{foo}, q!bar!, q <foo>;" );
+my $Document = PPI::Document->new( \"print q{foo}, q!bar!, q <foo>;" );
 isa_ok( $Document, 'PPI::Document' );
-my @literal = $Document->find('Token::Quote::Literal');
-is( scalar(@literal), 3, '->find returns three objects' );
-isa_ok( $literal[0], 'PPI::Token::Quote::Single' );
-isa_ok( $literal[1], 'PPI::Token::Quote::Single' );
-isa_ok( $literal[2], 'PPI::Token::Quote::Single' );
-is( $literal[0]->string, 'foo', '->string returns as expected' );
-is( $literal[1]->string, 'foo', '->string returns as expected' );
-is( $literal[2]->string, 'foo', '->string returns as expected' );
+my $literal = $Document->find('Token::Quote::Literal');
+is( scalar(@$literal), 3, '->find returns three objects' );
+isa_ok( $literal->[0], 'PPI::Token::Quote::Literal' );
+isa_ok( $literal->[1], 'PPI::Token::Quote::Literal' );
+isa_ok( $literal->[2], 'PPI::Token::Quote::Literal' );
+is( $literal->[0]->string, 'foo', '->string returns as expected' );
+is( $literal->[1]->string, 'bar', '->string returns as expected' );
+is( $literal->[2]->string, 'foo', '->string returns as expected' );
 
 =end testing
 

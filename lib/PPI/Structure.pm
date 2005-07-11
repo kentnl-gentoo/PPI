@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.000';
+	$VERSION = '1.001';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 

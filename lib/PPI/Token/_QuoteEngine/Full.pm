@@ -8,7 +8,7 @@ use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '1.000';
+	$VERSION = '1.001';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -47,16 +47,19 @@ BEGIN {
 
 =pod
 
-=begin testing new 4
+=begin testing new 3
 
 # Verify that Token::Quote, Token::QuoteLike and Token::Regexp
 # do not have ->new functions
+my $RE_SYMBOL  = qr/\A[^\W\d]\w*\z/;
 foreach my $name ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
-	my @functions = sort grep { /$RE_SYMBOL/o }
+	no strict 'refs';
+	my @functions = sort
 		grep { defined &{"${name}::$_"} }
-		keys %{"${name}::"};
+		grep { /$RE_SYMBOL/o }
+		keys %{"PPI::${name}::"};
 	is( scalar(grep { $_ eq 'new' } @functions), 0,
-		"$_ does not have a new function" );
+		"$name does not have a new function" );
 }
 
 =end testing
@@ -214,11 +217,11 @@ sub _fill_braced {
 		$self->{content} .= $$_;
 		return 0;
 	}
-	$self->{content} .= $_;
 
 	# Complete the properties of the first section
 	$section->{position} = length $self->{content};
 	$section->{size}     = length($_) - 1;
+	$self->{content} .= $_;
 	delete $section->{_close};
 
 	# We are done if there is only one section

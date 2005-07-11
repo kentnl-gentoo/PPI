@@ -73,7 +73,7 @@ use overload '""'   => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.000';
+	$VERSION = '1.001';
 	$errstr  = '';
 }
 

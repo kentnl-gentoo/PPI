@@ -38,7 +38,7 @@ use base 'PPI::Token::_QuoteEngine::Simple',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.000';
+	$VERSION = '1.001';
 }
 
 
@@ -109,13 +109,13 @@ sub simplify {
 
 =pod
 
-=begin testing string
+=begin testing string 3
 
-my $Document = PPI::Document->new( 'print "foo";' );
+my $Document = PPI::Document->new( \'print "foo";' );
 isa_ok( $Document, 'PPI::Document' );
-my $Single = $Document->find_first('Token::Quote::Double');
-isa_ok( $Single, 'PPI::Token::Quote::Double' );
-is( $Single->string, 'foo', '->string returns as expected' );
+my $Double = $Document->find_first('Token::Quote::Double');
+isa_ok( $Double, 'PPI::Token::Quote::Double' );
+is( $Double->string, 'foo', '->string returns as expected' );
 
 =end testing
 

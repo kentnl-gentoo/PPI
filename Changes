@@ -1,7 +1,21 @@
 Revision history for Perl extension PPI
 
+1.001 Tue Jul 12 2005
+	General:
+	- Turning on Test::Inline scripts
+
+	Details:
+	- Bug fix: ->string returns wrong for qq <foo> and all braced quotes
+	- Added Test::Inline 2.100-type inline2test.conf and inline2test.tpl files
+	- Added t/ppi_token__quoteengine_full.t
+	- Added t/ppi_token_quote_single.t
+	- Added t/ppi_token_quote_double.t
+	- Added t/ppi_token_quote_literal.t
+	- Added t/ppi_token_quote_interpolate.t
+
 1.000 Sat Jul  9 2005
 	General:
+	- FIRST PRODUCTION RELEASE
 	- Finalising POD, corrected the Copyright dates
 	- Rewrote much of the main PPI.pm docs
 	- Removing more unneeded dependencies
