@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.001';
+	$VERSION = '1.002';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -145,7 +145,7 @@ sub content {
 # You can insert either another structure, or a token
 sub insert_before {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 	if ( $Element->isa('PPI::Structure') ) {
 		return $self->__insert_before($Element);
 	} elsif ( $Element->isa('PPI::Token') ) {
@@ -157,7 +157,7 @@ sub insert_before {
 # As above, you can insert either another structure, or a token
 sub insert_after {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 	if ( $Element->isa('PPI::Structure') ) {
 		return $self->__insert_after($Element);
 	} elsif ( $Element->isa('PPI::Token') ) {

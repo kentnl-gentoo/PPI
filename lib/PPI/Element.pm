@@ -36,7 +36,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.001';
+	$VERSION = '1.002';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -481,12 +481,43 @@ Elements, inline-parsed code strings or L<PPI::Document::Fragment> objects.
 Returns true if the Element was inserted, false if it can not be inserted,
 or C<undef> if you do not provide a L<PPI::Element> object as a parameter.
 
+=begin testing __insert_before 6
+
+my $Document = PPI::Document->new( \"print 'Hello World';" );
+isa_ok( $Document, 'PPI::Document' );
+my $semi = $Document->find_first('Token::Structure');
+isa_ok( $semi, 'PPI::Token::Structure' );
+is( $semi->content, ';', 'Got expected token' );
+my $foo = PPI::Token::Word->new('foo');
+isa_ok( $foo, 'PPI::Token::Word' );
+is( $foo->content, 'foo', 'Created Word token' );
+$semi->__insert_before( $foo );
+is( $Document->serialize, "print 'Hello World'foo;",
+	'__insert_before actually inserts' );
+
+=end testing
+
+=begin testing insert_before after __insert_before 6
+
+my $Document = PPI::Document->new( \"print 'Hello World';" );
+isa_ok( $Document, 'PPI::Document' );
+my $semi = $Document->find_first('Token::Structure');
+isa_ok( $semi, 'PPI::Token::Structure' );
+is( $semi->content, ';', 'Got expected token' );
+my $foo = PPI::Token::Word->new('foo');
+isa_ok( $foo, 'PPI::Token::Word' );
+is( $foo->content, 'foo', 'Created Word token' );
+$semi->insert_before( $foo );
+is( $Document->serialize, "print 'Hello World'foo;",
+	'insert_before actually inserts' );
+
+=end testing
+
 =cut
 
-# The internal version, which trusts the data we are given
 sub __insert_before {
 	my $self = shift;
-	
+	$self->parent->__insert_before_child( $self, @_ );
 }
 
 =pod
@@ -507,12 +538,43 @@ Elements, inline-parsed code strings or L<PPI::Document::Fragment> objects.
 Returns true if the Element was inserted, false if it can not be inserted,
 or C<undef> if you do not provide a L<PPI::Element> object as a parameter.
 
+=begin testing __insert_after 6
+
+my $Document = PPI::Document->new( \"print 'Hello World';" );
+isa_ok( $Document, 'PPI::Document' );
+my $string = $Document->find_first('Token::Quote');
+isa_ok( $string, 'PPI::Token::Quote' );
+is( $string->content, "'Hello World'", 'Got expected token' );
+my $foo = PPI::Token::Word->new('foo');
+isa_ok( $foo, 'PPI::Token::Word' );
+is( $foo->content, 'foo', 'Created Word token' );
+$string->__insert_after( $foo );
+is( $Document->serialize, "print 'Hello World'foo;",
+	'__insert_after actually inserts' );
+
+=end testing
+
+=begin testing insert_after after __insert_after 6
+
+my $Document = PPI::Document->new( \"print 'Hello World';" );
+isa_ok( $Document, 'PPI::Document' );
+my $string = $Document->find_first('Token::Quote');
+isa_ok( $string, 'PPI::Token::Quote' );
+is( $string->content, "'Hello World'", 'Got expected token' );
+my $foo = PPI::Token::Word->new('foo');
+isa_ok( $foo, 'PPI::Token::Word' );
+is( $foo->content, 'foo', 'Created Word token' );
+$string->insert_after( $foo );
+is( $Document->serialize, "print 'Hello World'foo;",
+	'insert_after actually inserts' );
+
+=end testing
+
 =cut
 
-# The internal version, which trusts the data we are given
 sub __insert_after {
 	my $self = shift;
-	
+	$self->parent->__insert_after_child( $self, @_ );
 }
 
 =pod

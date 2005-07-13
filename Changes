@@ -1,5 +1,12 @@
 Revision history for Perl extension PPI
 
+1.002 Thu Jul 14 2005
+	General:
+	- Bug fix release
+
+	Details:
+	- Fixed CPAN #13655 - insert_before and insert_after broken.
+
 1.001 Tue Jul 12 2005
 	General:
 	- Turning on Test::Inline scripts

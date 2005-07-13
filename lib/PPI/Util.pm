@@ -10,7 +10,7 @@ use Params::Util '_INSTANCE',
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.001';
+	$VERSION   = '1.002';
 	@EXPORT_OK = '_Document';
 }
 

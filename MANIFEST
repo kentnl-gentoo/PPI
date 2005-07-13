@@ -150,6 +150,7 @@ t/15_transform.t
 t/16_xml_compatibility.t
 t/17_storable.t
 t/99_pod.t
+t/ppi_element.t
 t/ppi_token__quoteengine_full.t
 t/ppi_token_quote_double.t
 t/ppi_token_quote_interpolate.t

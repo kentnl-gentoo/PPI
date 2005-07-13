@@ -8,7 +8,7 @@ use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '1.001';
+	$VERSION = '1.002';
 
 	# Prototypes for the different braced sections
 	%sections = (

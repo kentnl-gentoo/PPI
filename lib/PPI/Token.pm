@@ -26,7 +26,7 @@ use base 'PPI::Element';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.001';
+	$VERSION = '1.002';
 }
 
 # We don't load the abstracts, they are loaded
@@ -176,7 +176,7 @@ sub content {
 # You can insert either a statement, or a non-significant token.
 sub insert_before {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 	if ( $Element->isa('PPI::Structure') ) {
 		return $self->__insert_before($Element);
 	} elsif ( $Element->isa('PPI::Token') ) {
@@ -188,7 +188,7 @@ sub insert_before {
 # As above, you can insert a statement, or a non-significant token
 sub insert_after {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') or return undef;
+	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
 	if ( $Element->isa('PPI::Structure') ) {
 		return $self->__insert_after($Element);
 	} elsif ( $Element->isa('PPI::Token') ) {
