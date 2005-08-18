@@ -1,5 +1,5 @@
 name: PPI
-version: 1.002
+version: 1.003
 abstract: Parse, Analyze and Manipulate Perl (without perl)
 author: Adam Kennedy <cpan@ali.as>
 license: perl
@@ -19,4 +19,4 @@ no_index:
   directory:
     - t.data
     - inc
-generated_by: Module::Install version 0.36
+generated_by: Module::Install version 0.37

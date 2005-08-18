@@ -61,7 +61,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.002';
+	$VERSION = '1.003';
 	$errstr  = '';
 }
 
@@ -608,8 +608,12 @@ sub _statement_continues {
 		# LABEL for (EXPR; EXPR; EXPR) BLOCK
 		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'for' ) {
 			# LABEL for ...
-			# Only an open braces will do
-			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
+			if ( $Token->isa('PPI::Token::Structure') && $Token->content eq '(' ) {
+				return 1;
+			}
+
+			# In this case, we can also behave like a foreach
+			$type = 'foreach';
 
 		} elsif ( isa($LastChild, 'PPI::Structure::Block') ) {
 			# LABEL for (EXPR; EXPR; EXPR) BLOCK
@@ -677,7 +681,7 @@ sub _statement_continues {
 			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
 		}
 
-		if ( $LastChild->content eq 'foreach' ) {
+		if ( $LastChild->content eq 'foreach' or $LastChild->content eq 'for' ) {
 			# There are three possibilities here
 			if ( $Token->isa('PPI::Token::Word') and $Token->content eq 'my' ) {
 				# VAR == 'my ...'
@@ -691,7 +695,7 @@ sub _statement_continues {
 				return '';
 			}
 		}
-		
+
 		if ( $LastChild->content eq 'my' ) {
 			# LABEL foreach my ...
 			# Only a scalar will do

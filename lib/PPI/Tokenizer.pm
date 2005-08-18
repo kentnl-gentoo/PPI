@@ -77,7 +77,7 @@ use PPI::Token      ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.002';
+	$VERSION = '1.003';
 	$errstr  = '';
 }
 
@@ -380,15 +380,23 @@ sub decrement_cursor {
 # Returns 0 on EOF
 # Returns undef on error
 sub _fill_line {
-	my $self = shift;
+	my $self   = shift;
+	my $inscan = shift;
 
 	# Get the next line
 	my $line = $self->_get_line;
 	unless ( defined $line ) {
-		# End of file, clean up
-		delete $self->{line};
-		delete $self->{line_cursor};
-		delete $self->{line_length};
+		# End of file
+		unless ( $inscan ) {
+			delete $self->{line};
+			delete $self->{line_cursor};
+			delete $self->{line_length};
+			return 0;
+		}
+
+		# In the scan version, just set the cursor to the end
+		# of the line, and the rest should just cascade out.
+		$self->{line_cursor} = $self->{line_length};
 		return 0;
 	}
 
@@ -452,7 +460,7 @@ sub _process_next_line {
 	$self->{class}->__TOKENIZER__on_line_end( $self );
 
 	# If there are no more source lines, then clean up
-	if ( ref $self->{source} eq 'ARRAY' and ! @{$self->{source}} ) {
+	unless ( ref($self->{source}) eq 'ARRAY' and @{$self->{source}} ) {
 		return $self->_clean_eof;
 	}
 

@@ -35,7 +35,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.002';
+	$VERSION = '1.003';
 }
 
 
@@ -50,6 +50,8 @@ sub __TOKENIZER__on_char {
 	# Call the fill method to process the quote
 	my $rv = $t->{token}->_fill( $t );
 	return undef unless defined $rv;
+
+	## Doesn't support "end of file" indicator
 
 	# Finalize the token and return 0 to tell the tokenizer
 	# to go to the next character.
@@ -130,12 +132,21 @@ sub _scan_for_unescaped_character {
 
 		# Load in the next line
 		$string .= $_;
-		return undef unless defined $t->_fill_line;
-		$t->{line_cursor} = 0;
+		my $rv = $t->_fill_line( 'inscan' );
+		if ( $rv ) {
+			# Push to first character
+			$t->{line_cursor} = 0;
+		} elsif ( defined $rv ) {
+			# We hit the End of File
+			return \$string;
+		} else {
+			# Unexpected error
+			return undef;
+		}
 	}
 
-	# Returning the string as a reference indicates EOF
-	\$string;
+	# We shouldn't be able to get here
+	return undef;
 }
 
 # Scan for a close braced, and take into account both escaping,
@@ -220,14 +231,20 @@ sub _scan_quote_like_operator_gap {
 		# Load in the next line.
 		# If we reach the EOF, $t->{line} gets deleted,
 		# which is caught by the while.
-		return undef unless defined $t->_fill_line;
-	
-		# Set the cursor to the first character
-		$t->{line_cursor} = 0;
+		my $rv = $t->_fill_line('inscan');
+		if ( $rv ) {
+			# Set the cursor to the first character
+			$t->{line_cursor} = 0;
+		} elsif ( defined $rv ) {
+			# Returning the string as a reference indicates EOF
+			return \$string;
+		} else {
+			return undef;
+		}
 	}
 
-	# Returning the string as a reference indicates EOF
-	\$string;
+	# Shouldn't be able to get here
+	return undef;
 }
 
 1;

@@ -126,6 +126,14 @@ t.data/08_regression/04_tinderbox.code
 t.data/08_regression/04_tinderbox.dump
 t.data/08_regression/05_rt_cpan_13425.code
 t.data/08_regression/05_rt_cpan_13425.dump
+t.data/08_regression/06_partial_quote_double.code
+t.data/08_regression/06_partial_quote_double.dump
+t.data/08_regression/07_partial_quote_single.code
+t.data/08_regression/07_partial_quote_single.dump
+t.data/08_regression/08_partial_regex_substitution.code
+t.data/08_regression/08_partial_regex_substitution.dump
+t.data/08_regression/09_for_var.code
+t.data/08_regression/09_for_var.dump
 t.data/11_util/test.pm
 t.data/13_data/Foo.pm
 t.data/15_transform/sample1.pm

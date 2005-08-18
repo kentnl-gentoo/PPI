@@ -49,6 +49,35 @@ PPI::Document
   PPI::Statement::Compound
     PPI::Token::Word  	'for'
     PPI::Token::Whitespace  	' '
+    PPI::Token::Word  	'my'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Symbol  	'$foo'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Word  	'foreach'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Symbol  	'$foo'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Word  	'for'
+    PPI::Token::Whitespace  	' '
+    PPI::Token::Symbol  	'$foo'
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::ForLoop  	( ... )
+    PPI::Token::Whitespace  	' '
+    PPI::Structure::Block  	{ ... }
+  PPI::Token::Whitespace  	'\n'
+  PPI::Statement::Compound
+    PPI::Token::Word  	'for'
+    PPI::Token::Whitespace  	' '
     PPI::Structure::ForLoop  	( ... )
       PPI::Statement::Variable
         PPI::Token::Word  	'my'

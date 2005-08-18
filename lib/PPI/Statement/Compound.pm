@@ -56,14 +56,13 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '1.002';
+	$VERSION = '1.003';
 
 	# Keyword type map
 	%TYPES = (
 		'if'      => 'if',
 		'unless'  => 'if',
 		'while'   => 'while',
-		'for'     => 'for',
 		'foreach' => 'foreach',
 		);
 }
@@ -103,14 +102,21 @@ cannot be determined.
 
 sub type {
 	my $self    = shift;
-	my $Element = $self->schild(0);
+	my $p       = 0; # Child position
+	my $Element = $self->schild($p);
 
 	# A labelled statement
 	if ( isa($Element, 'PPI::Token::Label') ) {
-		$Element = $self->schild(1) or return 'label';
+		$Element = $self->schild(++$p) or return 'label';
 	}
 
 	# Most simple cases
+	if ( $Element->content eq 'for' ) {
+		$Element = $self->schild(++$p) or return 'for';
+		return 'foreach' if $Element->content eq 'my';
+		return 'foreach' if $Element->isa('PPI::Token::Symbol');
+		return 'for';
+	}
 	return $TYPES{$Element->content} if isa($Element, 'PPI::Token::Word');
 	return 'continue'                if isa($Element, 'PPI::Structure::Block');
 

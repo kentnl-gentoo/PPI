@@ -1,5 +1,16 @@
 Revision history for Perl extension PPI
 
+1.003 Tue Aug 18 2005
+	General:
+	- Bug fix release
+
+	Details:
+	- Add support for 'for $foo () {}'
+	- Add support for 'for my $foo () {}'
+	- Fixed bug where "'Hello..." crashed the Tokenizer
+	- Fixed bug where '"Hello...' crashed the Tokenizer
+	- Fixed bug where 's' crashed the Tokenizer
+
 1.002 Thu Jul 14 2005
 	General:
 	- Bug fix release

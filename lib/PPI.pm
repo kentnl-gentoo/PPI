@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.002';
+	$VERSION       = '1.003';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -726,7 +726,7 @@ If I missed someone who wasn't in my email history, thank you too :)
   - Robert Rotherberg
   - CPAN Author "PODMASTER"
   - Richard Soderberg
-  - "Nadim"
+  - Nadim ibn Hamouda el Khemir
   - Graciliano M. P.
   - Leon Brocard
   - Jody Belka

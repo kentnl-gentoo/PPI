@@ -30,7 +30,7 @@ use PPI::Dumper;
 #####################################################################
 # Prepare
 
-use Test::More tests => 64;
+use Test::More tests => 108;
 
 use vars qw{$testdir};
 BEGIN {
@@ -65,34 +65,41 @@ foreach my $codefile ( @code ) {
 	ok( $Document,                          "$codefile: Lexer->Document returns true" );
 	ok( isa( $Document, 'PPI::Document' ),  "$codefile: Lexer creates Document object" );
 
-	# Are there any unknown things?
-	is( $Document->find_any('Token::Unknown'), '',
-		"$codefile: Contains no PPI::Token::Unknown elements" );
-	is( $Document->find_any('Structure::Unknown'), '',
-		"$codefile: Contains no PPI::Structure::Unknown elements" );
-	is( $Document->find_any('Statement::Unknown'), '',
-		"$codefile: Contains no PPI::Statement::Unknown elements" );
-
-	# Get the dump array ref for the Document object
-	my $Dumper = PPI::Dumper->new( $Document );
-	ok( isa( $Dumper, 'PPI::Dumper' ), "$codefile: Dumper created" );
-	my @dump_list = $Dumper->list;
-	ok( scalar @dump_list, "$codefile: Got dump content from dumper" );
-
-	# Try to get the .dump file array
-	open( DUMP, $dumpfile ) or die "open: $!";
-	my @content = <DUMP>;
-	close( DUMP ) or die "close: $!";
-	chomp @content;
-
-	# Compare the two
-	is_deeply( \@dump_list, \@content, "$codefile: Generated dump matches stored dump" );
-
-	# Also, do a round-trip check
-	my $rv = open( CODEFILE, '<', $codefile );
-	ok( $rv, "$codefile: Opened file" );
+	my $rv;
 	SKIP: {
-		skip "Missing file", 1 unless $rv;
+		skip "No Document to test", 7 unless $Document;
+
+		# Are there any unknown things?
+		is( $Document->find_any('Token::Unknown'), '',
+			"$codefile: Contains no PPI::Token::Unknown elements" );
+		is( $Document->find_any('Structure::Unknown'), '',
+			"$codefile: Contains no PPI::Structure::Unknown elements" );
+		is( $Document->find_any('Statement::Unknown'), '',
+			"$codefile: Contains no PPI::Statement::Unknown elements" );
+	
+		# Get the dump array ref for the Document object
+		my $Dumper = PPI::Dumper->new( $Document );
+		ok( isa( $Dumper, 'PPI::Dumper' ), "$codefile: Dumper created" );
+		my @dump_list = $Dumper->list;
+		ok( scalar @dump_list, "$codefile: Got dump content from dumper" );
+	
+		# Try to get the .dump file array
+		open( DUMP, $dumpfile ) or die "open: $!";
+		my @content = <DUMP>;
+		close( DUMP ) or die "close: $!";
+		chomp @content;
+	
+		# Compare the two
+		is_deeply( \@dump_list, \@content, "$codefile: Generated dump matches stored dump" );
+	
+		# Also, do a round-trip check
+		$rv = open( CODEFILE, '<', $codefile );
+		ok( $rv, "$codefile: Opened file" );
+	}
+	SKIP: {
+		unless ( $Document and $rv ) {
+			skip "Missing file", 1;
+		}
 		my $source = do { local $/ = undef; <CODEFILE> };
 		$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
