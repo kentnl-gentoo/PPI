@@ -10,8 +10,8 @@ use Params::Util '_INSTANCE',
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.003';
-	@EXPORT_OK = '_Document';
+	$VERSION   = '1.100_01';
+	@EXPORT_OK = qw{_Document _slurp};
 }
 
 
@@ -30,6 +30,16 @@ sub _Document {
 	return PPI::Document->new( shift ) if _SCALAR($_[0]);
 	return shift if _INSTANCE($_[0], 'PPI::Document');
 	undef;
+}
+
+# Provide a single _slurp implementation
+sub _slurp {
+	my $file = shift;
+	local $/ = undef;
+	open( PPIUTIL, '<', $file ) or return "open($file) failed: $!";
+	my $source = <PPIUTIL>;
+	close( PPIUTIL ) or return "close($file) failed: $!";
+	\$source;
 }
 
 1;

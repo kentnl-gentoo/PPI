@@ -74,10 +74,11 @@ use UNIVERSAL 'isa';
 use List::MoreUtils ();
 use PPI::Element    ();
 use PPI::Token      ();
+use PPI::Util       ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.003';
+	$VERSION = '1.100_01';
 	$errstr  = '';
 }
 
@@ -135,10 +136,14 @@ sub new {
 		return $self->_error( "No source provided to Tokenizer" );
 
 	} elsif ( ! ref $_[0] ) {
-		local $/ = undef;
-		open( PPIINPUT, '<', $_[0] ) or return("open($_[0]) failed: $!");
-		$self->{source} = <PPIINPUT>;
-		close( PPIINPUT ) or return("close($_[0]) failed: $!");
+		my $source = PPI::Util::_slurp($_[0]);
+		if ( ref $source ) {
+			# Content returned by reference
+			$self->{source} = $$source;
+		} else {
+			# Errors returned as a string
+			return($source);
+		}
 
 	} elsif ( isa($_[0], 'SCALAR') ) {
 		$self->{source} = ${shift()};

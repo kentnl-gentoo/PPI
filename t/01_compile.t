@@ -18,7 +18,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 
 
@@ -40,6 +40,7 @@ use_all_ok( qw{
 	PPI::Find
 	PPI::Normal
 	PPI::Util
+	PPI::Cache
 	} );
 
 sub use_all_ok {

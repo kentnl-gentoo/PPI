@@ -1,5 +1,15 @@
 Revision history for Perl extension PPI
 
+1.100_01 Thu Aug 25 2005
+	General
+	- Added integrated cache support
+
+	Details:
+	- Added PPI::Cache class
+	- Removed warning in 99_pod.t
+	- Added a common PPI::Util::_slurp function
+	- PPI::Document can be given a cache to use
+
 1.003 Tue Aug 18 2005
 	General:
 	- Bug fix release

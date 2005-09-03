@@ -44,7 +44,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.003';
+	$VERSION = '1.100_01';
 }
 
 # For convenience (and since this isn't really a public class), import
@@ -152,7 +152,7 @@ sub equal {
 	return undef if $self->{processing};
 
 	# Check the version and function list first
-	return '' unless $self->version == $other->version;
+	return '' unless $self->version eq $other->version;
 	$self->_equal_ARRAY( $self->functions, $other->functions ) or return '';
 
 	# Do the main comparison run

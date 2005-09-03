@@ -24,7 +24,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2177;
+use Test::More tests => 2181;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -343,6 +343,8 @@ PPI::Structure=isa
 
 [PPI::Document]
 PPI::Node=isa
+get_cache=method
+set_cache=method
 load=method
 save=method
 tab_width=method

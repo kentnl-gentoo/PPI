@@ -63,26 +63,32 @@ Document-specific.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Node';
-use List::MoreUtils ();
-use PPI             ();
+use Carp                    ();
+use List::MoreUtils         ();
+use Params::Util            '_INSTANCE',
+                            '_SCALAR';
+use PPI                     ();
+use PPI::Util               ();
 use PPI::Document::Fragment ();
-use overload 'bool' => sub () { 1 };
-use overload '""'   => 'content';
+use overload 'bool'         => sub () { 1 };
+use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.003';
+	$VERSION = '1.100_01';
 	$errstr  = '';
 }
+
+# Document cache
+my $CACHE = undef;
 
 
 
 
 
 #####################################################################
-# Load a PPI::Document object from a file
+# Constructor and Static Methods
 
 =pod
 
@@ -116,26 +122,47 @@ sub new {
 	}
 
 	# Check the source code
-	my $Document;
 	if ( ! defined $_[0] ) {
 		$class->_error("An undefined value was passed to PPI::Document::new");
 
 	} elsif ( ! ref $_[0] ) {
 		# Catch people using the old API
 		if ( $_[0] =~ /(?:\012|\015)/ ) {
-			die "API CHANGE: Source code should only be passed to PPI::Document->new as a SCALAR reference";
+			Carp::croak("API CHANGE: Source code should only be passed to PPI::Document->new as a SCALAR reference");
 		}
-		$Document = PPI::Lexer->lex_file( shift );
 
-	} elsif ( ref $_[0] eq 'SCALAR' ) {
-		$Document = PPI::Lexer->lex_source( ${$_[0]} );
+		# When loading from a filename, use the caching
+		# layer if it exists.
+		if ( $CACHE ) {
+			my $file   = shift;
+			my $source = PPI::Util::_slurp( $file );
+			unless ( ref $source ) {
+				# Errors returned as plain string
+				return $class->_error($source);
+			}
+
+			# Retrieve the document from the cache
+			my $Document = $CACHE->get_document($source);
+			return $Document if $Document;
+
+			$Document = PPI::Lexer->lex_source( $$source );
+			if ( $Document ) {
+				# Save in the cache
+				$CACHE->store_document( $Document );
+				return $Document;
+			}
+		} else {
+			my $Document = PPI::Lexer->lex_file( shift );
+			return $Document if $Document;
+		}
+
+	} elsif ( _SCALAR($_[0]) ) {
+		my $Document = PPI::Lexer->lex_source( ${$_[0]} );
+		return $Document if $Document;
 
 	} else {
 		$class->_error("An unknown object or reference was passed to PPI::Document::new");
 	}
-
-	# Did the parsing go smoothly?
-	return $Document if $Document;
 
 	# Pull and store the error from the lexer
 	my $errstr = PPI::Lexer->errstr
@@ -145,8 +172,54 @@ sub new {
 }
 
 sub load {
-	die "API CHANGE: File names should now be passed to PPI::Document->new to load a file";
+	Carp::croak("API CHANGE: File names should now be passed to PPI::Document->new to load a file");
 }
+
+=pod
+
+=head2 set_cache $Cache
+
+As of L<PPI> 1.100, C<PPI::Document> supports parse caching. The default
+cache class L<PPI::Cache> provides a L<Storable>-based caching or the
+parsed document based on the MD5 hash of the document as a string.
+
+The statuc C<set_cache> method is used to set the cache object for
+C<PPI::Document> to use when loading documents. It takes as argument
+a L<PPI::Cache> object (or something that C<isa> the same).
+
+Returns true on success, or C<undef> if not passed a valid cache object.
+
+=cut
+
+sub set_cache {
+	my $class  = ref $_[0] ? ref shift : shift;
+	my $object = _INSTANCE(shift, 'PPI::Cache') or return undef;
+	$CACHE = $object;
+	1;
+}
+
+=pod
+
+=head2 get_cache
+
+If a document cache is currently set, the C<get_cache> method will
+return it.
+
+Returns a L<PPI::Cache> object, or C<undef> if there is no cache
+currently set for C<PPI::Document>.
+
+=cut
+
+sub get_cache {
+	$CACHE;	
+}
+
+
+
+
+
+#####################################################################
+# PPI::Document Instance Methods
 
 =pod
 
@@ -185,7 +258,7 @@ tab width.
 sub tab_width {
 	my $self = shift;
 	return $self->{tab_width} unless @_;
-	die "PPI FEATURE INCOMPLETE(Only naive tabs (width 1) are supported at this time)";
+	Carp::croak("PPI FEATURE INCOMPLETE(Only naive tabs (width 1) are supported at this time)");
 }
 
 =pod
@@ -274,7 +347,7 @@ sub serialize {
 
 			# Secondly, are their any more here-docs after us
 			my $any_after = List::MoreUtils::any {
-				isa($Tokens[$_], 'PPI::Token::HereDoc')
+				$Tokens[$_]->isa('PPI::Token::HereDoc')
 				} (($i + 1) .. $#Tokens);
 
 			# We don't need to repair the last here-doc on the

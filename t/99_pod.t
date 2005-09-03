@@ -25,11 +25,11 @@ sub mybegin {
 	return &$begin(@_);
 }
 
+local $^W = 0;
 *Pod::Simple::BlackBox::_ponder_begin = \&mybegin;
 
 #####################################################################
 # END BLACK MAGIC
 #####################################################################
 
-local $^W = 0;
 all_pod_files_ok();
