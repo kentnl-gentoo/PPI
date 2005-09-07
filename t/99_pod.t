@@ -3,7 +3,7 @@ eval "use Test::Pod 1.00";
 plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
 
 #####################################################################
-# WARNING: INSANE BLACK MAGIC
+# BEGIN BLACK MAGIC
 #####################################################################
 
 # Hack Pod::Simple::BlackBox to ignore the Test::Inline "=begin has more than one word errors"

@@ -35,12 +35,11 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.100_01';
+	$VERSION = '1.100_02';
 }
 
 
@@ -141,6 +140,13 @@ sub __TOKENIZER__on_char {
 1;
 
 =pod
+
+=head1 TO DO
+
+- Add proper unit testing to this
+
+- What the hell is a base256 number and why did I use it.
+  Surely it should be something more like "base1000" or "version".
 
 =head1 SUPPORT
 

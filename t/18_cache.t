@@ -22,7 +22,7 @@ use PPI::Cache     ();
 use PPI::Document  ();
 use File::Remove   ();
 use Scalar::Util   'refaddr';
-use Test::More tests => 33;
+use Test::More tests => 41;
 use Test::SubCalls;
 
 my $this_file = catdir( 't.data', '03_empiric', 'test.dat' );
@@ -126,5 +126,23 @@ SKIP: {
 	is_deeply( $doc1, $doc2,
 		'PPI::Document->new with cache enabled returns two identical objects' );
 }
+
+# Done now, can we clear the cache?
+is( PPI::Document->set_cache(undef), 1, '->set_cache(undef) returns true' );
+is( PPI::Document->get_cache, undef,    '->get_cache returns undef' );
+
+# Next, test the import mechanism
+local $@;
+eval "use PPI::Cache path => '$cache_dir';";
+is( $@, '', 'use PPI::Cache path => ...; succeeded' );
+isa_ok( PPI::Document->get_cache, 'PPI::Cache' );
+is( scalar(PPI::Document->get_cache->path), $cache_dir, '->path returns the original path'    );
+is( scalar(PPI::Document->get_cache->readonly), '',      '->readonly returns false by default' );
+
+# Does it still keep the previously cached documents
+sub_reset( 'PPI::Tokenizer::new' );
+my $doc1 = PPI::Document->new( $this_file );
+isa_ok( $doc1, 'PPI::Document' );
+sub_calls( 'PPI::Tokenizer::new', 0, 'Tokenizer was not created. Previous cache used ok' );
 
 1;

@@ -1,14 +1,7 @@
 #line 1 "inc/Class/Inspector.pm - /usr/local/share/perl/5.8.4/Class/Inspector.pm"
 package Class::Inspector;
 
-# Class::Inspector contains a range of static methods that can be used
-# to get information about a class ( or package ) in a convient way.
-
-# In this module we use $class to refer to OUR class, and $name to
-# refer to class names being passed to us to be acted upon.
-#
-# Almost everything in here can be done in other ways, but a lot
-# involve playing with special varables, symbol table, and the like.
+#line 41
 
 # Load Overhead: 236k
 
@@ -18,13 +11,13 @@ use strict 'vars', 'subs';
 use File::Spec ();
 
 # Globals
-use vars qw{$VERSION $RE_SYMBOL $RE_CLASS $UNIX};
+use vars qw{$VERSION $RE_IDENT $RE_CLASS $UNIX};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.11';
 
 	# Predefine some regexs
-	$RE_SYMBOL  = qr/\A[^\W\d]\w*\z/;
-	$RE_CLASS   = qr/\A[^\W\d]\w*(?:(?:'|::)[^\W\d]\w*)*\z/;
+	$RE_IDENT = qr/\A[^\W\d]\w*\z/s;
+	$RE_CLASS = qr/\A[^\W\d]\w*(?:(?:'|::)[^\W\d]\w*)*\z/s;
 
 	# Are we on Unix?
 	$UNIX = !! ( $File::Spec::ISA[0] eq 'File::Spec::Unix' );
@@ -37,21 +30,23 @@ BEGIN {
 #####################################################################
 # Basic Methods
 
-# Is the class installed on the machine, or rather, is it available
-# to Perl. This is basically just a wrapper around C<resolved_filename>.
-# It is installed if it is either already available in %INC, or we
-# can resolve a filename for it.
+#line 81
+
 sub installed {
 	my $class = shift;
 	!! ($class->loaded_filename($_[0]) or $class->resolved_filename($_[0]));
 }
 
-# Is the class loaded.
-# We do this by seeing if the namespace is "occupied", which basically
-# means either we can find $VERSION or @ISA, or at least one subroutine.
+#line 105
+
 sub loaded {
 	my $class = shift;
-	my $name = $class->_class(shift) or return undef;
+	my $name  = $class->_class(shift) or return undef;
+	$class->_loaded($name);
+}
+
+sub _loaded {
+	my ($class, $name) = @_;
 
 	# Handle by far the two most common cases
 	# This is very fast and handles 99% of cases.
@@ -72,18 +67,19 @@ sub loaded {
 	'';
 }
 
-# Convert to a filename, in the style of
-# First::Second -> First/Second.pm
+#line 151
+
 sub filename {
 	my $class = shift;
-	my $name = $class->_class(shift) or return undef;
+	my $name  = $class->_class(shift) or return undef;
 	File::Spec->catfile( split /(?:'|::)/, $name ) . '.pm';
 }
 
-# Resolve the full filename for the class.
+#line 177
+
 sub resolved_filename {
-	my $class = shift;
-	my $filename = $class->_inc_filename(shift) or return undef;
+	my $class     = shift;
+	my $filename  = $class->_inc_filename(shift) or return undef;
 	my @try_first = @_;
 
 	# Look through the @INC path to find the file
@@ -97,10 +93,10 @@ sub resolved_filename {
 	'';
 }
 
-# Get the loaded filename for the class.
-# Look the base filename up in %INC
+#line 206
+
 sub loaded_filename {
-	my $class = shift;
+	my $class    = shift;
 	my $filename = $class->_inc_filename(shift);
 	$UNIX ? $INC{$filename} : $class->_inc_to_local($INC{$filename});
 }
@@ -112,24 +108,22 @@ sub loaded_filename {
 #####################################################################
 # Sub Related Methods
 
-# Get a reference to a list of function names for a class.
-# Note: functions NOT methods.
-# Only works if the class is loaded
+#line 233
+
 sub functions {
 	my $class = shift;
 	my $name  = $class->_class(shift) or return undef;
 	return undef unless $class->loaded( $name );
 
 	# Get all the CODE symbol table entries
-	my @functions = sort grep { /$RE_SYMBOL/o }
+	my @functions = sort grep { /$RE_IDENT/o }
 		grep { defined &{"${name}::$_"} }
 		keys %{"${name}::"};
 	\@functions;
 }
 
-# As above, but returns a ref to an array of the actual 
-# CODE refs of the functions.
-# The class must be loaded for this to work.
+#line 259
+
 sub function_refs {
 	my $class = shift;
 	my $name  = $class->_class(shift) or return undef;
@@ -138,13 +132,14 @@ sub function_refs {
 	# Get all the CODE symbol table entries, but return
 	# the actual CODE refs this time.
 	my @functions = map { \&{"${name}::$_"} }
-		sort grep { /$RE_SYMBOL/o }
+		sort grep { /$RE_IDENT/o }
 		grep { defined &{"${name}::$_"} }
 		keys %{"${name}::"};
 	\@functions;
 }
 
-# Does a particular function exist
+#line 288
+
 sub function_exists {
 	my $class    = shift;
 	my $name     = $class->_class( shift ) or return undef;
@@ -157,7 +152,8 @@ sub function_exists {
 	defined &{"${name}::$function"};
 }
 
-# Get all the available methods for the class
+#line 367
+
 sub methods {
 	my $class     = shift;
 	my $name      = $class->_class( shift ) or return undef;
@@ -213,7 +209,7 @@ sub methods {
 	my %methods = ();
 	foreach my $namespace ( @path ) {
 		my @functions = grep { ! $methods{$_} }
-			grep { /$RE_SYMBOL/o }
+			grep { /$RE_IDENT/o }
 			grep { defined &{"${namespace}::$_"} } 
 			keys %{"${namespace}::"};
 		foreach ( @functions ) {
@@ -224,7 +220,7 @@ sub methods {
 	# Filter to public or private methods if needed
 	my @methodlist = sort keys %methods;
 	@methodlist = grep { ! /^\_/ } @methodlist if $options{public};
-	@methodlist = grep { /^\_/ }   @methodlist if $options{private};
+	@methodlist = grep {   /^\_/ } @methodlist if $options{private};
 
 	# Return in the correct format
 	@methodlist = map { "$methods{$_}::$_" } @methodlist if $options{full};
@@ -233,6 +229,49 @@ sub methods {
 		} @methodlist if $options{expanded};
 
 	\@methodlist;
+}
+
+
+
+
+
+#####################################################################
+# Search Methods
+
+#line 468
+
+sub subclasses {
+	my $class = shift;
+	my $name  = $class->_class( shift ) or return undef;
+
+	# Prepare the search queue
+	my @found = ();
+	my @queue = grep { $_ ne 'main' } $class->_subnames('');
+	while ( @queue ) {
+		my $c = shift(@queue); # c for class
+		if ( $class->_loaded($c) and $c->isa($name) ) {
+			# Add to the found list, but don't add the class itself
+			push @found, $c unless $c eq $name;
+		}
+
+		# Add any child namespaces to the head of the queue.
+		# This keeps the queue length shorted, and allows us
+		# not to have to do another sort at the end.
+		unshift @queue, map { "${c}::$_" } $class->_subnames($c);
+	}
+
+	@found ? \@found : '';
+}
+
+sub _subnames {
+	my ($class, $name) = @_;
+	return sort
+		grep {
+			substr($_, -2, 2, '') eq '::'
+			and
+			/$RE_IDENT/o
+		}
+		keys %{"${name}::"};
 }
 
 
@@ -320,6 +359,4 @@ sub _inc_to_local {
 
 1;
 
-__END__
-
-#line 509
+#line 621

@@ -8,8 +8,8 @@ PPI::Cache - Provides document caching for PPI
 
 =head1 SYNOPSIS
 
-  # Load the default cache
-  use PPI::Cache ':default';
+  # Set the cache
+  use PPI::Cache path => '/var/cache/ppi-cache';
   
   # Manually create a cache
   my $Cache = PPI::Cache->new(
@@ -24,22 +24,54 @@ C<PPI::Cache> provides the default caching functionality for L<PPI>.
 It integrates automatically with L<PPI> itself. Once enabled, any attempt
 to load a document from the filesystem will be cached via cache.
 
+Please note that creating a L<PPI::Document> from raw source or something
+other object will B<not> be cached.
+
+=head2 Using PPI::Cache
+
+The most common way of using C<PPI::Cache> is to provide paramaters to
+the C<use> statment at the beginning of your program.
+
+  # Load the class but do not set a cache
+  use PPI::Cache;
+  
+  # Use a fairly normal cache location
+  use PPI::Cache path => '/var/cache/ppi-cache';
+
+Any of the arguments that can be provided to the C<new> constructor can
+also be provided to C<use>.
+
 =head1 METHODS
 
 =cut
 
 use strict;
-use Carp         ();
-use File::Spec   ();
-use File::Path   ();
-use Storable     ();
-use Digest::MD5  ();
-use Params::Util '_INSTANCE',
-                 '_SCALAR';
+use Carp          ();
+use File::Spec    ();
+use File::Path    ();
+use Storable      ();
+use Digest::MD5   ();
+use Params::Util  '_INSTANCE',
+                  '_SCALAR';
+use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.100_01';
+	$VERSION = '1.100_02';
+}
+
+sub import {
+	my $class = ref $_[0] ? ref shift : shift;
+	return 1 unless @_;
+
+	# Create a cache from the params provided
+	my $cache = $class->new(@_);
+
+	# Make PPI::Document use it
+	PPI::Document->set_cache( $cache )
+		or Carp::croak("Failed to set cache in PPI::Document");
+
+	1;
 }
 
 
@@ -48,6 +80,35 @@ BEGIN {
 
 #####################################################################
 # Constructor and Accessors
+
+=pod
+
+=head2 new param => $value, ...
+
+The C<new> constructor creates a new standalone cache object.
+
+It takes a number of parameters to control the cache.
+
+=over
+
+=item path
+
+The C<path> param sets the base directory for the cache. It must already
+exist, and must be writable.
+
+=item readonly
+
+The C<readonly> param is a true/false flag that allows the use of an
+existing cache by a less-privileged user (such as the web user).
+
+Existing documents will be retrieved from the cache, but new documents
+will not be written to it.
+
+=back
+
+Returns a new C<PPI::Cache> object, or dies on error.
+
+=cut
 
 sub new {
 	my $class  = shift;
@@ -137,6 +198,9 @@ FIXME (make this return either one or the other, not both)
 sub store_document {
 	my $self     = shift;
 	my $Document = _INSTANCE(shift, 'PPI::Document') or return undef;
+
+	# Shortcut if we are readonly
+	return 1 if $self->readonly;
 
 	# Find the filename to save to
 	my $content = $Document->serialize;

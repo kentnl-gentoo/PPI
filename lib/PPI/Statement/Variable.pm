@@ -39,7 +39,7 @@ use base 'PPI::Statement::Expression';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.100_01';
+	$VERSION = '1.100_02';
 }
 
 =pod

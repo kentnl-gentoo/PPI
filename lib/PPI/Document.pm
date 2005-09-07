@@ -76,7 +76,7 @@ use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.100_01';
+	$VERSION = '1.100_02';
 	$errstr  = '';
 }
 
@@ -177,24 +177,36 @@ sub load {
 
 =pod
 
-=head2 set_cache $Cache
+=head2 set_cache $cache
 
-As of L<PPI> 1.100, C<PPI::Document> supports parse caching. The default
-cache class L<PPI::Cache> provides a L<Storable>-based caching or the
-parsed document based on the MD5 hash of the document as a string.
+As of L<PPI> 1.100, C<PPI::Document> supports parser caching.
 
-The statuc C<set_cache> method is used to set the cache object for
+The default cache class L<PPI::Cache> provides a L<Storable>-based
+caching or the parsed document based on the MD5 hash of the document as
+a string.
+
+The static C<set_cache> method is used to set the cache object for
 C<PPI::Document> to use when loading documents. It takes as argument
 a L<PPI::Cache> object (or something that C<isa> the same).
 
-Returns true on success, or C<undef> if not passed a valid cache object.
+If passed C<undef>, this method will stop using the current cache, if any.
+
+For more information on caching, see L<PPI::Cache>.
+
+Returns true on success, or C<undef> if not passed a valid param.
 
 =cut
 
 sub set_cache {
 	my $class  = ref $_[0] ? ref shift : shift;
-	my $object = _INSTANCE(shift, 'PPI::Cache') or return undef;
-	$CACHE = $object;
+	if ( defined $_[0] ) {
+		# Enable the cache
+		my $object = _INSTANCE(shift, 'PPI::Cache') or return undef;
+		$CACHE = $object;
+	} else {
+		# Disable the cache
+		$CACHE = undef;
+	}
 	1;
 }
 

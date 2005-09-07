@@ -1,7 +1,19 @@
 Revision history for Perl extension PPI
 
-1.100_01 Thu Aug 25 2005
+1.100_02
 	General
+	- Various bug fixes
+	- Completed the first version of PPI::Cache
+
+	Details:
+	- Expanded round-trip testing coverage to all the lexer and
+	  regression test files
+	- 06_round_trip.t wasn't doing the round-trip test properly.
+	  Fortunately, this only resulted in false failures, so no
+	  actual damage was done as a result of this.
+
+1.100_01 Sat Sep 03 2005
+	General:
 	- Added integrated cache support
 
 	Details:
