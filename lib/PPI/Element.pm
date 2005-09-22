@@ -36,7 +36,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.100_02';
+	$VERSION = '1.100_03';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -323,7 +323,7 @@ sub first_token {
 	my $cursor = shift;
 	while ( $cursor->isa('PPI::Node') ) {
 		$cursor = $cursor->first_element
-			or die "Found empty PPI::Node while getting first token";
+		or die "Found empty PPI::Node while getting first token";
 	}
 	$cursor;
 }
@@ -351,7 +351,7 @@ sub last_token {
 	my $cursor = shift;
 	while ( $cursor->isa('PPI::Node') ) {
 		$cursor = $cursor->last_element
-			or die "Found empty PPI::Node while getting first token";
+		or die "Found empty PPI::Node while getting first token";
 	}
 	$cursor;
 }
@@ -371,7 +371,7 @@ because it can be useful to find the next token that is after, say, a
 L<PPI::Statement>, although obviously it would be useless to want the
 next token after a L<PPI::Document>.
 
-Returns a L<PPI::Token> object, or false if there are no more token after
+Returns a L<PPI::Token> object, or false if there are no more tokens after
 the Element.
 
 =cut
@@ -379,27 +379,18 @@ the Element.
 sub next_token {
 	my $cursor = shift;
 
-	# Start with the next Element. Go up via our parents if needed.
-	my $Element;
-	while ( defined($Element = $cursor->next_sibling) ) {
-		$cursor = $_PARENT{refaddr $cursor} or return '';
+	# Find the next element, going upwards as needed
+	while ( 1 ) {
+		my $element = $cursor->next_sibling;
+		if ( $element ) {
+			return $element if $element->isa('PPI::Token');
+			return $element->first_token;
+		}
+		$cursor = $cursor->parent or return '';
+		if ( $cursor->isa('PPI::Structure') and $cursor->finish ) {
+			return $cursor->finish;
+		}
 	}
-
-	# If the Element is not itself a Token, work our way downwards
-	# through the first child of each level till we find one
-	### Note: There's a few potential problems with this part of the
-	###       algorithm, but it will be safe as long as PPI::Token
-	###       is the ONLY class to inherit from PPI::Element other
-	###       than PPI::Node. This is because first_element is really
-	###       a PPI::Node method, NOT a PPI::Element method, so we are
-	###       using it in a slightly unsafe context. Again though, in
-	###       the class structure as of the time this method was written,
-	###       this is safe.
-	while ( ! $Element->isa('PPI::Token') ) {
-		defined($Element = $Element->first_element) or return '';
-	}
-
-	$Element;
 }
 
 =pod
@@ -424,20 +415,18 @@ the C<Element>.
 sub previous_token {
 	my $cursor = shift;
 
-	# Start with the next Element.
-	# Go up via our parents if needed.
-	my $Element;
-	while ( defined($Element = $cursor->previous_sibling) ) {
-		$cursor = $_PARENT{refaddr $cursor} or return '';
+	# Find the previous element, going upwards as needed
+	while ( 1 ) {
+		my $element = $cursor->previous_sibling;
+		if ( $element ) {
+			return $element if $element->isa('PPI::Token');
+			return $element->last_token;
+		}
+		$cursor = $cursor->parent or return '';
+		if ( $cursor->isa('PPI::Structure') and $cursor->start ) {
+			return $cursor->start;
+		}
 	}
-
-	# If the Element is not itself a Token, work our way downwards
-	# through the last child of each level till we find one
-	while ( ! $Element->isa('PPI::Token') ) {
-		defined($Element = $Element->last_element) or return '';
-	}
-
-	$Element;
 }
 
 

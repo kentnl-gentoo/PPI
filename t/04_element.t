@@ -24,7 +24,7 @@ BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 188;
+use Test::More tests => 215;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -50,6 +50,12 @@ sub omethod_fails {
 	foreach my $args ( @$arg_set ) {
 		is( $object->$method( $args ), undef, ref($object) . "->$method fails correctly" );
 	}
+}
+
+sub pause {
+	local $@;
+	eval { require Time::HiRes; };
+	$@ ? sleep(1) : Time::HiRes::sleep(0.1);
 }
 
 
@@ -84,7 +90,7 @@ use Scalar::Util ();
 		ok( Scalar::Util::isweak( $hash{bar} ), 'index entry is weak' );
 		ok( ! Scalar::Util::isweak( $object3 ), 'original is not weak' );
 
-		sleep 1;
+		pause();
 
 		# Do all the objects still exist
 		isa_ok( $object1, 'My::WeakenTest' );
@@ -93,7 +99,7 @@ use Scalar::Util ();
 		isa_ok( $hash{foo}, 'My::WeakenTest' );
 		isa_ok( $hash{bar}, 'My::WeakenTest' );
 	}
-	sleep 1;
+	pause();
 	# Two of the three should have destroyed
 	is( $counter, 2, 'Counter increments as expected normally' );
 
@@ -244,6 +250,21 @@ is_object( $Token2->next_sibling, $Token3, "Second token sees third token as nex
 is_object( $Braces->next_sibling, $Token7, "Braces sees seventh token as next_sibling" );
 is( $Token7->next_sibling, '', 'Last token returns false for next_sibling' );
 
+# More extensive test for next_sibling
+{
+	my $doc = PPI::Document->new( \"sub foo { bar(); }" );
+	my $end = $doc->last_token;
+	isa_ok( $end, 'PPI::Token::Structure' );
+	is( $end->content, '}', 'Got end token' );
+	is( $end->next_sibling, '', '->next_sibling for an end closing brace returns false' );
+	my $braces = $doc->find_first( sub {
+		$_[1]->isa('PPI::Structure') and $_[1]->braces eq '()'
+		} );
+	isa_ok( $braces, 'PPI::Structure' );
+	isa_ok( $braces->next_token, 'PPI::Token::Structure' );
+	is( $braces->next_token->content, ';', 'Got the correct next_token for structure' );
+}
+
 # Test the ->previous_sibling method
 is( $Document->previous_sibling,  '', "Document returns false for previous_sibling" );
 is( $Statement->previous_sibling, '', "Statement returns false for previous_sibling" );
@@ -251,6 +272,21 @@ is( $Token1->previous_sibling,    '', "First token returns false for previous_si
 is_object( $Token2->previous_sibling, $Token1, "Second token sees first token as previous_sibling" );
 is_object( $Token3->previous_sibling, $Token2, "Third token sees second token as previous_sibling" );
 is_object( $Token7->previous_sibling, $Braces, "Last token sees braces as previous_sibling" );
+
+# More extensive test for next_sibling
+{
+	my $doc = PPI::Document->new( \"{ no strict; bar(); }" );
+	my $start = $doc->first_token;
+	isa_ok( $start, 'PPI::Token::Structure' );
+	is( $start->content, '{', 'Got start token' );
+	is( $start->previous_sibling, '', '->previous_sibling for an start opening brace returns false' );
+	my $braces = $doc->find_first( sub {
+		$_[1]->isa('PPI::Structure') and $_[1]->braces eq '()'
+		} );
+	isa_ok( $braces, 'PPI::Structure' );
+	isa_ok( $braces->previous_token, 'PPI::Token::Word' );
+	is( $braces->previous_token->content, 'bar', 'Got the correct previous_token for structure' );
+}
 
 # Test the ->snext_sibling method
 my $Token4 = $Statement->{children}->[3];
@@ -412,7 +448,7 @@ ok( ! defined $Braces->parent, "Braces are detached from parent" );
 		is( $k2, $k1 + 1, 'PARENT keys increases after adding element' );
 		$Statement->DESTROY;
 	}
-	sleep 1;
+	pause();
 	$k3 = scalar keys %PPI::Element::_PARENT;
 	is( $k3, $k1, 'PARENT keys returns to original on DESTROY' );
 }
@@ -429,7 +465,7 @@ ok( ! defined $Braces->parent, "Braces are detached from parent" );
 		ok( $k2 > ($k1 + 3000), 'PARENT keys increases after loading document' );
 		$NodeDocument->DESTROY;
 	}
-	sleep 1;
+	pause();
 	$k3 = scalar keys %PPI::Element::_PARENT;
 	is( $k3, $k1, 'PARENT keys returns to original on explicit Document DESTROY' );
 }
@@ -445,9 +481,71 @@ ok( ! defined $Braces->parent, "Braces are detached from parent" );
 		$k2 = scalar keys %PPI::Element::_PARENT;
 		ok( $k2 > ($k1 + 3000), 'PARENT keys increases after loading document' );
 	}
-	sleep 1;
+	pause();
 	$k3 = scalar keys %PPI::Element::_PARENT;
 	is( $k3, $k1, 'PARENT keys returns to original on implicit Document DESTROY' );
+}
+
+
+
+
+
+#####################################################################
+# Token-related methods
+
+# Test first_token, last_token, next_token and previous_token
+{
+my $code = <<'END_PERL';
+my $foo = bar();
+
+sub foo {
+	my ($foo, $bar, undef) = ('a', shift(@_), 'bar');
+	return [ $foo, $bar ];
+}
+END_PERL
+	# Trim off the trailing newline to test last_token better
+	$code =~ s/\s+$//s;
+
+	# Create the document
+	my $doc = PPI::Document->new( \$code );
+	isa_ok( $doc, 'PPI::Document' );
+
+	# Basic first_token and last_token using a single non-trival sample
+	### FIXME - Make this more thorough
+	my $first_token = $doc->first_token;
+	isa_ok( $first_token, 'PPI::Token::Word' );
+	is( $first_token->content, 'my', '->first_token works as expected' );
+	my $last_token = $doc->last_token;
+	isa_ok( $last_token, 'PPI::Token::Structure' );
+	is( $last_token->content, '}', '->last_token works as expected' );
+
+	# Test next_token
+	is( $last_token->next_token, '', 'last->next_token returns false' );
+	is( $doc->next_token,        '', 'doc->next_token returns false'  );
+	my $next_token = $first_token->next_token;
+	isa_ok( $next_token, 'PPI::Token::Whitespace' );
+	is( $next_token->content, ' ', 'Trivial ->next_token works as expected' );
+	my $counter = 1;
+	my $token   = $first_token;
+	while ( $token = $token->next_token ) {
+		$counter++;
+	}
+	is( $counter, scalar($doc->tokens),
+		'->next_token iterated the expected number of times for a sample document' );
+
+	# Test previous_token
+	is( $first_token->previous_token, '', 'last->previous_token returns false' );
+	is( $doc->previous_token,         '', 'doc->previous_token returns false'  );
+	my $previous_token = $last_token->previous_token;
+	isa_ok( $previous_token, 'PPI::Token::Whitespace' );
+	is( $previous_token->content, "\n", 'Trivial ->previous_token works as expected' );
+	$counter = 1;
+	$token   = $last_token;
+	while ( $token = $token->previous_token ) {
+		$counter++;
+	}
+	is( $counter, scalar($doc->tokens),
+		'->previous_token iterated the expected number of times for a sample document' );
 }
 
 1;

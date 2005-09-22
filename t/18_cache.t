@@ -18,11 +18,11 @@ BEGIN {
 
 # Load the code to test
 BEGIN { $PPI::XS_DISABLE = 1 }
-use PPI::Cache     ();
-use PPI::Document  ();
-use File::Remove   ();
-use Scalar::Util   'refaddr';
-use Test::More tests => 41;
+use PPI::Cache    ();
+use PPI::Document ();
+use File::Remove  ();
+use Scalar::Util  'refaddr';
+use Test::More    tests => 42;
 use Test::SubCalls;
 
 my $this_file = catdir( 't.data', '03_empiric', 'test.dat' );
@@ -36,6 +36,7 @@ ok( scalar(mkdir $cache_dir), 'mkdir $cache_dir returns true' );
 ok( -d $cache_dir, 'Verified the cache path exists' );
 ok( -w $cache_dir, 'Can write to the cache path'    );
 
+my $sample_document = \'print "Hello World!\n";';
 
 
 
@@ -53,9 +54,10 @@ is( scalar($Cache->path), $cache_dir, '->path returns the original path'    );
 is( scalar($Cache->readonly), '',      '->readonly returns false by default' );
 
 # Create a test document
-my $doc = PPI::Document->new( \'print "Hello World!\n";' );
+my $doc = PPI::Document->new( $sample_document );
 isa_ok( $doc, 'PPI::Document' );
 my $doc_md5  = '64568092e7faba16d99fa04706c46517';
+is( $doc->hex_id, $doc_md5, '->hex_id specifically matches the UNIX newline md5' );
 my $doc_file = catfile($cache_dir, '6', '64', '64568092e7faba16d99fa04706c46517.ppi');
 my $bad_md5  = 'abcdef1234567890abcdef1234567890';
 my $bad_file = catfile($cache_dir, 'a', 'ab', 'abcdef1234567890abcdef1234567890.ppi');
@@ -73,17 +75,17 @@ is( scalar( $Cache->store_document($doc) ), 1,
 ok( -f $doc_file, 'The document was stored in the expected location' );
 
 # Check the _md5hex method
-is( PPI::Cache->_md5hex(\'print "Hello World!\n";'), $doc_md5,
+is( PPI::Cache->_md5hex($sample_document), $doc_md5,
 	'->_md5hex returns as expected for sample document' );
 is( PPI::Cache->_md5hex($doc_md5), $doc_md5,
 	'->_md5hex null transform works as expected' );
-is( $Cache->_md5hex(\'print "Hello World!\n";'), $doc_md5,
+is( $Cache->_md5hex($sample_document), $doc_md5,
 	'->_md5hex returns as expected for sample document' );
 is( $Cache->_md5hex($doc_md5), $doc_md5,
 	'->_md5hex null transform works as expected' );
 
 # Retrieve the Document by content
-$loaded = $Cache->get_document( \'print "Hello World!\n";' );
+$loaded = $Cache->get_document( $sample_document );
 isa_ok( $loaded, 'PPI::Document' );
 is_deeply( $doc, $loaded, '->get_document(\$source) loads the same document back in' );
 
@@ -141,8 +143,8 @@ is( scalar(PPI::Document->get_cache->readonly), '',      '->readonly returns fal
 
 # Does it still keep the previously cached documents
 sub_reset( 'PPI::Tokenizer::new' );
-my $doc1 = PPI::Document->new( $this_file );
-isa_ok( $doc1, 'PPI::Document' );
+my $doc3 = PPI::Document->new( $this_file );
+isa_ok( $doc3, 'PPI::Document' );
 sub_calls( 'PPI::Tokenizer::new', 0, 'Tokenizer was not created. Previous cache used ok' );
 
 1;

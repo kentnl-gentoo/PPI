@@ -1,5 +1,16 @@
 Revision history for Perl extension PPI
 
+1.100_03
+	General
+	- Major bug fixing
+	- Some additions to help simplify Perl::Metrics
+
+	Details:
+	- A whole bunch (practically all) of the sibling code was breaking
+	  under non-trivial use. Fixed, with a number of new tests added.
+	- Added function PPI::Util::md5hex
+	- Added method PPI::Document::hex_id
+
 1.100_02
 	General
 	- Various bug fixes

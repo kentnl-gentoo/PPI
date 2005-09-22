@@ -24,7 +24,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2181;
+use Test::More tests => 2183;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -349,6 +349,7 @@ load=method
 save=method
 tab_width=method
 serialize=method
+hex_id=method
 index_locations=method
 flush_locations=method
 normalized=method

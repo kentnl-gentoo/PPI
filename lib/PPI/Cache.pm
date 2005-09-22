@@ -4,7 +4,7 @@ package PPI::Cache;
 
 =head1 NAME
 
-PPI::Cache - Provides document caching for PPI
+PPI::Cache - The PPI Document Caching Layer
 
 =head1 SYNOPSIS
 
@@ -57,7 +57,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.100_02';
+	$VERSION = '1.100_03';
 }
 
 sub import {
@@ -203,8 +203,7 @@ sub store_document {
 	return 1 if $self->readonly;
 
 	# Find the filename to save to
-	my $content = $Document->serialize;
-	my $md5hex  = Digest::MD5::md5_hex($content);
+	my $md5hex = $Document->hex_id or return undef;
 
 	# Store the file
 	$self->_store( $md5hex, $Document );
@@ -259,7 +258,7 @@ sub _paths {
 sub _md5hex {
 	my $either = shift;
 	my $it     = _SCALAR($_[0])
-		? Digest::MD5::md5_hex(${$_[0]})
+		? PPI::Util::md5hex(${$_[0]})
 		: $_[0];
 	return (defined $it and ! ref $it and $it =~ /^[a-f0-9]{32}$/si)
 		? lc $it

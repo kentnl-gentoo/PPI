@@ -5,7 +5,8 @@ package PPI::Structure;
 use strict;
 use UNIVERSAL 'isa';
 use base 'PPI::Node';
-use Scalar::Util 'refaddr';
+use Scalar::Util                'refaddr';
+use Params::Util                '_INSTANCE';
 use PPI::Structure::Block       ();
 use PPI::Structure::Condition   ();
 use PPI::Structure::Constructor ();
@@ -16,7 +17,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.100_02';
+	$VERSION = '1.100_03';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -125,7 +126,11 @@ sub last_element {
 # Get the full set of tokens, including start and finish
 sub tokens {
 	my $self = shift;
-	my @tokens = ( $self->{start} || (), $self->SUPER::tokens(@_), $self->{finish} || () );
+	my @tokens = (
+		$self->{start}  || (),
+		$self->SUPER::tokens(@_),
+		$self->{finish} || (),
+		);
 	@tokens;
 }
 
@@ -145,7 +150,7 @@ sub content {
 # You can insert either another structure, or a token
 sub insert_before {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 	if ( $Element->isa('PPI::Structure') ) {
 		return $self->__insert_before($Element);
 	} elsif ( $Element->isa('PPI::Token') ) {
@@ -157,7 +162,7 @@ sub insert_before {
 # As above, you can insert either another structure, or a token
 sub insert_after {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 	if ( $Element->isa('PPI::Structure') ) {
 		return $self->__insert_after($Element);
 	} elsif ( $Element->isa('PPI::Token') ) {

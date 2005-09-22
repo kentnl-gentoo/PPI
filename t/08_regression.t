@@ -23,6 +23,12 @@ BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer;
 use PPI::Dumper;
 
+sub pause {
+	local $@;
+	eval { require Time::HiRes; };
+	$@ ? sleep(1) : Time::HiRes::sleep(0.1);
+}
+
 
 
 
@@ -117,7 +123,7 @@ foreach my $codefile ( @code ) {
 # Check that objects created in a foreach don't leak circulars.
 is( scalar(keys(%PPI::Element::_PARENT)), 0, 'No parent links initially' );
 foreach ( 1 .. 3 ) {
-	sleep 1;
+	pause();
 	is( scalar(keys(%PPI::Element::_PARENT)), 0, 'No parent links at start of loop time' );
 	my $Document = PPI::Document->new(\q[print "Foo!"]);
 	is( scalar(keys(%PPI::Element::_PARENT)), 4, 'Correct number of keys created' );

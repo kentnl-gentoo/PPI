@@ -38,7 +38,7 @@ use base 'PPI::Token::Word';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.100_02';
+	$VERSION = '1.100_03';
 }
 
 1;

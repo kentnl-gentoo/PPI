@@ -20,7 +20,7 @@ PPI::Document - Object representation of a Perl document
   my $Document = PPI::Document->new('My/Module.pm');
   
   # Strip out comments
-  $Document->prune( 'PPI::Token::Comment' );
+  $Document->prune('PPI::Token::Comment');
   
   # Find all the named subroutines
   my @subs = $Document->find( 
@@ -68,6 +68,7 @@ use Carp                    ();
 use List::MoreUtils         ();
 use Params::Util            '_INSTANCE',
                             '_SCALAR';
+use Digest::MD5             ();
 use PPI                     ();
 use PPI::Util               ();
 use PPI::Document::Fragment ();
@@ -76,7 +77,7 @@ use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.100_02';
+	$VERSION = '1.100_03';
 	$errstr  = '';
 }
 
@@ -401,6 +402,28 @@ sub serialize {
 
 =pod
 
+=head2 hex_id
+
+The C<hex_id> method generates an unique identifier for the Perl document.
+
+This identifier is basically just the serialized document, with
+Unix-specific newlines, passed through MD5 to produce a hexidecimal string.
+
+This identifier is used by a variety of systems (such as L<PPI::Cache>
+and L<Perl::Metrics>) as a unique key against which to store or cache
+information about a document (or indeed, to cache the document itself).
+
+Returns a 32 character hexidecimal string.
+
+=cut
+
+sub hex_id {
+	my $self = shift;
+	PPI::Util::md5hex($self->serialize);
+}
+
+=pod
+
 =head2 index_locations
 
 Within a document, all L<PPI::Element> objects can be considered to have a
@@ -419,8 +442,8 @@ added to or removed from the file, these indexed locations will be B<wrong>.
 =cut
 
 sub index_locations {
-	my $self    = shift;
-	my @Tokens  = $self->tokens;
+	my $self   = shift;
+	my @Tokens = $self->tokens;
 
 	# Whenever we hit a heredoc we will need to increment by
 	# the number of lines in it's content section when when we

@@ -10,10 +10,14 @@ requires       ( 'Carp'             => 0        );
 requires       ( 'Clone'            => '0.17'   );
 requires       ( 'List::Util'       => '1.11'   );
 requires       ( 'List::MoreUtils'  => '0.04'   );
-requires       ( 'Digest::MD5'      => '2.27'   );
-requires       ( 'Storable'         => '2.14'   );
 requires       ( 'Params::Util'     => '0.05'   );
 requires       ( 'IO::Scalar'       => '2.105'  );
+
+# Modules needed for PPI::Cache
+requires       ( 'Digest::MD5'      => '2.27'   );
+requires       ( 'Storable'         => '2.14'   );
+
+# Test-time dependencies
 build_requires ( 'Test::More'       => '0.47'   );
 build_requires ( 'Test::ClassAPI'   => '1.02'   );
 build_requires ( 'Test::SubCalls'   => '0.01'   );
@@ -27,6 +31,8 @@ include        ( 'File::Remove'                 );
 include        ( 'Class::Inspector'             );
 include        ( 'Config::Tiny'                 );
 include        ( 'Hook::LexWrap'                );
+
+# Ignore anything perl-ish in the test data directory
 no_index       ( directory          => 't.data' );
 
 auto_install();

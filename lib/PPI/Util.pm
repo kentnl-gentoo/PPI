@@ -4,13 +4,14 @@ package PPI::Util;
 
 use strict;
 use base 'Exporter';
+use Digest::MD5   ();
 use PPI::Document ();
 use Params::Util '_INSTANCE',
                  '_SCALAR';
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.100_02';
+	$VERSION   = '1.100_03';
 	@EXPORT_OK = qw{_Document _slurp};
 }
 
@@ -40,6 +41,14 @@ sub _slurp {
 	my $source = <PPIUTIL>;
 	close( PPIUTIL ) or return "close($file) failed: $!";
 	\$source;
+}
+
+# Provides a version of Digest::MD5's md5hex that explicitly
+# works on the unix-newlined version of the content.
+sub md5hex {
+	my $string = shift;
+	$string =~ s/(?:\015{1,2}\012|\015|\012)/\015/s;
+	Digest::MD5::md5_hex($string);
 }
 
 1;
