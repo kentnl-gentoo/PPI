@@ -61,7 +61,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.100_03';
+	$VERSION = '1.101';
 	$errstr  = '';
 }
 
@@ -967,7 +967,7 @@ sub _add_element {
 	if ( ref $Parent eq 'PPI::Statement' ) {
 		my $first  = $Parent->schild(0);
 		my $second = $Parent->schild(1);
-		if ( $first and $first->isa('Label') and ! $second ) {
+		if ( $first and $first->isa('PPI::Token::Label') and ! $second ) {
 			# It's a labelled statement
 			if ( $STATEMENT_CLASSES{$second->content} ) {
 				bless $Parent, $STATEMENT_CLASSES{$second->content};

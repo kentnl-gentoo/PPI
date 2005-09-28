@@ -1,5 +1,5 @@
 name: PPI
-version: 1.100_03
+version: 1.101
 abstract: Parse, Analyze and Manipulate Perl (without perl)
 author: Adam Kennedy <cpan@ali.as>
 license: perl

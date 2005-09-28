@@ -41,7 +41,7 @@ use PPI::Document::Normalized ();
 
 use vars qw{$VERSION $errstr %LAYER};
 BEGIN {
-	$VERSION = '1.100_03';
+	$VERSION = '1.101';
 	$errstr  = '';
 
 	# Registered function store

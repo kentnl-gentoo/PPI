@@ -7,14 +7,13 @@ package Class::Inspector;
 
 # We don't want to use strict refs, since we do a lot of things in here
 # that arn't strict refs friendly.
-use strict     'vars',
-               'subs';
+use strict     qw{vars subs};
 use File::Spec ();
 
 # Globals
 use vars qw{$VERSION $RE_IDENT $RE_CLASS $UNIX};
 BEGIN {
-	$VERSION = '1.12';
+	$VERSION = '1.13';
 
 	# Predefine some regexs
 	$RE_IDENT = qr/\A[^\W\d]\w*\z/s;
@@ -31,14 +30,14 @@ BEGIN {
 #####################################################################
 # Basic Methods
 
-#line 82
+#line 81
 
 sub installed {
 	my $class = shift;
 	!! ($class->loaded_filename($_[0]) or $class->resolved_filename($_[0]));
 }
 
-#line 106
+#line 105
 
 sub loaded {
 	my $class = shift;
@@ -68,7 +67,7 @@ sub _loaded {
 	'';
 }
 
-#line 152
+#line 151
 
 sub filename {
 	my $class = shift;
@@ -76,7 +75,7 @@ sub filename {
 	File::Spec->catfile( split /(?:'|::)/, $name ) . '.pm';
 }
 
-#line 178
+#line 177
 
 sub resolved_filename {
 	my $class     = shift;
@@ -94,7 +93,7 @@ sub resolved_filename {
 	'';
 }
 
-#line 207
+#line 206
 
 sub loaded_filename {
 	my $class    = shift;
@@ -109,7 +108,7 @@ sub loaded_filename {
 #####################################################################
 # Sub Related Methods
 
-#line 234
+#line 233
 
 sub functions {
 	my $class = shift;
@@ -123,7 +122,7 @@ sub functions {
 	\@functions;
 }
 
-#line 260
+#line 259
 
 sub function_refs {
 	my $class = shift;
@@ -139,7 +138,7 @@ sub function_refs {
 	\@functions;
 }
 
-#line 289
+#line 288
 
 sub function_exists {
 	my $class    = shift;
@@ -153,7 +152,7 @@ sub function_exists {
 	defined &{"${name}::$function"};
 }
 
-#line 368
+#line 367
 
 sub methods {
 	my $class     = shift;
@@ -239,7 +238,7 @@ sub methods {
 #####################################################################
 # Search Methods
 
-#line 469
+#line 468
 
 sub subclasses {
 	my $class = shift;
@@ -370,4 +369,4 @@ sub _inc_to_local {
 
 1;
 
-#line 632
+#line 631

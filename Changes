@@ -1,5 +1,14 @@
 Revision history for Perl extension PPI
 
+1.101    Thu Sep 29 2005
+	General
+	- Bug fix release
+
+	Details:
+	- Fixed CPAN bug #14436 and #14440, misparse for my ($foo) ...
+	- Added an self-analysis test script for PPI-testable problems
+	- Fixed some minor bugs it threw up.
+
 1.100_03
 	General
 	- Major bug fixing

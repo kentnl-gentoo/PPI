@@ -20,7 +20,6 @@ BEGIN {
 # Load the code to test
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
-use PPI::Lexer;
 use Test::More; # Plan comes later
 
 

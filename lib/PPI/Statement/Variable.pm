@@ -29,6 +29,11 @@ PPI::Statement::Variable - Variable declaration statements
 The main intent of the C<PPI::Statement::Variable> class is to describe
 simple statements that explicitly declare new local or global variables.
 
+Note that this does not make it exclusively the only place where variables
+are defined, and later on you should expect that the C<variables> method
+will migrate deeper down the tree to either L<PPI::Statement> or
+L<PPI::Node> to recognise this fact, but for now it stays here.
+
 =head1 METHODS
 
 =cut
@@ -39,7 +44,7 @@ use base 'PPI::Statement::Expression';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.100_03';
+	$VERSION = '1.101';
 }
 
 =pod
@@ -78,6 +83,40 @@ defined by the statement.
 Returns a list of the canonical string forms of variables, or the null list
 if it is unable to find any variables.
 
+=begin testing variables
+
+# Test the things we assert to work in the synopsis
+my $Document = PPI::Document->new(\<<'END_PERL');
+package Bar;
+my $foo = 1;
+my ($foo, $bar) = (1, 2);
+our $foo = 1;
+local $foo;
+local $foo = 1;
+LABEL: my $foo = 1;
+
+# As well as those basics, lets also try some harder ones
+local($foo = $bar->$bar(), $bar);
+END_PERL
+isa_ok( $Document, 'PPI::Document' );
+
+# There should be 6 statement objects
+my $ST = $Document->find('Statement::Variable');
+is( ref($ST), 'ARRAY', 'Found statements' );
+is( scalar(@$ST), 7, 'Found 7 ::Variable objects' );
+foreach my $Var ( @$ST ) {
+	isa_ok( $Var, 'PPI::Statement::Variable' );
+}
+is_deeply( [ $ST->[0]->variables ], [ '$foo' ],         '1: Found $foo' );
+is_deeply( [ $ST->[1]->variables ], [ '$foo', '$bar' ], '2: Found $foo and $bar' );
+is_deeply( [ $ST->[2]->variables ], [ '$foo' ],         '3: Found $foo' );
+is_deeply( [ $ST->[3]->variables ], [ '$foo' ],         '4: Found $foo' );
+is_deeply( [ $ST->[4]->variables ], [ '$foo' ],         '5: Found $foo' );
+is_deeply( [ $ST->[5]->variables ], [ '$foo' ],         '6: Found $foo' );
+is_deeply( [ $ST->[6]->variables ], [ '$foo', '$bar' ], '7: Found $foo and $bar' );
+
+=end testing
+
 =cut
 
 sub variables {
@@ -93,13 +132,51 @@ sub variables {
 	}
 
 	# If it's a list, return as a list
-	if ( isa($schild[1], 'PPI::Statement::List') ) {
-		my $symbols = $schild[1]->find('PPI::Token::Symbol') or return ();
-		return map { $_->canonical } @$symbols;
+	if ( isa($schild[1], 'PPI::Structure::List') ) {
+		my $Expression = $schild[1]->child(0);
+		$Expression and
+		$Expression->isa('PPI::Statement::Expression') or return ();
+
+		# my and our are simpler than local
+		if ( $self->type eq 'my' or $self->type eq 'our' ) {
+			return map { $_->canonical }
+				grep { $_->isa('PPI::Token::Symbol') }
+				$Expression->schildren;
+		}
+
+		# Local is much more icky (potentially).
+		# Not that we are actually going to deal with it now,
+		# but having this seperate is likely going to be needed
+		# for future bug reports about local() things.
+		
+		# This is a slightly better way to check.
+		return map   { $_->canonical                 }
+			grep { $self->_local_variable($_)    }
+			grep { $_->isa('PPI::Token::Symbol') }
+			$Expression->schildren;
 	}
 
 	# erm... this is unexpected
 	();
+}
+
+sub _local_variable {
+	my ($self, $el) = @_;
+
+	# The last symbol should be a variable
+	my $n = $el->snext_sibling or return 1;
+	my $p = $el->sprevious_sibling;
+	if ( ! $p or $p eq ',' ) {
+		# In the middle of a list
+		return 1 if $n eq ',';
+
+		# The first half of an assignment
+		return 1 if $n eq '=';
+	}
+
+	# Lets say no for know... additional work
+	# should go here.
+	return '';
 }
 
 1;
