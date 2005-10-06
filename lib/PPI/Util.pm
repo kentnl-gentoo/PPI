@@ -11,7 +11,7 @@ use Params::Util '_INSTANCE',
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.101';
+	$VERSION   = '1.102';
 	@EXPORT_OK = qw{_Document _slurp};
 }
 
@@ -49,6 +49,13 @@ sub md5hex {
 	my $string = shift;
 	$string =~ s/(?:\015{1,2}\012|\015|\012)/\015/s;
 	Digest::MD5::md5_hex($string);
+}
+
+# As above but slurps and calculates the id for a file by name
+sub md5hex_file {
+	my $file    = shift;
+	my $content = _slurp($file) or return undef;
+	md5hex($$content);
 }
 
 1;

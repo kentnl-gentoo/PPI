@@ -1,5 +1,12 @@
 Revision history for Perl extension PPI
 
+1.102    Wed Oct  5 2005
+	General
+	- Small things to support Perl::Metrics
+
+	Details:
+	- Added undocumented PPI::Util::md5hex_file function
+
 1.101    Thu Sep 29 2005
 	General
 	- Bug fix release

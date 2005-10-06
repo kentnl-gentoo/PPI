@@ -64,7 +64,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.101';
+	$VERSION = '1.102';
 }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Comment__significant 0.900+

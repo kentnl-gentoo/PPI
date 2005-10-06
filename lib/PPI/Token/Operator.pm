@@ -46,7 +46,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '1.101';
+	$VERSION = '1.102';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly
