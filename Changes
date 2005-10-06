@@ -1,5 +1,13 @@
 Revision history for Perl extension PPI
 
+1.103    Thu Oct  6 2005
+	General
+	- Small bug fix that shouldn't have escaped
+
+	Details:
+	- Changed md5hex_file to act more like the PPI::Documeny way.
+	  That is, localise and THEN convert to \015
+
 1.102    Wed Oct  5 2005
 	General
 	- Small things to support Perl::Metrics

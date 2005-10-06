@@ -45,7 +45,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.102';
+	$VERSION = '1.103';
 }
 
 # A null statement is not significant
