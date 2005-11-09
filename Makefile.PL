@@ -8,8 +8,8 @@ license        ( 'perl'                         );
 requires       ( 'perl'             => '5.005'  );
 requires       ( 'Carp'             => 0        );
 requires       ( 'Clone'            => '0.17'   );
-requires       ( 'List::Util'       => '1.11'   );
-requires       ( 'List::MoreUtils'  => '0.04'   );
+requires       ( 'List::Util'       => '1.15'   );
+requires       ( 'List::MoreUtils'  => '0.13'   );
 requires       ( 'Params::Util'     => '0.05'   );
 requires       ( 'IO::Scalar'       => '2.105'  );
 

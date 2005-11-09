@@ -1,5 +1,12 @@
 Revision history for Perl extension PPI
 
+1.104    Thu Nov 10 2005
+	General
+	- No change to code
+	- Both List::Util and List::MoreUtil contain memory leaks,
+	  and we use them extensively. Pushed the dependencies up
+	  to versions with the memory leaks fixed.
+
 1.103    Thu Oct  6 2005
 	General
 	- Small bug fix that shouldn't have escaped

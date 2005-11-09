@@ -24,7 +24,7 @@ BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 215;
+use Test::More tests => 220;
 use Scalar::Util 'refaddr';
 
 sub is_object {
@@ -546,6 +546,21 @@ END_PERL
 	}
 	is( $counter, scalar($doc->tokens),
 		'->previous_token iterated the expected number of times for a sample document' );
+}
+
+#####################################################################
+#  Simple overload tests
+
+# Make sure the 'use overload' is working on Element subclasses
+
+{
+   my $source   = '1;';
+   my $Document = PPI::Lexer->lex_source( $source );
+   isa_ok( $Document, 'PPI::Document' );
+   ok($Document eq $source, 'overload eq');
+   ok($Document ne 'foo', 'overload ne');
+   ok($Document == $Document, 'overload ==');
+   ok($Document != $Document->schild(0), 'overload !=');
 }
 
 1;

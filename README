@@ -670,10 +670,12 @@ ACKNOWLEDGMENTS
       - Johnny Lee
       - Johan Lindstrom
 
-    And to single one person out, thank you to Randal Schwartz who (mostly)
-    patiently spent a great number of hours in IRC over a critical 6 month
-    period "aggresively explaining" why Perl is impossibly unparsable and
-    shoving evil and ugly corner cases in my face.
+    And to single one person out, Randal Schwartz who (mostly) patiently
+    spent a great number of hours in IRC over a critical 6 month period
+    "aggresively explaining" why Perl is impossibly unparsable and shoving
+    evil and ugly corner cases in my face. He remains a tireless devil's
+    advocate and without his continued support this project genuinely could
+    never have been completed. He has my deepest thanks.
 
 COPYRIGHT
     Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.

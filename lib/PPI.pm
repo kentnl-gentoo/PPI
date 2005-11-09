@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.103';
+	$VERSION       = '1.104';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -27,7 +27,8 @@ use PPI::Lexer                ();
 # If it is installed, load in PPI::XS
 unless ( $PPI::XS_DISABLE ) {
 	eval { require PPI::XS };
-	die if $@ && $@ !~ /^Can't locate .*? at /; # Only ignore if not installed
+	# Only ignore the failure to load PPI::XS if not installed
+	die if $@ && $@ !~ /^Can't locate .*? at /;
 }
 
 1;
@@ -744,10 +745,12 @@ If I missed someone who wasn't in my email history, thank you too :)
   - Johnny Lee
   - Johan Lindstrom
 
-And to single one person out, thank you to Randal Schwartz who (mostly)
-patiently spent a great number of hours in IRC over a critical 6 month
-period "aggresively explaining" why Perl is impossibly unparsable and
-shoving evil and ugly corner cases in my face.
+And to single one person out, Randal Schwartz who (mostly) patiently
+spent a great number of hours in IRC over a critical 6 month period
+"aggresively explaining" why Perl is impossibly unparsable and
+shoving evil and ugly corner cases in my face. He remains a tireless
+devil's advocate and without his continued support this project
+genuinely could never have been completed. He has my deepest thanks.
 
 =head1 COPYRIGHT
 

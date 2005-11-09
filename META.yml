@@ -1,5 +1,5 @@
 name: PPI
-version: 1.103
+version: 1.104
 abstract: Parse, Analyze and Manipulate Perl (without perl)
 author: Adam Kennedy <cpan@ali.as>
 license: perl
@@ -14,8 +14,8 @@ requires:
   perl: 5.005
   Carp: 0
   Clone: 0.17
-  List::Util: 1.11
-  List::MoreUtils: 0.04
+  List::Util: 1.15
+  List::MoreUtils: 0.13
   Params::Util: 0.05
   IO::Scalar: 2.105
   Digest::MD5: 2.27

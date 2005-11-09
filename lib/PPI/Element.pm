@@ -32,11 +32,13 @@ use List::MoreUtils ();
 use overload 'bool' => sub () { 1 },
              '""'   => 'content',
              '=='   => '__equals',
-             'eq'   => '__eq';
+             '!='   => '__nequals',
+             'eq'   => '__eq',
+             'ne'   => '__ne';
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.103';
+	$VERSION = '1.104';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -747,12 +749,14 @@ sub _clear {
 sub DESTROY { delete $_PARENT{refaddr $_[0]} }
 
 # Operator overloads
-sub __equals { ref $_[1] and refaddr($_[0]) == refaddr($_[1]) }
+sub __equals  { ref $_[1] and refaddr($_[0]) == refaddr($_[1]) }
+sub __nequals { !__equals(@_) }
 sub __eq {
 	my $self  = _INSTANCE($_[0], 'PPI::Element') ? $_[0]->content : $_[0];
 	my $other = _INSTANCE($_[1], 'PPI::Element') ? $_[1]->content : $_[1];
 	$self eq $other;
 }
+sub __ne { !__eq(@_) }
 
 1;
 
