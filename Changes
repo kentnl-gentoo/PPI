@@ -1,5 +1,12 @@
 Revision history for Perl extension PPI
 
+1.106    Sun Dec 11 2005
+	General:
+	- More changes to support all possible 4-character programs
+	
+	Details:
+	- Various fixes to weird things like *::'
+
 1.105    Sat Dec 10 2005
 	General:
 	- Improvements driven by Audrey Tang's pugs wishlist.

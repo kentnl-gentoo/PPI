@@ -84,12 +84,11 @@ a relatively large number of unique methods all of their own.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.105';
+	$VERSION = '1.106';
 }
 
 
@@ -149,10 +148,16 @@ sub __TOKENIZER__on_char {
 	# We are currently located on the first char after the <<
 	# Get the rest of the line
 	$_ = substr( $t->{line}, $t->{line_cursor} );
+
+	# Handle the most common form first for simplicity and speed reasons
 	### FIXME - This regex, and this method in general, do not yet allow
 	### for the null here-doc, which terminates at the first
 	### empty line.
-	/^(\s*(?:"[^"]*"|'[^']*'|`[^`]*`|\w+))/ or return undef;
+	unless ( /^(\s*(?:"[^"]*"|'[^']*'|`[^`]*`|\w+))/ ) {
+		# Degenerate to a left-shift operation
+		$token->set_class('Operator') or return undef;
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
+	}
 
 	# Add the rest of the token, work out what type it is,
 	# and suck in the content until the end.
@@ -213,8 +218,8 @@ sub __TOKENIZER__on_char {
 
 	# End of file.
 	# Error: Didn't reach end of here-doc before end of file.
-
-	if ( $line eq $token->{_terminator} ) {
+	# $line might be undef if we get NO lines.
+	if ( defined $line and defined $line eq $token->{_terminator} ) {
 		# If the last line matches the terminator
 		# but is missing the newline, we want to allow
 		# it anyway (like perl itself does). In this case

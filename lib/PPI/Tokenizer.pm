@@ -10,8 +10,8 @@ PPI::Tokenizer - The Perl Document Tokenizer
 
   # Create a tokenizer for a file, array or string
   $Tokenizer = PPI::Tokenizer->new( 'filename.pl' );
-  $Tokenizer = PPI::Tokenizer->new( \@lines        );
-  $Tokenizer = PPI::Tokenizer->new( \$source       );
+  $Tokenizer = PPI::Tokenizer->new( \@lines       );
+  $Tokenizer = PPI::Tokenizer->new( \$source      );
   
   # Return all the tokens for the document
   my $tokens = $Tokenizer->all_tokens;
@@ -79,7 +79,7 @@ use PPI::Util       ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.105';
+	$VERSION = '1.106';
 	$errstr  = '';
 }
 
@@ -245,15 +245,26 @@ sub get_token {
 		return $_;
 	}
 
-	# No token, we need to get some more
-	while ( $_ = $self->_process_next_line ) {
-		# If there is something in the buffer, return it
-		if ( $_ = $self->{tokens}->[ $self->{token_cursor} ] ) {
-			$self->{token_cursor}++;
-			return $_;
+	# Catch exceptions and return undef, so that we
+	# can start to convert code to exception-based code.
+	my $rv = eval {
+		# No token, we need to get some more
+		while ( $_ = $self->_process_next_line ) {
+			# If there is something in the buffer, return it
+			if ( $_ = $self->{tokens}->[ $self->{token_cursor} ] ) {
+				$self->{token_cursor}++;
+				return $_;
+			}
 		}
+		return undef;
+	};
+	if ( $@ ) {
+		my $errstr = $@;
+		$errstr =~ s/^(.*) at line .+$/$1/;
+		return $self->_error( $errstr );
+	} elsif ( $rv ) {
+		return $rv;
 	}
-
 
 	if ( defined $_ ) {
 		# End of file, but we can still return things from the buffer
@@ -292,14 +303,23 @@ all, or C<undef> on error.
 sub all_tokens {
 	my $self = shift;
 
-	# Process lines until we get EOF
-	unless ( $self->{token_eof} ) {
-		my $rv;
-		while ( $rv = $self->_process_next_line ) {}
-		return $self->_error( "Error while processing source" ) unless defined $rv;
+	# Catch exceptions and return undef, so that we
+	# can start to convert code to exception-based code.
+	eval {
+		# Process lines until we get EOF
+		unless ( $self->{token_eof} ) {
+			my $rv;
+			while ( $rv = $self->_process_next_line ) {}
+			return $self->_error( "Error while processing source" ) unless defined $rv;
 
-		# Clean up the end of the tokenizer
-		$self->_clean_eof;
+			# Clean up the end of the tokenizer
+			$self->_clean_eof;
+		}
+	};
+	if ( $@ ) {
+		my $errstr = $@;
+		$errstr =~ s/^(.*) at line .+$/$1/;
+		return $self->_error( $errstr );
 	}
 
 	# End of file, return a copy of the token array.

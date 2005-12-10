@@ -28,12 +28,12 @@ rather than what it might appear to be pointing at.
 =cut
  
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token';
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.105';
+	$VERSION = '1.106';
 }
 
 
@@ -92,7 +92,7 @@ sub symbol {
 
 	# Unless the next significant Element is a structure, it's correct.
 	my $after  = $self->snext_sibling;
-	return $symbol unless isa( $after, 'PPI::Structure' );
+	return $symbol unless _INSTANCE($after, 'PPI::Structure');
 
 	# Process the rest for cases where it might actually be somethign else
 	my $braces = $after->braces;
@@ -155,7 +155,7 @@ sub __TOKENIZER__on_char {
 	my $line = substr( $t->{line}, $t->{line_cursor} );
 	if ( $line =~ /^([\w:']+)/ ) {
 		$t->{token}->{content} .= $1;
-		$t->{line_cursor} += length $1;
+		$t->{line_cursor}      += length $1;
 	}
 
 	# Handle magic things
@@ -165,10 +165,7 @@ sub __TOKENIZER__on_char {
 		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 
-	# Shortcut for a couple of things
-	if ( $content eq '%::' or $content eq '*::' or $content eq '@::' ) {
-		return $t->_finalize_token->__TOKENIZER__on_char( $t );
-	}
+	# Shortcut for most of the X:: symbols
 	if ( $content eq '$::' ) {
 		# May well be an alternate form of a Magic
 		my $nextchar = substr( $t->{line}, $t->{line_cursor}, 1 );
@@ -179,6 +176,12 @@ sub __TOKENIZER__on_char {
 		}
 		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
+	if ( $content =~ /^[\$%*@&]::[^\w]*$/ ) {
+		my $current = substr( $content, 0, 3, '' );
+		$t->{token}->{content} = $current;
+		$t->{line_cursor} -= length( $content );
+		return $t->_finalize_token->__TOKENIZER__on_char( $t );
+	}
 	if ( $content =~ /^(?:\$|\@)\d+/ ) {
 		$t->_set_token_class( 'Magic' );
 		return $t->_finalize_token->__TOKENIZER__on_char( $t );
@@ -186,13 +189,13 @@ sub __TOKENIZER__on_char {
 
 	# Trim off anything we oversucked...
 	$content =~ /^(
-		(?: \$ | \@ | \% | \& | \* )
+		[\$@%&*]
 		(?: : (?!:) | # Allow single-colon non-magic vars
-			(?: \' | \:: )?
-			(?!\d)  \w+
+			(?: \' (?!\d) | \:: )?
+			\w+
 			(?:
-				(?: \' | \:: ) # Allow both :: and ' in namespace seperators
-				(?!\d)  \w+
+				(?: \' (?!\d) | \:: ) # Allow both :: and ' in namespace seperators
+				\w+
 			)*
 			(?: :: )? # Technically a compiler-magic hash, but keep it here
 		)

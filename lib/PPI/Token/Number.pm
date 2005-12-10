@@ -39,7 +39,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.105';
+	$VERSION = '1.106';
 }
 
 
@@ -107,7 +107,7 @@ sub __TOKENIZER__on_char {
 		if ( $char =~ /\d/ ) {
 			# You cannot have 9s on octals
 			if ( $char eq '9' ) {
-				$token->{_warning} = "Illegal character in octal number '$char'";
+				$token->{_error} = "Illegal character in octal number '$char'";
 			}
 			return 1;
 		}
@@ -116,7 +116,7 @@ sub __TOKENIZER__on_char {
 		if ( $char =~ /\w/ ) {
 			unless ( $char =~ /[\da-f]/ ) {
 				# Add a warning if it contains non-hex chars
-				$token->{_warning} = "Illegal character in hexidecimal number '$char'";
+				$token->{_error} = "Illegal character in hexidecimal number '$char'";
 			}
 			return 1;
 		}
@@ -125,7 +125,7 @@ sub __TOKENIZER__on_char {
 		if ( $char =~ /[\w\d]/ ) {
 			unless ( $char eq '1' or $char eq '0' ) {
 				# Add a warning if it contains non-hex chars
-				$token->{_warning} = "Illegal character in binary number '$char'";
+				$token->{_error} = "Illegal character in binary number '$char'";
 			}
 			return 1;
 		}

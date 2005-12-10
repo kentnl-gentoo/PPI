@@ -5,10 +5,11 @@ package PPI::Token::_QuoteEngine::Full;
 use strict;
 use base 'PPI::Token::_QuoteEngine';
 use Clone ();
+use Carp  ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '1.105';
+	$VERSION = '1.106';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -68,7 +69,9 @@ foreach my $name ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
 
 sub new {
 	my $class = shift;
-	my $init  = defined $_[0] ? shift : return undef;
+	my $init  = defined $_[0]
+		? shift
+		: Carp::croak("::Full->new called without init string");
 
 	# Create the token
 	### This manual SUPER'ing ONLY works because none of
@@ -98,7 +101,8 @@ sub new {
 sub _fill {
 	my $class = shift;
 	my $t     = shift;
-	my $self  = $t->{token} or return undef;
+	my $self  = $t->{token}
+		or Carp::croak("::Full->_fill called without current token");
 
 	# Load in the operator stuff if needed
 	if ( $self->{operator} ) {
@@ -143,10 +147,7 @@ sub _fill {
 	# Check for modifiers
 	my $char;
 	my $len = 0;
-	while ( ($char = substr( $t->{line}, $t->{line_cursor} + 1, 1 )) =~ /\w/ ) {
-		$char eq '_' and return $self->_error(
-			"Syntax error. Cannot use underscore '_' as regex modifier"
-			);
+	while ( ($char = substr( $t->{line}, $t->{line_cursor} + 1, 1 )) =~ /[^\W\d_]/ ) {
 		$len++;
 		$self->{content} .= $char;
 		$self->{modifiers}->{lc $char} = 1;
@@ -243,20 +244,36 @@ sub _fill_braced {
 		$char = substr( $t->{line}, $t->{line_cursor}, 1 );
 	}
 
-	# Check that the next character is an open selector
-	if ( $section = $sections{$char} ) {
-		$self->{content} .= $char;
+	$section = $sections{$char};
+	unless ( $section ) {
+		# Error, it has to be a brace of some sort.
+		# Although this will result in a REALLY illegal regexp,
+		# we allow it anyway.
 
-		# Initialize the second section
-		$section = $self->{sections}->[1] = { %$section };
+		# Create a null second section
+		$self->{sections}->[1] = {
+			position => length($self->{content}),
+			size     => 0,
+			type     => '',
+			};
 
-	} else {
-		# Error, it has to be a brace of some sort
-		return $self->_error( "Syntax error. Second section of regex does not start with an open brace" );
+		# Attach an error to the token and move on
+		$self->{_error} = "No second section of regexp, or does not start with a balanced character";
+
+		# Roll back the cursor one char and return signalling end of regexp
+		$t->{line_cursor}--;
+		return 0;
 	}
+
+	# Initialize the second section
+	$self->{content} .= $char;
+	$section = $self->{sections}->[1] = { %$section };
 
 	# Advance into the second region
 	$t->{line_cursor}++;
+	$DB::single = 1;
+	$section->{position} = length($self->{content});
+	$section->{size}     = 0;
 
 	# Get the content up to the close character
 	$_ = $self->_scan_for_brace_character( $t, $section->{_close} );
@@ -264,17 +281,19 @@ sub _fill_braced {
 	if ( ref $_ ) {
 		# End of file
 		$self->{content} .= $$_;
+		$section->{size} = length($$_);
+		delete $section->{_close};
 		return 0;
+	} else {
+		# Complete the properties for the second section
+		$self->{content} .= $_;
+		$section->{size} = length($_) - 1;
+		delete $section->{_close};
 	}
-	$self->{content} .= $_;
-
-	# Complete the properties for the second section
-	$section->{position} = length $self->{content};
-	$section->{size}     = length($_) - 1;
-	delete $section->{_close};
 
 	1;
 }
+
 
 
 
