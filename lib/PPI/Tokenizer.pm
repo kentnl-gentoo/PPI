@@ -70,15 +70,16 @@ in private methods.
 # Make sure everything we need is loaded, so we
 # don't have to go and load all of PPI.
 use strict;
-use UNIVERSAL 'isa';
 use List::MoreUtils ();
+use Params::Util    '_SCALAR',
+                    '_ARRAY';
 use PPI::Element    ();
 use PPI::Token      ();
 use PPI::Util       ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 	$errstr  = '';
 }
 
@@ -145,10 +146,10 @@ sub new {
 			return($source);
 		}
 
-	} elsif ( isa($_[0], 'SCALAR') ) {
+	} elsif ( _SCALAR($_[0]) ) {
 		$self->{source} = ${shift()};
 
-	} elsif ( isa($_[0], 'ARRAY') ) {
+	} elsif ( _ARRAY($_[0]) ) {
 		$self->{source} = join "\n", @{shift()};
 
 	} else {

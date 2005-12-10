@@ -39,7 +39,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 }
 
 
@@ -89,7 +89,7 @@ sub __TOKENIZER__on_char {
 				# Take the . off the end of the token..
 				# and finish it, then make the .. operator.
 				chop $t->{token}->{content};
-				$t->_new_token( 'Operator', '..' ) or return undef;
+				$t->_new_token('Operator', '..') or return undef;
 				return 0;
 			} else {
 				# Will this be the first .?
@@ -104,32 +104,34 @@ sub __TOKENIZER__on_char {
 		}
 
 	} elsif ( $token->{_subtype} eq 'octal' ) {
-		# You cannot have 9s on octals
-		if ( $char eq '9' ) {
-			return $class->_error( "Illegal octal digit '9'" );
+		if ( $char =~ /\d/ ) {
+			# You cannot have 9s on octals
+			if ( $char eq '9' ) {
+				$token->{_warning} = "Illegal character in octal number '$char'";
+			}
+			return 1;
 		}
 
-		# Any other number is ok
-		return 1 if $char =~ /\d/o;
-
 	} elsif ( $token->{_subtype} eq 'hex' ) {
-		return 1 if $char =~ /[\da-f]/io;
-
-		# Error on other word chars
 		if ( $char =~ /\w/ ) {
-			return $class->_error( "Illegal hexidecimal character '$char'" );
+			unless ( $char =~ /[\da-f]/ ) {
+				# Add a warning if it contains non-hex chars
+				$token->{_warning} = "Illegal character in hexidecimal number '$char'";
+			}
+			return 1;
 		}
 
 	} elsif ( $token->{_subtype} eq 'binary' ) {
-		return 1 if $char =~ /(?:1|0)/;
-
-		# Other bad characters
 		if ( $char =~ /[\w\d]/ ) {
-			return $class->_error( "Illegal binary character '$char'" );
+			unless ( $char eq '1' or $char eq '0' ) {
+				# Add a warning if it contains non-hex chars
+				$token->{_warning} = "Illegal character in binary number '$char'";
+			}
+			return 1;
 		}
 
 	} else {
-		return $class->_error( "Unknown number type '$token->{_subtype}'" );
+		Carp::croak("Unknown number type '$token->{_subtype}'");
 	}
 
 	# Doesn't fit a special case, or is after the end of the token

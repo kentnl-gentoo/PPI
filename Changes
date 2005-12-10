@@ -1,5 +1,28 @@
 Revision history for Perl extension PPI
 
+1.105    Sat Dec 10 2005
+	General:
+	- Improvements driven by Audrey Tang's pugs wishlist.
+	  (So pugs can parse Perl 5, eep)
+	- Latin-1/Unicode improvements (but now requires perl >= 5.8.5)
+	  (not pre-checked and enforced yet, but will be)
+	- Starting new generation of "exhaustive" testing
+
+	Details:
+	- Added 20_tokenizer_regressions, which tests all
+	  detectably-failing 3-or-less character long Perl programs
+	  (not inclusive of latin-1 or Unicode). (Audrey Tang)
+	- Fixed bug for incomplete <READLINE> quotes at EOF
+	  (there may be a few more similar cases)
+	- Fixed bug with $'0 (where 0 is only legal after ::)
+	- No longer die for illegal chars in hex/bin number types
+	  (Attach the error to $token->{_warning} instead)
+	- Caught a number of cases with trailing colons for $things
+	  (Both at EOF and end of token)
+	- Convert [^\W\d]\w* to (?!\d)\w+ to improve unicode support
+	  in symbols etc (Audrey Tang)
+	- Miscellaneous doc bugs in the SYNOPSIS (Audrey Tang)
+
 1.104    Thu Nov 10 2005
 	General
 	- No change to code

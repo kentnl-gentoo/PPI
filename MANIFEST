@@ -142,6 +142,15 @@ t.data/11_util/test.pm
 t.data/13_data/Foo.pm
 t.data/15_transform/sample1.pm
 t.data/15_transform/sample1.pm.out
+t.data/20_tokenizer/01_colon.code
+t.data/20_tokenizer/02_colon_all.code
+t.data/20_tokenizer/03_angle.code
+t.data/20_tokenizer/04_angle_all.code
+t.data/20_tokenizer/05_quote.code
+t.data/20_tokenizer/06_quote_all.code
+t.data/20_tokenizer/07_digit.code
+t.data/20_tokenizer/08_base.code
+t.data/20_tokenizer/09_base_all.code
 t.data/basic.pl
 t.data/test2.txt
 t/01_compile.t
@@ -163,6 +172,7 @@ t/16_xml_compatibility.t
 t/17_storable.t
 t/18_cache.t
 t/19_selftesting.t
+t/20_tokenizer_regression.t
 t/99_pod.t
 t/ppi_element.t
 t/ppi_statement_variable.t

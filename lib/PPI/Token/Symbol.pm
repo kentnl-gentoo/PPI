@@ -33,7 +33,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 }
 
 
@@ -166,7 +166,7 @@ sub __TOKENIZER__on_char {
 	}
 
 	# Shortcut for a couple of things
-	if ( $content eq '%::' ) {
+	if ( $content eq '%::' or $content eq '*::' or $content eq '@::' ) {
 		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
 	if ( $content eq '$::' ) {
@@ -185,7 +185,18 @@ sub __TOKENIZER__on_char {
 	}
 
 	# Trim off anything we oversucked...
-	$content =~ /^((?:\$|\@|\%|\&|\*)(?:\'|\::)?[^\W\d]\w*(?:(?:\'|\::)[^\W\d]\w*)*(?:::)?)/ or return undef;
+	$content =~ /^(
+		(?: \$ | \@ | \% | \& | \* )
+		(?: : (?!:) | # Allow single-colon non-magic vars
+			(?: \' | \:: )?
+			(?!\d)  \w+
+			(?:
+				(?: \' | \:: ) # Allow both :: and ' in namespace seperators
+				(?!\d)  \w+
+			)*
+			(?: :: )? # Technically a compiler-magic hash, but keep it here
+		)
+	)/x or return undef;
 	unless ( length $1 eq length $content ) {
 		$t->{line_cursor} += length($1) - length($content);
 		$t->{token}->{content} = $1;

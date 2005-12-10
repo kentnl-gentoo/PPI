@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.104';
+	$VERSION       = '1.105';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -49,10 +49,10 @@ PPI - Parse, Analyze and Manipulate Perl (without perl)
   my $Document = PPI::Document->new;
   
   # Create a document from source
-  $Document = PPI::Document->new('print "Hello World!\n"');
+  $Document = PPI::Document->new(\'print "Hello World!\n"');
   
   # Load a Document from a file
-  $Document = PPI::Document->load('Module.pm');
+  $Document = PPI::Document->new('Module.pm');
   
   # Does it contain any POD?
   if ( $Document->find_any('PPI::Token::Pod') ) {
@@ -84,12 +84,12 @@ other than with perl (the application) was one that caused difficulty
 for a long time.
 
 The cause of this problem was Perl's complex and dynamic grammar.
-Although there are typically not a huge diversity in the grammar of most
+Although there is typically not a huge diversity in the grammar of most
 Perl code, certain issues cause large problems when it comes to parsing.
 
 Indeed, quite early in Perl's history Tom Christenson introduced the Perl
 community to the quote I<"Nothing but perl can parse Perl">, or as it is
-more often stated now:
+more often stated now as a truism:
 
 B<"Only perl can parse Perl">
 
@@ -113,7 +113,8 @@ the statement being parsed.
 The information might not just be elsewhere in the file, it might not even be
 in the same file at all. It might also not be able to determine this
 information without the prior execution of a C<BEGIN {}> block, or the
-loading and execution of one or more external modules.
+loading and execution of one or more external modules. Or worse the &dothis
+function may not even have been written yet.
 
 B<When parsing Perl as code, you must also execute it>
 
@@ -134,24 +135,26 @@ single file containing Perl source code "isolated" from any other
 resources, such as libraries upon which the code may depend, and
 without needing to run an instance of perl alongside or inside the parser.
 
-Historically, using an embedded perl parser was one of the potential
-solutions for C<Parse::Perl> that was investigated from time to time
-and has generally failed or suffered from sufficiently bad corner cases
-that these efforts were abandoned).
+Historically, using an embedded perl parser was widely considered to be
+the most likely avenue for finding a solution to C<Parse::Perl>. It was
+investigated from time to time and attempts have generally failed or
+suffered from sufficiently bad corner cases that they were abandoned.
 
 =head2 What Does PPI Stand For?
 
 C<PPI> is an acronym for the longer original module name
 C<Parse::Perl::Isolated>. And in the spirit or the silly acronym games
-played by certain unnamed Open Source projects you may have I<heard> of,
-it's also a reverse acronym for "I Parse Perl".
+played by certain unnamed Open Source projects you may have I<hurd> of,
+it also a reverse backronym of "I Parse Perl".
 
 Of course, I could just be lying and have just made that second bit up
 10 minutes before the release of PPI 1.000. Besides, B<all> the cool
 Perl packages have TLAs (Three Letter Acronyms). It's a rule or something.
 
-The name was shortened to prevent the author (and you the users) from
-contracting RSI by having to type crazy things like
+Why don't you just think of it as the B<Perl Parsing Interface> for simplicity.
+
+The original name was shortened to prevent the author (and you the users)
+from contracting RSI by having to type crazy things like
 C<Parse::Perl::Isolated::Token::QuoteLike::Backtick> 100 times a day.
 
 In acknowledgment that someone may some day come up with a valid solution
@@ -160,7 +163,7 @@ to leave the C<Parse::Perl> namespace free for any such effort.
 
 Since that time I've been able to prove to my own satisfaction that it
 B<is> truly impossible to accurately parse Perl as both code and document
-at once.
+at once. For the academics, parsing Perl suffers from the "Halting Problem".
 
 With this in mind C<Parse::Perl> has now been co-opted as the title for
 the SourceForge project that publishes PPI and a large collection of other
@@ -183,6 +186,9 @@ What are the things that people might want a "Perl parser" for.
 
 Analyzing the contents of a Perl document to automatically generate
 documentation, in parallel to, or as a replacement for, POD documentation.
+
+Allow an indexer to to locate and process all the comments and
+documentation from code for "full text search" applications.
 
 =item Structural and Quality Analysis
 
@@ -241,12 +247,55 @@ all Perl documents contained in CPAN. This means the entire file in each
 case.
 
 PPI has succeeded in this goal far beyond the expectations of even the
-author. At time of writing there are only 28 non-Acme Perl files in CPAN
+author. At time of writing there are only 28 non-Acme Perl modules in CPAN
 that PPI is incapable of parsing. Most of these are so badly broken they
-do not compile as Perl code either.
+do not compile as Perl code anyway.
 
 So unless you are actively going out of your way to break PPI, you should
-expect that it will handle your code.
+expect that it will handle your code just fine.
+
+=head2 Internationalisation
+
+PPI provides partial support for internationalisation and localisation.
+
+Specifically, it allows the use characters from the Latin-1 character
+set to be used in quotes, comments, and POD. Primarily, this covers
+languages from Europe and South America.
+
+PPI does B<not> currently provide support for Unicode, although there
+is an initial implementation available in a development branch from
+CVS.
+
+If you need Unicode support, and would like to help stress test the
+Unicode support so we can move it to the main branch and enable it
+in the main release should contact the author. (contact details below)
+
+=head2 Round Trip Safe
+
+When PPI parses a file it builds B<everything> into the model, including
+whitespace. This is needed in order to make the Document fully "Round Trip"
+safe.
+
+The general concept behind a "Round Trip" parser is that it knows what it
+is parsing is somewhat uncertain, and so B<expects> to get things wrong
+from time to time. In the cases where it parses code wrongly the tree
+will serialize back out to the same string of code that was read in,
+repairing the parser's mistake as it heads back out to the file.
+
+The end result is that if you parse in a file and serialize it back out
+without changing the tree, you are guarenteed to get the same file you
+started with. PPI does this correctly and reliably for 100% of all known
+cases.
+
+B<What goes in, will come out. Every time.>
+
+The one minor exception at this time is that if the newlines for your file
+are wrong (meaning not matching the platform newline format), PPI will
+localisation of them for you. (It isn't to be convenient, supporting
+arbitrary newlines would make some of the code more complicated)
+
+Better control of the newline type is on the wish list though, and
+anyone wanting to help out is encouraged to contact the author.
 
 =head1 IMPLEMENTATION
 
@@ -257,8 +306,10 @@ and L<PPI::Lexer>, and a large tree of about 50 classes which implement
 the various the I<Perl Document Object Model> (PDOM).
 
 The PDOM is conceptually similar in style and intent to the regular DOM or
-other code ASTs, but contains many differences to handle perl-specific cases,
-and to assist in treating the code as a document.
+other code Abstract Syntax Trees (ASTs), but contains some differences
+to handle perl-specific cases, and to assist in treating the code as a
+document. Please note that it is B<not> an implementation of the official
+Document Object Model specification, only somewhat similar to it.
 
 On top of the Tokenizer, Lexer and the classes of the PDOM, sit a number
 of classes intended to make life a little easier when dealing with PDOM
@@ -284,21 +335,22 @@ does this using a slow but thorough character by character manual process,
 rather than using a pattern system or complex regexs.
 
 Or at least it does so conceptually. If you were to actually trace the code
-you would find it's not truly character by character due to a number if
-support regexps scattered throughout the code. This lets the Tokenizer
-skip ahead" when it can find shortcuts, so it tends to jump around a line
+you would find it's not truly character by character due to a number of
+regexps and optimisations throughout the code. This lets the Tokenizer
+"skip ahead" when it can find shortcuts, so it tends to jump around a line
 a bit wildly at times.
 
-Practically, the number of times the Tokenizer will B<actually> move the
+In practice, the number of times the Tokenizer will B<actually> move the
 character cursor itself is only about 5% - 10% higher than the number of
-tokens contained in the file.
+tokens contained in the file. This makes it about as optimal as it can be
+made without implementing it in something other than Perl.
 
-In 2001 when PPI was started, this structure made PPI quote slow, and not
+In 2001 when PPI was started, this structure made PPI quite slow, and not
 really suitable for interactive tasks. This situation has improved greatly
 with multi-gigahertz processors, but can still be painful when working with
 very large files.
 
-The target speed rate for PPI is about 5000 lines per gigacycle. It is
+The target parsing rate for PPI is about 5000 lines per gigacycle. It is
 currently believed to be at about 1500, and main avenue for making it to
 the target speed has now become L<PPI::XS>, a drop-in XS accelerator for
 PPI.
@@ -306,7 +358,8 @@ PPI.
 Since L<PPI::XS> has only just gotten off the ground and is currently only
 at proof-of-concept stage, this may take a little while. Anyone interested
 in helping out with L<PPI::XS> is B<highly> encouraged to contact the
-author.
+author. In fact, the design of L<PPI::XS> means it's possible to port
+one function at a time safely and reliably. So every little bit will help.
 
 =head2 The Lexer
 
@@ -320,30 +373,7 @@ produces L<PPI::Document> objects. However you should probably never be
 working with the Lexer directly. You should just be able to create
 L<PPI::Document> objects and work with them directly.
 
-=head2 Round Trip Safe
-
-When PPI parser a file it builds B<everything> into the model, including
-whitespace. This is needed in order to make the Document fully "Round Trip"
-safe.
-
-The general concept behind a "Round Trip" parser is that it knows what it
-is parsing is somewhat uncertain, and so B<expects> to get things wrong
-from time to time. In the cases where it parsers code wrongly the tree
-will serialize back out to the same string of code that was read in,
-repairing the parser's mistake is it heads back out to the file.
-
-The end result is that if you parse in a file and serialize it back out
-without changing the tree, you are guarenteed to get the same file you
-started with. PPI does this correctly and reliably for 100% of all known
-cases.
-
-B<What goes in, will come out. Every time.>
-
-The one minor exception at this time is that if the newlines for your file
-are wrong, PPI may perform a localisation of them for you. Better control
-of the newline type is a road map item for version 1.100.
-
-=head1 THE PERL DOCUMENT OBJECT MODEL
+=head2 The Perl Document Object Model
 
 The PDOM is a structured collection of data classes that together provide
 a correct and scalable model for documents that follow the standard Perl

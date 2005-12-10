@@ -1,5 +1,14 @@
-#!/usr/bin/perl -w
+Ôªø#!/usr/bin/perl -w
 
+BEGIN {
+    if ($] < 5.008) {
+        require Test::More;
+        Test::More->import( skip_all => "Perl 5.8+ needed for Unicode support" );
+        exit;
+    }
+}
+
+use utf8;
 use strict;
 use lib ();
 use UNIVERSAL 'isa';
@@ -18,44 +27,47 @@ BEGIN {
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 sub good_ok {
 	my $source  = shift;
 	my $message = shift;
 	my $doc = PPI::Document->new( \$source );
 	ok( isa(ref $doc, 'PPI::Document'), $message );
+	if (! isa(ref $doc, 'PPI::Document')) {
+		diag($PPI::Document::errstr);
+	}
 }
-
-sub bad_ok {
-	my $source  = shift;
-	my $message = shift;
-	my $doc = PPI::Document->new( \$source );
-	ok( ! $doc, $message );
-}
-
-
-
-
 
 #####################################################################
 # Begin Tests
 
-# Testing accented characters in Latin-1
-good_ok( 'sub func { }',           "Parsed code without accented chars"   );
-bad_ok ( 'r‰tselhaft();',          "Function with umlaut (not supported)" );
-bad_ok ( '‰tselhaft()',            "Starting with umlaut (not supported)" );
-good_ok( '"r‰tselhaft"',           "In double quotes (supported)"         );
-good_ok( "'r‰tselhaft'",           "In single quotes (supported)"         );
-good_ok( 'sub func { s/a/‰/g; }',  "Regex with umlaut (supported)"        );
-bad_ok ( 'sub func { $‰=1; }',     "Variable with umlaut (not supported)" );
-good_ok( '$a=1; # ‰ is an umlaut', "Comment with umlaut (supported)"      );
-good_ok( <<'END_CODE',             "POD with umlaut (supported)"          );
+# We cannot reliably support Unicode on anything less than 5.8.5
+SKIP: {
+	eval { require 5.008005 };
+	if ( $@ ) {
+		skip( "Unicode support requires perl >= 5.8.5", 11 );
+	}
+
+	# Testing accented characters in UTF-8
+	good_ok( 'sub func { }',           "Parsed code without accented chars" );
+	good_ok( 'r√§tselhaft();',          "Function with umlaut"               );
+	good_ok( '‰∏Ä();',                   "Function with Chinese characters"   );
+	good_ok( '√§tselhaft()',            "Starting with umlaut"               );
+	good_ok( '"r√§tselhaft"',           "In double quotes"                   );
+	good_ok( "'r√§tselhaft'",           "In single quotes"                   );
+	good_ok( 'sub func { s/a/√§/g; }',  "Regex with umlaut"                  );
+	good_ok( 'sub func { $√§=1; }',     "Variable with umlaut"               );
+	good_ok( '$‰∏Ä = "Â£π";',              "Variables with Chinese characters"  );
+	good_ok( '$a=1; # √§ is an umlaut', "Comment with umlaut"                );
+	good_ok( <<'END_CODE',             "POD with umlaut"                    );
 sub func { }
 
 =pod
 
-=head1 Umlauts like ‰
+=head1 Umlauts like √§
 
 } 
 END_CODE
+
+}

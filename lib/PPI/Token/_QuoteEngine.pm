@@ -35,7 +35,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 }
 
 
@@ -132,7 +132,7 @@ sub _scan_for_unescaped_character {
 
 		# Load in the next line
 		$string .= $_;
-		my $rv = $t->_fill_line( 'inscan' );
+		my $rv = $t->_fill_line('inscan');
 		if ( $rv ) {
 			# Push to first character
 			$t->{line_cursor} = 0;
@@ -177,9 +177,19 @@ sub _scan_for_brace_character {
 		unless ( /$search/ ) {
 			# Load in the next line
 			$string .= $_;
-			defined $t->_fill_line or return undef;
-			$t->{line_cursor} = 0;
-			next;
+			my $rv = $t->_fill_line('inscan');
+			if ( $rv ) {
+				# Push to first character
+				$t->{line_cursor} = 0;
+				next;
+			}
+			if ( defined $rv ) {
+				# We hit the End of File
+				return \$string;
+			}
+
+			# Unexpected error
+			return undef;
 		}
 
 		# Add to the string

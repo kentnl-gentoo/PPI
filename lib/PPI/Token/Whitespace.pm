@@ -48,7 +48,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 }
 
 =pod
@@ -258,7 +258,7 @@ sub __TOKENIZER__on_char {
 			# $foo->{bar} < 2;
 			# grep { .. } <foo>;
 			my $line = substr( $t->{line}, $t->{line_cursor} );
-			if ( $line =~ /^<[^\W\d]\w*>/ ) {
+			if ( $line =~ /^<(?!\d)\w+>/ ) {
 				# Almost definitely readline
 				return 'QuoteLike::Readline';
 			}
@@ -351,7 +351,11 @@ sub __TOKENIZER__on_char {
 
 		# Otherwise, commit like a normal bareword
 		return PPI::Token::Word->__TOKENIZER__commit($t);
-	}
+	} elsif ( $_ >= 128 ) { # Outside ASCII
+            return 'PPI::Token::Word'->__TOKENIZER__commit($t) if $t =~ /\w/;
+            return 'Whitespace' if $t =~ /\s/;
+        }
+
 
 	# All the whitespaces are covered, so what to do
 	### For now, die

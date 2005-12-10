@@ -27,7 +27,7 @@ use Test::More tests => 3;
 {
 # Verify that Token::Quote, Token::QuoteLike and Token::Regexp
 # do not have ->new functions
-my $RE_SYMBOL  = qr/\A[^\W\d]\w*\z/;
+my $RE_SYMBOL  = qr/\A(?!\d)\w+\z/;
 foreach my $name ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
 	no strict 'refs';
 	my @functions = sort

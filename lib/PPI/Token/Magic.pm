@@ -47,7 +47,7 @@ use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.
@@ -76,11 +76,20 @@ sub __TOKENIZER__on_char {
 	# All of the tests below match this one, so it should provide a
 	# small speed up. This regex should be updated to match the inside
 	# tests if they are changed.
-	if ( /^\$.*[\w:\$\{]$/ ) {
+	if ( /^  \$  .*  [  \w  :  \$  \{  ]  $/x ) {
 
 		if ( /^(\$(?:\_[\w:]|::))/ or /^\$\'[\w]/ ) {
-			# It's actually a normal symbol in the style
-			# $_foo or $::foo or $'foo. Overwrite the current token
+			# If and only if we have $'\d, it is not a
+			# symbol. (this was apparently a concious choice)
+			# Note that $::0 on the other hand is legal
+			if ( /^\$\'\d$/ ) {
+				# In this case, we have a magic plus a digit.
+				# Save the CURRENT token, and rerun the on_char
+				return $t->_finalize_token->__TOKENIZER__on_char( $t );
+			}
+
+			# A symbol in the style $_foo or $::foo or $'foo.
+			# Overwrite the current token
 			$t->_set_token_class('Symbol');
 			return PPI::Token::Symbol->__TOKENIZER__on_char( $t );
 		}

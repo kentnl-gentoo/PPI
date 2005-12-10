@@ -8,7 +8,7 @@ use Clone ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -51,7 +51,7 @@ BEGIN {
 
 # Verify that Token::Quote, Token::QuoteLike and Token::Regexp
 # do not have ->new functions
-my $RE_SYMBOL  = qr/\A[^\W\d]\w*\z/;
+my $RE_SYMBOL  = qr/\A(?!\d)\w+\z/;
 foreach my $name ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
 	no strict 'refs';
 	my @functions = sort
@@ -209,7 +209,6 @@ sub _fill_braced {
 
 	# Get the content up to the close character
 	my $section = $self->{sections}->[0];
-	$DB::single = 1 unless $section->{_close};
 	$_ = $self->_scan_for_brace_character( $t, $section->{_close} );
 	return undef unless defined $_;
 	if ( ref $_ ) {

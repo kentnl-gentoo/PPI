@@ -31,7 +31,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 }
 
 
@@ -51,7 +51,7 @@ sub __TOKENIZER__on_char {
 
 
 	if ( $c eq '*' ) {
-		if ( /(?:[^\W\d]|\:)/ ) {
+		if ( /(?:(?!\d)\w|\:)/ ) {
 			# Symbol
 			return $t->_set_token_class( 'Symbol' ) ? 1 : undef;
 		}

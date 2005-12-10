@@ -39,7 +39,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '1.104';
+	$VERSION = '1.105';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -63,7 +63,7 @@ sub __TOKENIZER__on_char {
 
 	# Suck in till the end of the bareword
 	my $line = substr( $t->{line}, $t->{line_cursor} );
-	if ( $line =~ /^(\w+(?:(?:\'|::)[^\W\d]\w*)*(?:::)?)/ ) {
+	if ( $line =~ /^(\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
 		$t->{token}->{content} .= $1;
 		$t->{line_cursor} += length $1;
 
@@ -132,7 +132,7 @@ sub __TOKENIZER__commit {
 	# Our current position is the first character of the bareword.
 	# Capture the bareword.
 	my $line = substr( $t->{line}, $t->{line_cursor} );
-	unless ( $line =~ /^([^\W\d]\w*(?:(?:\'|::)[^\W\d]\w*)*(?:::)?)/ ) {
+	unless ( $line =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
 		# Programmer error
 		$DB::single = 1;
 		die "Fatal error... regex failed to match when expected";
