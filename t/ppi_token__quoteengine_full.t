@@ -21,7 +21,7 @@ BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI;
 
 # Execute the tests
-use Test::More tests => 7;
+use Test::More tests => 3;
 
 # =begin testing new 3
 {
@@ -37,40 +37,6 @@ foreach my $name ( qw{Token::Quote Token::QuoteLike Token::Regexp} ) {
 	is( scalar(grep { $_ eq 'new' } @functions), 0,
 		"$name does not have a new function" );
 }
-}
-
-
-
-# =begin testing 4
-{
-# Create a document with a complete braced regexp
-my $Document = PPI::Document->new( \"s {foo} <bar>i" );
-isa_ok( $Document, 'PPI::Document' );
-my $stmt   = $Document->first_element;
-isa_ok( $stmt, 'PPI::Statement' );
-my $regexp = $stmt->first_element;
-isa_ok( $regexp, 'PPI::Token::Regexp::Substitute' );
-
-# Check the regexp matches what we would expect (specifically
-# the fine details about the sections.
-my $expected = bless {
-	_sections => 2,
-	braced    => 1,
-	content   => 's {foo} <bar>i',
-	modifiers => { i => 1 },
-	operator  => 's',
-	sections  => [ {
-		position => 3,
-		size     => 3,
-		type     => '{}',
-	}, {
-		position => 9,
-		size     => 3,
-		type     => '<>',
-	} ],
-	seperator => undef,
-	}, 'PPI::Token::Regexp::Substitute';
-is_deeply( $regexp, $expected, 'Complex regexp matches expected' );
 }
 
 

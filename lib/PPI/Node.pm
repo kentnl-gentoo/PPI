@@ -57,7 +57,7 @@ use Carp ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 

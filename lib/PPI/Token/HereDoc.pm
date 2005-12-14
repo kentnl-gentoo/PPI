@@ -88,7 +88,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 }
 
 
@@ -219,7 +219,7 @@ sub __TOKENIZER__on_char {
 	# End of file.
 	# Error: Didn't reach end of here-doc before end of file.
 	# $line might be undef if we get NO lines.
-	if ( defined $line and defined $line eq $token->{_terminator} ) {
+	if ( defined $line and $line eq $token->{_terminator} ) {
 		# If the last line matches the terminator
 		# but is missing the newline, we want to allow
 		# it anyway (like perl itself does). In this case
@@ -228,10 +228,14 @@ sub __TOKENIZER__on_char {
 		pop @{$token->{_heredoc}};
 		$token->{_terminator_line} = $line;
 	} else {
-		# The HereDoc was not properly terminated. Set a hint for
-		# PPI::Document->serialize so it can inexpensively repair it
-		# if needed when writing back out.
+		# The HereDoc was not properly terminated.
 		$token->{_terminator_line} = undef;
+
+		# Trim off the trailing whitespace
+		if ( defined $token->{_heredoc}->[-1] and $t->{source_eof_chop} ) {
+			chop $token->{_heredoc}->[-1];
+			$t->{source_eof_chop} = '';
+		}
 	}
 
 	# Set a hint for PPI::Document->serialize so it can

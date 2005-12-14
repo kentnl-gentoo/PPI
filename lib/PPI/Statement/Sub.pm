@@ -37,7 +37,7 @@ use List::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 }
 
 # Lexer clue

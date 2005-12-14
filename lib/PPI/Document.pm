@@ -77,7 +77,7 @@ use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 	$errstr  = '';
 }
 
@@ -351,17 +351,32 @@ sub serialize {
 			# auto-repair these problems if we arn't going back
 			# on to the end of the file.
 
+			# When calculating $last_line, ignore the final token if
+			# and only if it has a single newline at the end.
+			my $last_index = $#Tokens;
+			if ( $Tokens[$last_index]->{content} =~ /^[^\n]*\n$/ ) {
+				$last_index--;
+			}
+
 			# This is a two part test.
 			# First, are we on the last line of the
 			# content part of the file
 			my $last_line = List::MoreUtils::none {
 				$Tokens[$_] and $Tokens[$_]->{content} =~ /\n/
-				} (($i + 1) .. $#Tokens);
+				} (($i + 1) .. $last_index);
+			if ( ! defined $last_line ) {
+				# Handles the null list case
+				$last_line = 1;
+			}
 
 			# Secondly, are their any more here-docs after us
 			my $any_after = List::MoreUtils::any {
 				$Tokens[$_]->isa('PPI::Token::HereDoc')
 				} (($i + 1) .. $#Tokens);
+			if ( ! defined $any_after ) {
+				# Handles the null list case
+				$any_after = '';
+			}
 
 			# We don't need to repair the last here-doc on the
 			# last line. But we do need to repair anything else.
@@ -380,7 +395,9 @@ sub serialize {
 		}
 
 		# Now add the termination line to the heredoc buffer
-		$heredoc .= $Token->{_terminator_line};
+		if ( defined $Token->{_terminator_line} ) {
+			$heredoc .= $Token->{_terminator_line};
+		}
 	}
 
 	# End of tokens

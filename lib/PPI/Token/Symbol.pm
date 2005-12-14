@@ -33,7 +33,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 }
 
 
@@ -176,7 +176,7 @@ sub __TOKENIZER__on_char {
 		}
 		return $t->_finalize_token->__TOKENIZER__on_char( $t );
 	}
-	if ( $content =~ /^[\$%*@&]::[^\w]*$/ ) {
+	if ( $content =~ /^[\$%*@&]::(?:[^\w]|$)/ ) {
 		my $current = substr( $content, 0, 3, '' );
 		$t->{token}->{content} = $current;
 		$t->{line_cursor} -= length( $content );
@@ -191,11 +191,10 @@ sub __TOKENIZER__on_char {
 	$content =~ /^(
 		[\$@%&*]
 		(?: : (?!:) | # Allow single-colon non-magic vars
-			(?: \' (?!\d) | \:: )?
-			\w+
+			(?: \w+ | \' (?!\d) \w+ | \:: \w+ )
 			(?:
-				(?: \' (?!\d) | \:: ) # Allow both :: and ' in namespace seperators
-				\w+
+				# Allow both :: and ' in namespace seperators
+				(?: \' (?!\d) \w+ | \:: \w+ )
 			)*
 			(?: :: )? # Technically a compiler-magic hash, but keep it here
 		)

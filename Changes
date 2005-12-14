@@ -1,5 +1,20 @@
 Revision history for Perl extension PPI
 
+1.107    Wed Dec 14 2005
+	General:
+	- PPI is now Editor-compatible.
+	- You can create a PPI::Document from random ASCII line noise!
+	
+	Details:
+	- Added a dozen various patches to complete round-trip Tokenizer
+	  and Lexer support for absolutely anything (i.e. line noise)
+	  inside the normal set of ASCII characters used in Perl programs.
+	- Does not include Latin-1 and Unicode line noise (yet).
+	- Completely the 21_exhaustive.t test script.
+	- Tested 21_exhaustive.t against 500,000 x 120-character
+	  completely random line noise Perl programs.
+	  (Apparently I'm still leaking 1k per document somewhere)
+
 1.106    Sun Dec 11 2005
 	General:
 	- More changes to support all possible 4-character programs
