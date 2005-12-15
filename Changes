@@ -1,10 +1,18 @@
 Revision history for Perl extension PPI
 
+1.108    Thu Dec 15 2005
+	General:
+	- Fixing of some very minor bugs
+
+	Details:
+	- 8 wasn't an illegal character in an octal number (fixed)
+	- Two <<heredocs with no content on the final line didn't round-trip (fixed)
+
 1.107    Wed Dec 14 2005
 	General:
 	- PPI is now Editor-compatible.
 	- You can create a PPI::Document from random ASCII line noise!
-	
+
 	Details:
 	- Added a dozen various patches to complete round-trip Tokenizer
 	  and Lexer support for absolutely anything (i.e. line noise)
@@ -18,7 +26,7 @@ Revision history for Perl extension PPI
 1.106    Sun Dec 11 2005
 	General:
 	- More changes to support all possible 4-character programs
-	
+
 	Details:
 	- Various fixes to weird things like *::'
 

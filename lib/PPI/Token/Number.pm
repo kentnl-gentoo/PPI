@@ -39,7 +39,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.107';
+	$VERSION = '1.108';
 }
 
 
@@ -105,8 +105,8 @@ sub __TOKENIZER__on_char {
 
 	} elsif ( $token->{_subtype} eq 'octal' ) {
 		if ( $char =~ /\d/ ) {
-			# You cannot have 9s on octals
-			if ( $char eq '9' ) {
+			# You cannot have 8s and 9s on octals
+			if ( $char eq '8' or $char eq '9' ) {
 				$token->{_error} = "Illegal character in octal number '$char'";
 			}
 			return 1;

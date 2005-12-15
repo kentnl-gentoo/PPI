@@ -52,7 +52,7 @@ BEGIN {
 #####################################################################
 # Prepare
 
-use Test::More tests => ($MAX_CHARS + $ITERATIONS * 2 + 1);
+use Test::More tests => ($MAX_CHARS + $ITERATIONS + 1);
 
 
 
@@ -118,14 +118,9 @@ foreach my $i ( 1 .. $ITERATIONS ) {
 	test_code2( $code );
 
 	# Verify there are no stale %PARENT entries
-	my $quotable = quotable($code);
-	is( scalar(keys %PPI::Element::PARENT), 0,
-		"%PARENT is clean \"$quotable\"" );
-
-	# Pause occasionally to free memory (hopefully)
-	unless ( $count++ % 10000 ) {
-		sleep 1;
-	}
+	#my $quotable = quotable($code);
+	#is( scalar(keys %PPI::Element::PARENT), 0,
+	#	"%PARENT is clean \"$quotable\"" );
 }
 
 is( scalar(keys %PPI::Element::PARENT), 0,

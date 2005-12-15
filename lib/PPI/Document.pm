@@ -77,7 +77,7 @@ use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.107';
+	$VERSION = '1.108';
 	$errstr  = '';
 }
 
@@ -369,9 +369,15 @@ sub serialize {
 				$last_line = 1;
 			}
 
-			# Secondly, are their any more here-docs after us
+			# Secondly, are their any more here-docs after us,
+			# (with content or a terminator)
 			my $any_after = List::MoreUtils::any {
 				$Tokens[$_]->isa('PPI::Token::HereDoc')
+				and (
+					scalar(@{$Tokens[$_]->{_heredoc}})
+					or
+					defined $Tokens[$_]->{_terminator_line}
+					)
 				} (($i + 1) .. $#Tokens);
 			if ( ! defined $any_after ) {
 				# Handles the null list case
