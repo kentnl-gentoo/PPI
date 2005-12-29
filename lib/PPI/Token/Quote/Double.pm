@@ -32,13 +32,13 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token::_QuoteEngine::Simple',
          'PPI::Token::Quote';
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 
@@ -57,6 +57,29 @@ contains any interpolated variables.
 
 Returns true if the string contains interpolations, or false if not.
 
+=begin testing interpolations 8
+
+# Get a set of objects
+my $Document = PPI::Document->new(\<<'END_PERL');
+"no interpolations"
+"no \@interpolations"
+"has $interpolation"
+"has @interpolation"
+"has \\@interpolation"
+"" # False content to test double-negation scoping
+END_PERL
+isa_ok( $Document, 'PPI::Document' );
+my $strings = $Document->find('Token::Quote::Double');
+is( scalar(@$strings), 6, 'Found the 5 test strings' );
+is( $strings->[0]->interpolations, '', 'String 1: No interpolations'  );
+is( $strings->[1]->interpolations, '', 'String 2: No interpolations'  );
+is( $strings->[2]->interpolations, 1,  'String 3: Has interpolations' );
+is( $strings->[3]->interpolations, 1,  'String 4: Has interpolations' );
+is( $strings->[4]->interpolations, 1,  'String 5: Has interpolations' );
+is( $strings->[5]->interpolations, '', 'String 6: No interpolations'  );
+
+=end testing
+
 =cut
 
 # Upgrade: Return the interpolated substrings.
@@ -65,7 +88,7 @@ sub interpolations {
 	my $self = shift;
 
 	# Are there any unescaped $things in the string
-	!! $self->content =~ /(?<!\\)(?:\\\\)*\$/;
+	!! ($self->content =~ /(?<!\\)(?:\\\\)*[\$\@]/);
 }
 
 =pod
@@ -86,7 +109,7 @@ simplified.
 
 sub simplify {
 	# This only works on EXACTLY this class
-	my $self = isa(ref $_[0], 'PPI::Token::Quote::Double') ? shift : return undef;
+	my $self = _INSTANCE(shift, 'PPI::Token::Quote::Double') or return undef;
 
 	# Don't bother if there are characters that could complicate things
 	my $content = $self->content;

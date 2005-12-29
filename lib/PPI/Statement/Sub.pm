@@ -31,13 +31,13 @@ L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Statement';
-use List::Util ();
+use List::Util   ();
+use Params::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 # Lexer clue
@@ -65,8 +65,8 @@ sub name {
 	my $self = shift;
 
 	# The second token should be the name, if we have one
-	my $Token = $self->schild(1) or return undef;
-	isa($Token, 'PPI::Token::Word') ? $Token->content : '';
+	my $Token = $self->schild(1) or return '';
+	$Token->isa('PPI::Token::Word') and $Token->content;
 }
 
 =pod
@@ -83,7 +83,7 @@ Returns false if the subroutine does not define a prototype
 
 sub prototype {
 	my $self = shift;
-	my $Prototype = List::Util::first { isa($_, 'PPI::Token::Prototype') } $self->children;
+	my $Prototype = List::Util::first { _INSTANCE($_, 'PPI::Token::Prototype') } $self->children;
 	defined($Prototype) ? $Prototype->prototype : '';
 }
 
@@ -102,8 +102,8 @@ code block.
 
 sub block {
 	my $self = shift;
-	my $lastchild = $self->schild(-1);
-	isa($lastchild, 'PPI::Structure::Block') and $lastchild;
+	my $lastchild = $self->schild(-1) or return '';
+	$lastchild->isa('PPI::Structure::Block') and $lastchild;
 }
 
 =pod

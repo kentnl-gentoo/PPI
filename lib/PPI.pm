@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.108';
+	$VERSION       = '1.109';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -389,10 +389,10 @@ based on inheritance.
          PPI::Document
             PPI::Document::Fragment
          PPI::Statement
-            PPI::Statement::Scheduled
             PPI::Statement::Package
             PPI::Statement::Include
             PPI::Statement::Sub
+               PPI::Statement::Scheduled
             PPI::Statement::Compound
             PPI::Statement::Break
             PPI::Statement::Data
@@ -679,7 +679,7 @@ apply.
 The PPI namespace itself is reserved for the sole use of the modules under
 the umbrella of the C<Parse::Perl> SourceForge project.
 
-L<http://sf.net/parseperl>
+L<http://sf.net/projects/parseperl>
 
 You are recommended to use the PPIx:: namespace for PPI-specific
 modifications or prototypes thereof, or Perl:: for modules which provide

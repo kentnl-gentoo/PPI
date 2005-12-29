@@ -22,7 +22,6 @@ implementations.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use Scalar::Util 'refaddr';
 use Params::Util '_INSTANCE',
                  '_ARRAY';
@@ -38,7 +37,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -621,7 +620,7 @@ one being replaced.
 
 sub replace {
 	my $self    = ref $_[0] ? shift : return undef;
-	my $Element = isa(ref $_[0], ref $self) ? shift : return undef;
+	my $Element = _INSTANCE(shift, ref $self) or return undef;
 	die "The ->replace method has not yet been implemented";
 }
 
@@ -681,7 +680,7 @@ sub _flush_locations {
 
 	# Optionally allow starting from an arbitrary element (or rather,
 	# the first Token equal-to-or-within an arbitrary element)
-	if ( isa($_[0], 'PPI::Element') ) {
+	if ( _INSTANCE($_[0], 'PPI::Element') ) {
 		my $start = shift->first_token;
 		while ( my $Token = shift @Tokens ) {
 			return 1 unless $Token->{_location};

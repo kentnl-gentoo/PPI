@@ -35,14 +35,14 @@ process to be.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
-use List::MoreUtils ();
+use Carp                      ();
+use List::MoreUtils           ();
+use PPI::Util                 '_Document';
 use PPI::Document::Normalized ();
 
-use vars qw{$VERSION $errstr %LAYER};
+use vars qw{$VERSION %LAYER};
 BEGIN {
-	$VERSION = '1.108';
-	$errstr  = '';
+	$VERSION = '1.109';
 
 	# Registered function store
 	%LAYER = (
@@ -79,8 +79,10 @@ sub register {
 	while ( @_ ) {
 		# Check the function
 		my $function = shift;
-		{ no strict 'refs';
-			defined $function and defined &{"$function"} or return undef;
+		SCOPE: {
+			no strict 'refs';
+			defined $function and defined &{"$function"}
+				or Carp::croak("Bad function name provided to PPI::Normal");
 		}
 
 		# Has it already been added?
@@ -90,7 +92,8 @@ sub register {
 
 		# Check the layer to add it to
 		my $layer = shift;
-		defined $layer and $layer =~ /^(?:1|2)$/ or return undef;
+		defined $layer and $layer =~ /^(?:1|2)$/
+			or Carp::croak("Bad layer provided to PPI::Normal");
 
 		# Add to the layer data store
 		push @{ $LAYER{$layer} }, $function;
@@ -114,32 +117,66 @@ use PPI::Normal::Standard;
 
 =head2 new
 
-Creates a new normalization level 1 object, to which Document objects
+  my $level_1 = PPI::Normal->new();
+  my $level_2 = PPI::Normal->new(2);
+
+Creates a new normalization object, to which Document objects
 can be passed to be normalized.
 
 Of course, what you probably REALLY want is just to call
 L<PPI::Document>'s C<normalize> method.
 
-Returns a new PPI::Normal object, or C<undef> on error.
+Takes an optional single parameter of the normalisation layer
+to use, which at this time can be either "1" or "2".
 
-B<Note>
+Returns a new C<PPI::Normal> object, or C<undef> on error.
 
-Unless it can be shown there's a string reason to make this instantiable,
-this may degrade into a non-instantiable class at a later date (although
-the PPI::Document C<normalize> will stay as is).
+=begin testing new after PPI::Document 12
+
+# Check we actually set the layer at creation
+my $layer_1 = PPI::Normal->new();
+isa_ok( $layer_1, 'PPI::Normal' );
+is( $layer_1->layer, 1, '->new() creates a layer 1' );
+my $layer_1a = PPI::Normal->new(1);
+isa_ok( $layer_1a, 'PPI::Normal' );
+is( $layer_1a->layer, 1, '->new(1) creates a layer 1' );
+my $layer_2 = PPI::Normal->new(2);
+isa_ok( $layer_2, 'PPI::Normal' );
+is( $layer_2->layer, 2, '->new(2) creates a layer 2' );
+
+# Test bad things
+is( PPI::Normal->new(3), undef, '->new only allows up to layer 2' );
+is( PPI::Normal->new(undef), undef, '->new(evil) returns undef' );
+is( PPI::Normal->new("foo"), undef, '->new(evil) returns undef' );
+is( PPI::Normal->new(\"foo"), undef, '->new(evil) returns undef' );
+is( PPI::Normal->new([]), undef, '->new(evil) returns undef' );
+is( PPI::Normal->new({}), undef, '->new(evil) returns undef' );
+
+=end testing
 
 =cut
 
 sub new {
-	my $class = shift->_clear;
+	my $class = shift;
+	my $layer = @_ ?
+		(defined $_[0] and ! ref $_[0] and $_[0] =~ /^[12]$/) ? shift : return undef
+		: 1;
 
 	# Create the object
 	my $object = bless {
-		layer => 2,
+		layer => $layer,
 		}, $class;
 
 	$object;
 }
+
+=pod
+
+=head1 layer
+
+The C<layer> accessor returns the normalisation layer of the object.
+
+=cut
 
 sub layer { $_[0]->{layer} }
 
@@ -150,15 +187,67 @@ sub layer { $_[0]->{layer} }
 #####################################################################
 # Main Methods
 
-sub process {
-	my $self     = ref $_[0] ? shift->_clear : shift->new;
-	my $Document = isa(ref $_[0], 'PPI::Document') ? shift : return undef;
+=pod
 
-	# Fail if object is already in use
+=head2 process
+
+The C<process> method takes anything that can be converted to a
+L<PPI::Document> (object, SCALAR ref, filename), loads it and
+applies the normalisation process to the document.
+
+Returns a L<PPI::Document::Normalized> object, or C<undef> on error.
+
+=begin testing process after new 15
+
+my $doc1 = PPI::Document->new(\'print "Hello World!\n";');
+isa_ok( $doc1, 'PPI::Document' );
+my $doc2 = \'print "Hello World!\n";';
+my $doc3 = \' print  "Hello World!\n"; # comment';
+my $doc4 = \'print "Hello World!\n"';
+
+# Normalize them at level 1
+my $layer1 = PPI::Normal->new(1);
+isa_ok( $layer1, 'PPI::Normal' );
+my $nor11 = $layer1->process($doc1->clone);
+my $nor12 = $layer1->process($doc2);
+my $nor13 = $layer1->process($doc3);
+isa_ok( $nor11, 'PPI::Document::Normalized' );
+isa_ok( $nor12, 'PPI::Document::Normalized' );
+isa_ok( $nor13, 'PPI::Document::Normalized' );
+
+# The first 3 should be the same, the second not
+is_deeply( { %$nor11 }, { %$nor12 }, 'Layer 1: 1 and 2 match' );
+is_deeply( { %$nor11 }, { %$nor13 }, 'Layer 1: 1 and 3 match' );
+
+# Normalize them at level 2
+my $layer2 = PPI::Normal->new(2);
+isa_ok( $layer2, 'PPI::Normal' );
+my $nor21 = $layer2->process($doc1);
+my $nor22 = $layer2->process($doc2);
+my $nor23 = $layer2->process($doc3); 
+my $nor24 = $layer2->process($doc4);
+isa_ok( $nor21, 'PPI::Document::Normalized' );
+isa_ok( $nor22, 'PPI::Document::Normalized' );
+isa_ok( $nor23, 'PPI::Document::Normalized' );
+isa_ok( $nor24, 'PPI::Document::Normalized' );
+
+# The first 3 should be the same, the second not
+is_deeply( { %$nor21 }, { %$nor22 }, 'Layer 2: 1 and 2 match' );
+is_deeply( { %$nor21 }, { %$nor23 }, 'Layer 2: 1 and 3 match' );
+is_deeply( { %$nor21 }, { %$nor24 }, 'Layer 2: 1 and 4 match' );
+
+=end testing
+
+=cut
+
+sub process {
+	my $self     = ref $_[0] ? shift : shift->new;
+
+	# PPI::Normal objects are reusable, but not re-entrant
 	return undef if $self->{Document};
 
-	# Set up for processing run
-	$self->{Document} = $Document;
+	# Get or create the document
+	$self->{Document} = _Document(shift) or return undef;
 
 	# Work out what functions we need to call
 	my @functions = ();
@@ -169,29 +258,20 @@ sub process {
 	# Execute each function
 	foreach my $function ( @functions ) {
 		no strict 'refs';
-		&{"$function"}( $Document );
+		&{"$function"}( $self->{Document} );
 	}
 
 	# Create the normalized Document object
 	my $Normalized = PPI::Document::Normalized->new(
-		Document  => $Document,
+		Document  => $self->{Document},
 		version   => $VERSION,
 		functions => \@functions,
 		) or return undef;
 
+	# Done, clean up
+	delete $self->{Document};
 	$Normalized;
 }
-
-
-
-
-
-#####################################################################
-# Error Handling
-
-sub errstr { $errstr }
-sub _error { $errstr = $_[1]; undef }
-sub _clear { $errstr = ''; $_[0] }
 
 1;
 

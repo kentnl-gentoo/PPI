@@ -42,12 +42,11 @@ L<PPI::Token::Symbol>, L<PPI::Token> and L<PPI::Element>.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.

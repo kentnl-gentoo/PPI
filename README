@@ -337,10 +337,10 @@ IMPLEMENTATION
              PPI::Document
                 PPI::Document::Fragment
              PPI::Statement
-                PPI::Statement::Scheduled
                 PPI::Statement::Package
                 PPI::Statement::Include
                 PPI::Statement::Sub
+                   PPI::Statement::Scheduled
                 PPI::Statement::Compound
                 PPI::Statement::Break
                 PPI::Statement::Data
@@ -612,7 +612,7 @@ EXTENDING
     The PPI namespace itself is reserved for the sole use of the modules
     under the umbrella of the "Parse::Perl" SourceForge project.
 
-    <http://sf.net/parseperl>
+    <http://sf.net/projects/parseperl>
 
     You are recommended to use the PPIx:: namespace for PPI-specific
     modifications or prototypes thereof, or Perl:: for modules which provide

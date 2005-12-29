@@ -5,15 +5,17 @@ package PPI::Util;
 use strict;
 use base 'Exporter';
 use Digest::MD5   ();
-use PPI::Document ();
 use Params::Util '_INSTANCE',
                  '_SCALAR';
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.108';
+	$VERSION   = '1.109';
 	@EXPORT_OK = qw{_Document _slurp};
 }
+
+# Down here so we don't get into circular troubles
+use PPI::Document ();
 
 
 

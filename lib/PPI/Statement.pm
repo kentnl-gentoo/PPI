@@ -137,8 +137,8 @@ of the methods that are subclass-specific.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Node';
+use Params::Util                   '_INSTANCE';
 use PPI::Statement::Break          ();
 use PPI::Statement::Compound       ();
 use PPI::Statement::Data           ();
@@ -155,7 +155,7 @@ use PPI::Statement::Variable       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 # "Normal" statements end at a statement terminator ;
@@ -178,8 +178,8 @@ sub new {
 		children => [],
 		}, $class;
 
-	# If we have been passed an initial token, add it
-	if ( isa(ref $_[0], 'PPI::Token') ) {
+	# If we have been passed what should be an initial token, add it
+	if ( _INSTANCE($_[0], 'PPI::Token') ) {
 		$self->__add_element(shift);
 	}
 
@@ -204,8 +204,8 @@ Returns false if the statement does not have a label.
 =cut
 
 sub label {
-	my $first = shift->schild(1);
-	isa($first, 'PPI::Token::Label')
+	my $first = shift->schild(1) or return '';
+	$first->isa('PPI::Token::Label')
 		? substr($first, 0, length($first) - 1)
 		: '';
 }
@@ -239,7 +239,7 @@ sub stable {
 # You can insert either a statement, or a non-significant token.
 sub insert_before {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 	if ( $Element->isa('PPI::Statement') ) {
 		return $self->__insert_before($Element);
 	} elsif ( $Element->isa('PPI::Token') and ! $Element->significant ) {
@@ -251,7 +251,7 @@ sub insert_before {
 # As above, you can insert a statement, or a non-significant token
 sub insert_after {
 	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
 	if ( $Element->isa('PPI::Statement') ) {
 		return $self->__insert_after($Element);
 	} elsif ( $Element->isa('PPI::Token') and ! $Element->significant ) {

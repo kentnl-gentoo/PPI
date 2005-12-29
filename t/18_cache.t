@@ -23,7 +23,6 @@ use PPI::Document ();
 use File::Remove  ();
 use Scalar::Util  'refaddr';
 use Test::More    tests => 42;
-use Test::SubCalls;
 
 my $this_file = catdir( 't.data', '03_empiric', 'test.dat' );
 my $cache_dir = catdir( 't.data', '18_cache' );
@@ -110,18 +109,22 @@ isa_ok( PPI::Document->get_cache, 'PPI::Cache' );
 is( refaddr($Cache), refaddr(PPI::Document->get_cache),
 	'->get_cache returns the same cache object' );
 
-# Set the tracking on the Tokenizer constructor
-ok( sub_track( 'PPI::Tokenizer::new' ), 'Tracking calls to PPI::Tokenizer::new' );
-sub_calls( 'PPI::Tokenizer::new', 0 );
-my $doc1 = PPI::Document->new( $this_file );
-my $doc2 = PPI::Document->new( $this_file );
-isa_ok( $doc1, 'PPI::Document' );
-isa_ok( $doc2, 'PPI::Document' );
 SKIP: {
+	skip("Test::SubCalls requires >= 5.6", 7 ) if $] < 5.006;
+	require Test::SubCalls;
+
+	# Set the tracking on the Tokenizer constructor
+	ok( Test::SubCalls::sub_track( 'PPI::Tokenizer::new' ), 'Tracking calls to PPI::Tokenizer::new' );
+	Test::SubCalls::sub_calls( 'PPI::Tokenizer::new', 0 );
+	my $doc1 = PPI::Document->new( $this_file );
+	my $doc2 = PPI::Document->new( $this_file );
+	isa_ok( $doc1, 'PPI::Document' );
+	isa_ok( $doc2, 'PPI::Document' );
+
 	unless ( $doc1 and $doc2 ) {
 		skip( "Skipping due to previous failures", 3 );
 	}
-	sub_calls( 'PPI::Tokenizer::new', 1,
+	Test::SubCalls::sub_calls( 'PPI::Tokenizer::new', 1,
 		'Two calls to PPI::Document->new results in one Tokenizer object creation' );
 	ok( refaddr($doc1) != refaddr($doc2),
 		'PPI::Document->new with cache enabled does NOT return the same object' );
@@ -129,22 +132,27 @@ SKIP: {
 		'PPI::Document->new with cache enabled returns two identical objects' );
 }
 
-# Done now, can we clear the cache?
-is( PPI::Document->set_cache(undef), 1, '->set_cache(undef) returns true' );
-is( PPI::Document->get_cache, undef,    '->get_cache returns undef' );
+SKIP: {
+	skip("Test::SubCalls requires >= 5.6", 8 ) if $] < 5.006;
 
-# Next, test the import mechanism
-local $@;
-eval "use PPI::Cache path => '$cache_dir';";
-is( $@, '', 'use PPI::Cache path => ...; succeeded' );
-isa_ok( PPI::Document->get_cache, 'PPI::Cache' );
-is( scalar(PPI::Document->get_cache->path), $cache_dir, '->path returns the original path'    );
-is( scalar(PPI::Document->get_cache->readonly), '',      '->readonly returns false by default' );
+	# Done now, can we clear the cache?
+	is( PPI::Document->set_cache(undef), 1, '->set_cache(undef) returns true' );
+	is( PPI::Document->get_cache, undef,    '->get_cache returns undef' );
 
-# Does it still keep the previously cached documents
-sub_reset( 'PPI::Tokenizer::new' );
-my $doc3 = PPI::Document->new( $this_file );
-isa_ok( $doc3, 'PPI::Document' );
-sub_calls( 'PPI::Tokenizer::new', 0, 'Tokenizer was not created. Previous cache used ok' );
+	# Next, test the import mechanism
+	local $@;
+	eval "use PPI::Cache path => '$cache_dir';";
+	is( $@, '', 'use PPI::Cache path => ...; succeeded' );
+	isa_ok( PPI::Document->get_cache, 'PPI::Cache' );
+	is( scalar(PPI::Document->get_cache->path), $cache_dir, '->path returns the original path'    );
+	is( scalar(PPI::Document->get_cache->readonly), '',      '->readonly returns false by default' );
+
+	# Does it still keep the previously cached documents
+	Test::SubCalls::sub_reset( 'PPI::Tokenizer::new' );
+	my $doc3 = PPI::Document->new( $this_file );
+	isa_ok( $doc3, 'PPI::Document' );
+	Test::SubCalls::sub_calls( 'PPI::Tokenizer::new', 0,
+		'Tokenizer was not created. Previous cache used ok' );
+}
 
 1;

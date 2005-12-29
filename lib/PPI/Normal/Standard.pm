@@ -17,11 +17,10 @@ B<Move along, nothing to see here>.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 
@@ -95,7 +94,7 @@ sub remove_statement_seperator {
 		$_[1]->content eq ';'               or return '';
 		my $stmt = $_[1]->parent            or return '';
 		$stmt->isa('PPI::Statement')        or return '';
-		$_[1]->next_sibling                 or return '';
+		$_[1]->next_sibling                and return '';
 		1;
 	} );
 }

@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -24,7 +23,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2183;
+use Test::More tests => 2189;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -264,11 +263,6 @@ stable=method
 [PPI::Statement::Expression]
 PPI::Statement=isa
 
-[PPI::Statement::Scheduled]
-PPI::Statement=isa
-type=method
-block=method
-
 [PPI::Statement::Package]
 PPI::Statement=isa
 namespace=method
@@ -288,6 +282,12 @@ prototype=method
 block=method
 forward=method
 reserved=method
+
+[PPI::Statement::Scheduled]
+PPI::Statement::Sub=isa
+PPI::Statement=isa
+type=method
+block=method
 
 [PPI::Statement::Variable]
 PPI::Statement=isa
@@ -410,7 +410,6 @@ register=method
 new=method
 layer=method
 process=method
-errstr=method
 
 [PPI::Normal::Standard]
 import=method

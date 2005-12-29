@@ -39,12 +39,12 @@ L<PPI::Node> to recognise this fact, but for now it stays here.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Statement::Expression';
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 =pod
@@ -62,12 +62,14 @@ Returns a string of the type, or C<undef> if the type cannot be detected
 sub type {
 	my $self = shift;
 
-	# Get the children we care about
+	# Get the first significant child
 	my @schild = grep { $_->significant } $self->children;
-	shift @schild if isa($schild[0], 'PPI::Token::Label');
+
+	# Ignore labels
+	shift @schild if _INSTANCE($schild[0], 'PPI::Token::Label');
 
 	# Get the type
-	(isa($schild[0], 'PPI::Token::Word') and $schild[0]->content =~ /^(my|local|our)$/)
+	(_INSTANCE($schild[0], 'PPI::Token::Word') and $schild[0]->content =~ /^(my|local|our)$/)
 		? $schild[0]->content
 		: undef;
 }
@@ -124,15 +126,15 @@ sub variables {
 
 	# Get the children we care about
 	my @schild = grep { $_->significant } $self->children;
-	shift @schild if isa($schild[0], 'PPI::Token::Label');
+	shift @schild if _INSTANCE($schild[0], 'PPI::Token::Label');
 
 	# If the second child is a symbol, return its name
-	if ( isa($schild[1], 'PPI::Token::Symbol') ) {
+	if ( _INSTANCE($schild[1], 'PPI::Token::Symbol') ) {
 		return $schild[1]->canonical;
 	}
 
 	# If it's a list, return as a list
-	if ( isa($schild[1], 'PPI::Structure::List') ) {
+	if ( _INSTANCE($schild[1], 'PPI::Structure::List') ) {
 		my $Expression = $schild[1]->child(0);
 		$Expression and
 		$Expression->isa('PPI::Statement::Expression') or return ();

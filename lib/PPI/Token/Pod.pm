@@ -27,12 +27,12 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token';
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 
@@ -58,7 +58,7 @@ sub merge {
 	my $class = (! ref $_[0]) ? shift : return undef;
 
 	# Check there are no bad arguments
-	if ( grep { ! isa( ref $_, 'PPI::Token::Pod' ) } @_ ) {
+	if ( grep { ! _INSTANCE($_, 'PPI::Token::Pod') } @_ ) {
 		return undef;
 	}
 

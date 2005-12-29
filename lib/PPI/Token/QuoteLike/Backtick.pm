@@ -29,13 +29,12 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token::_QuoteEngine::Simple',
          'PPI::Token::QuoteLike';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 1;

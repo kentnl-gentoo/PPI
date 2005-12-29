@@ -24,7 +24,7 @@ PPI::Document - Object representation of a Perl document
   
   # Find all the named subroutines
   my @subs = $Document->find( 
-  	sub { isa($_[1], 'PPI::Statement::Sub') and $_[1]->name }
+  	sub { $_[1]->isa('PPI::Statement::Sub') and $_[1]->name }
   	);
   
   # Save the file
@@ -77,7 +77,7 @@ use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 	$errstr  = '';
 }
 

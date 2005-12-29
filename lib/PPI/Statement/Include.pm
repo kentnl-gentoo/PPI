@@ -45,12 +45,11 @@ L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 =pod
@@ -65,9 +64,9 @@ Returns the type as a string, or C<undef> if the type cannot be detected.
 =cut
 
 sub type {
-	my $self = shift;
+	my $self    = shift;
 	my $keyword = $self->schild(0) or return undef;
-	isa($keyword, 'PPI::Token::Word') and $keyword->content;
+	$keyword->isa('PPI::Token::Word') and $keyword->content;
 }
 
 =pod
@@ -100,7 +99,7 @@ not specify a module name.
 sub module {
 	my $self = shift;
 	my $module = $self->schild(1) or return undef;
-	isa($module, 'PPI::Token::Word') and $module->content;
+	$module->isa('PPI::Token::Word') and $module->content;
 }
 
 =pod
@@ -152,7 +151,7 @@ dependency.
 sub version {
 	my $self = shift;
 	my $version = $self->schild(1) or return undef;
-	isa(ref $version, 'PPI::Token::Number') ? $version->content : '';
+	$version->isa('PPI::Token::Number') ? $version->content : '';
 }
 
 1;

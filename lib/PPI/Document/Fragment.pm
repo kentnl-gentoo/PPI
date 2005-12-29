@@ -20,11 +20,10 @@ within it, and it does not represent a scope.
 
 use strict;
 use base 'PPI::Document';
-use UNIVERSAL 'isa';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 

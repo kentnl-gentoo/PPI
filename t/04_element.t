@@ -40,7 +40,10 @@ sub is_object {
 	ok( $condition, $message );
 }
 
-our $RE_IDENTIFIER = qr/[^\W\d]\w*/;
+use vars qw{$RE_IDENTIFIER};
+BEGIN {
+	$RE_IDENTIFIER = qr/[^\W\d]\w*/;
+}
 
 sub omethod_fails {
 	my $object  = isa(ref $_[0], 'UNIVERSAL') ? shift : die "Failed to pass method_fails test an object";

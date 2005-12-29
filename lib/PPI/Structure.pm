@@ -3,7 +3,6 @@ package PPI::Structure;
 # An abstract parent and a set of classes representing structures
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Node';
 use Scalar::Util                'refaddr';
 use Params::Util                '_INSTANCE';
@@ -17,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -52,7 +51,7 @@ sub _set_finish {
 	my $self  = shift;
 
 	# Check the Token
-	my $Token = isa(ref $_[0], 'PPI::Token::Structure') ? shift : return undef;
+	my $Token = ($_[0] and $_[0]->isa('PPI::Token::Structure')) ? shift : return undef;
 	$Token->parent and return undef; # Must be a detached token
 	($self->start->__LEXER__opposite eq $Token->content) or return undef; # ... that matches the opening token
 

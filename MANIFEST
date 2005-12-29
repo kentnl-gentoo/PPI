@@ -167,6 +167,7 @@ t/20_tokenizer_regression.t
 t/21_exhaustive.t
 t/99_pod.t
 t/ppi_element.t
+t/ppi_normal.t
 t/ppi_statement_variable.t
 t/ppi_token__quoteengine_full.t
 t/ppi_token_quote.t

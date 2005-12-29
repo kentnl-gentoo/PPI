@@ -50,14 +50,15 @@ L<PPI::Element> objects also apply to C<PPI::Node> objects.
 
 use strict;
 use base 'PPI::Element';
-use Scalar::Util 'refaddr';
-use Params::Util '_INSTANCE';
+use Carp            ();
+use Scalar::Util    'refaddr';
 use List::MoreUtils ();
-use Carp ();
+use Params::Util    '_INSTANCE',
+                    '_CLASS';
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -313,7 +314,7 @@ The C<find> method is used to search within a code tree for
 L<PPI::Element> objects that meet a particular condition.
 
 To specify the condition, the method can be provided with either a simple
-class name (full or shortened), or an anonymous subroutine.
+class name (full or shortened), or a C<CODE>/function reference.
 
   # Find all single quotes in a Document (which is a Node)
   $Document->find('PPI::Quote::Single');
@@ -333,12 +334,22 @@ class name (full or shortened), or an anonymous subroutine.
   	)
   } );
 
-The anonymous subroutine will be passed two arguments, the top-level
-Node you are searching in and the current Element that the condition is
-testing. The anonymous subroutine should return a simple true/false
-value indicating match or no match.
+The function will be passed two arguments, the top-level C<PPI::Node>
+you are searching in and the current L<PPI::Element> that the condition
+is testing.
 
-Note that the same wanted logic is used for all methods documented to
+The anonymous function should return one of three values. Returning true
+indicates a condition match, defined-false (C<0> or C<''>) indicates
+no-match, and C<undef> indicates no-match and no-descend.
+
+In the last case, the tree walker will skip over anything below the
+C<undef>-returning element and move on to the next element at the same
+level.
+
+To halt the entire search and return C<undef> immediately, a condition
+function should throw an exception (i.e. C<die>).
+
+Note that this same wanted logic is used for all methods documented to
 have a C<\&wanted> parameter, as this one does.
 
 The C<find> method returns a reference to an array of L<PPI::Element>
@@ -351,7 +362,7 @@ In the case of a bad condition, a warning will be emitted as well.
 =cut
 
 sub find {
-	my $self      = shift;
+	my $self   = shift;
 	my $wanted = $self->_wanted(shift) or return undef;
 
 	# Use a queue based search, rather than a recursive one
@@ -563,14 +574,14 @@ sub _wanted {
 
 	# The first argument should be an Element class, possibly in shorthand
 	$it = "PPI::$it" unless substr($it, 0, 5) eq 'PPI::';
-	unless ( UNIVERSAL::isa($it, 'PPI::Element') ) {
+	unless ( _CLASS($it) and $it->isa('PPI::Element') ) {
 		# We got something, but it isn't an element
 		Carp::carp("Cannot create search condition for '$it': Not a PPI::Element") if $^W;
 		return undef;
 	}
 
 	# Create the class part of the wanted function
-	my $wanted_class = "\n\treturn '' unless UNIVERSAL::isa( \$_[1], '$it' );";
+	my $wanted_class = "\n\treturn '' unless \$_[1]->isa('$it');";
 
 	# Have we been given a second argument to check the content
 	my $wanted_content = '';
@@ -641,6 +652,7 @@ sub location {
 # Internal Methods
 
 sub DESTROY {
+	local $_;
 	if ( $_[0]->{children} ) {
 		my @queue = $_[0];
 		while ( defined($_ = shift @queue) ) {

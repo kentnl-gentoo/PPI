@@ -1,8 +1,9 @@
 #line 1 "inc/Test/SubCalls.pm - /usr/local/share/perl/5.8.4/Test/SubCalls.pm"
 package Test::SubCalls;
 
-#line 43
+#line 42
 
+use 5.006; # Only because of Lex::HookWrap. Otherwise 5.005
 use strict;
 use Test::Builder ();
 use Hook::LexWrap ();
@@ -10,7 +11,7 @@ use base 'Exporter';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@EXPORT  = qw{sub_track sub_calls sub_reset sub_reset_all};
 }
 

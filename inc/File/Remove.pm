@@ -1,7 +1,7 @@
 #line 1 "inc/File/Remove.pm - /usr/local/share/perl/5.8.4/File/Remove.pm"
 package File::Remove;
 
-#line 97
+#line 96
 
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);

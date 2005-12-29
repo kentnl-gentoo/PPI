@@ -9,9 +9,10 @@ PPI::Statement::Scheduled - A scheduled code block
 =head1 INHERITANCE
 
   PPI::Statement::Scheduled
-  isa PPI::Statement
-      isa PPI::Node
-          isa PPI::Element
+  isa PPI::Statement::Sub
+      isa PPI::Statement
+          isa PPI::Node
+              isa PPI::Element
 
 =head1 DESCRIPTION
 
@@ -48,12 +49,11 @@ may have 'sub' in front of them.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
-use base 'PPI::Statement';
+use base 'PPI::Statement::Sub';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 sub __LEXER__normal { '' }
@@ -75,23 +75,9 @@ sub type {
 		: $children[0]->content;
 }
 
-=pod
-
-=head2 block
-
-With its name and implementation shared with L<PPI::Statement::Sub>, the
-C<block> method finds and returns the actual Structure object of the block
-for this scheduled block.
-
-Returns false if it cannot find a block (although why this might happen
-I'm not sure).
-
-=cut
-
-sub block {
-	my $self = shift;
-	my $lastchild = $self->schild(-1);
-	isa($lastchild, 'PPI::Structure::Block') and $lastchild;
+# This is actually the same as Sub->name
+sub name {
+	shift->type(@_);
 }
 
 1;

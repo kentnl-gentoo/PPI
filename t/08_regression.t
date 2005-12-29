@@ -36,7 +36,7 @@ sub pause {
 #####################################################################
 # Prepare
 
-use Test::More tests => 117;
+use Test::More tests => 120;
 
 use vars qw{$testdir};
 BEGIN {
@@ -204,5 +204,16 @@ is_deeply( { %$regexp }, $expected, 'Badly short regexp matches expected' );
 # the decision on the sections->[1]->{position} value being one char after
 # the end of the current string
 is( substr('foo', 3, 0), '', 'substr one char after string end returns ""' );
+
+# rt.cpan.org: Ticket #16671 $_ is not localized 
+# Apparently I DID fix the localisation during parsing, but I forgot to 
+# localise in PPI::Node::DESTROY (ack).
+$_ = 1234;
+is( $_, 1234, 'Set $_ to 1234' );
+SCOPE: {
+	my $Document = PPI::Document->new( \"print 'Hello World';");
+	isa_ok( $Document, 'PPI::Document' );
+}
+is( $_, 1234, 'Remains after document creation and destruction' );
 
 exit();

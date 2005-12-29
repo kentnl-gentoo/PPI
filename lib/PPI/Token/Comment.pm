@@ -59,12 +59,11 @@ parent L<PPI::Token> and L<PPI::Element> classes.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Comment__significant 0.900+

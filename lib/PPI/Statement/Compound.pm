@@ -51,12 +51,11 @@ standard L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 
 	# Keyword type map
 	%TYPES = (
@@ -103,10 +102,10 @@ cannot be determined.
 sub type {
 	my $self    = shift;
 	my $p       = 0; # Child position
-	my $Element = $self->schild($p);
+	my $Element = $self->schild($p) or return undef;
 
 	# A labelled statement
-	if ( isa($Element, 'PPI::Token::Label') ) {
+	if ( $Element->isa('PPI::Token::Label') ) {
 		$Element = $self->schild(++$p) or return 'label';
 	}
 
@@ -117,8 +116,8 @@ sub type {
 		return 'foreach' if $Element->isa('PPI::Token::Symbol');
 		return 'for';
 	}
-	return $TYPES{$Element->content} if isa($Element, 'PPI::Token::Word');
-	return 'continue'                if isa($Element, 'PPI::Structure::Block');
+	return $TYPES{$Element->content} if $Element->isa('PPI::Token::Word');
+	return 'continue'                if $Element->isa('PPI::Structure::Block');
 
 	# Unknown (shouldn't exist?)
 	undef;

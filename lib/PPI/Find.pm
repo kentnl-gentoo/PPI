@@ -72,11 +72,11 @@ caught by the Find object and returned as an error.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 
@@ -181,7 +181,7 @@ sub in {
 	}
 
 	# Get the root element for the search
-	unless ( isa($Element, 'PPI::Element') ) {
+	unless ( _INSTANCE($Element, 'PPI::Element') ) {
 		return $self->_error('->in was not passed a PPI::Element object', %params);
 	}
 
@@ -240,7 +240,7 @@ sub start {
 	}
 
 	# Get the root element for the search
-	unless ( isa($Element, 'PPI::Element') ) {
+	unless ( _INSTANCE($Element, 'PPI::Element') ) {
 		return $self->_error('->in was not passed a PPI::Element object');
 	}
 

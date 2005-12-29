@@ -1,5 +1,27 @@
 Revision history for Perl extension PPI
 
+1.109    Fri Dec 30 2005
+	General:
+	- Various bug fixes
+	- Minor structural cleanup
+
+	Details:
+	- Removed every single use of UNIVERSAL::isa
+	- PPI::Normal was quite broken, cleaned it up
+	- Fixed PPI::Normal::Standard::remove_statement_seperator
+	- Fixed CPAN #16674 PPI::Token::Quote::Double->interpolations
+	  (awigley)
+	- Fixed CPAN #15131 PPI::Node->find() behavior not completely
+	  documented (Jeffrey Thalhammer)
+	- Fixed CPAN 13743 PPI::Statement::Scheduled api (johanl)
+	- PPI::Statement::Scheduled is now a subclass of PPI::Statement::Sub
+	- Removed breaking circular include in PPI::Util
+	- Removed an 'our' variable in t/04_element.t that created a 5.6.0 dependency
+	- Only do the PPI::Cache tests that use Test::SubCalls if >= 5.006
+	- (Except for File::Remove, we should ACTUALLY depend on 5.005 now)
+	- Fixed CPAN #16671 $_ is not localized (JPIERCE)
+	  (I missed an unlocaled $_ hiding in the Node object destructor)
+
 1.108    Thu Dec 15 2005
 	General:
 	- Fixing of some very minor bugs

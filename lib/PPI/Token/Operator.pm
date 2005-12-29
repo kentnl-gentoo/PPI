@@ -41,12 +41,11 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly

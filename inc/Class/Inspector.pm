@@ -1,7 +1,7 @@
 #line 1 "inc/Class/Inspector.pm - /usr/local/share/perl/5.8.4/Class/Inspector.pm"
 package Class::Inspector;
 
-#line 41
+#line 40
 
 # Load Overhead: 236k
 
@@ -30,14 +30,14 @@ BEGIN {
 #####################################################################
 # Basic Methods
 
-#line 81
+#line 80
 
 sub installed {
 	my $class = shift;
 	!! ($class->loaded_filename($_[0]) or $class->resolved_filename($_[0]));
 }
 
-#line 105
+#line 104
 
 sub loaded {
 	my $class = shift;
@@ -67,7 +67,7 @@ sub _loaded {
 	'';
 }
 
-#line 151
+#line 150
 
 sub filename {
 	my $class = shift;
@@ -75,7 +75,7 @@ sub filename {
 	File::Spec->catfile( split /(?:'|::)/, $name ) . '.pm';
 }
 
-#line 177
+#line 176
 
 sub resolved_filename {
 	my $class     = shift;
@@ -93,7 +93,7 @@ sub resolved_filename {
 	'';
 }
 
-#line 206
+#line 205
 
 sub loaded_filename {
 	my $class    = shift;
@@ -108,7 +108,7 @@ sub loaded_filename {
 #####################################################################
 # Sub Related Methods
 
-#line 233
+#line 232
 
 sub functions {
 	my $class = shift;
@@ -122,7 +122,7 @@ sub functions {
 	\@functions;
 }
 
-#line 259
+#line 258
 
 sub function_refs {
 	my $class = shift;
@@ -138,7 +138,7 @@ sub function_refs {
 	\@functions;
 }
 
-#line 288
+#line 287
 
 sub function_exists {
 	my $class    = shift;
@@ -152,7 +152,7 @@ sub function_exists {
 	defined &{"${name}::$function"};
 }
 
-#line 367
+#line 366
 
 sub methods {
 	my $class     = shift;
@@ -238,7 +238,7 @@ sub methods {
 #####################################################################
 # Search Methods
 
-#line 468
+#line 467
 
 sub subclasses {
 	my $class = shift;
@@ -369,4 +369,4 @@ sub _inc_to_local {
 
 1;
 
-#line 631
+#line 630

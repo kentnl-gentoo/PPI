@@ -38,13 +38,14 @@ a code security process, and false positives could be highly dangerous.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use overload 'bool' => sub () { 1 },
              '=='   => 'equal';
+use Params::Util '_INSTANCE',
+                 '_ARRAY';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 # For convenience (and since this isn't really a public class), import
@@ -76,9 +77,9 @@ sub new {
 	my %args  = @_;
 
 	# Check the required params
-	my $Document  = isa($args{Document}, 'PPI::Document') ? $args{Document} : return undef;
+	my $Document  = _INSTANCE($args{Document}, 'PPI::Document') or return undef;
 	my $version   = $args{version} or return undef;
-	my $functions = ref $args{functions} eq 'ARRAY' ? $args{functions} : return undef;
+	my $functions = _ARRAY($args{functions}) or return undef;
 
 	# Create the object
 	my $self = bless {
@@ -146,7 +147,7 @@ or C<undef> if there is an error.
 
 sub equal {
 	my $self  = shift;
-	my $other = isa(ref $_[0], 'PPI::Document::Normalized') ? shift : return undef;
+	my $other = _INSTANCE(shift, 'PPI::Document::Normalized') or return undef;
 
 	# Prevent multiple concurrent runs
 	return undef if $self->{processing};

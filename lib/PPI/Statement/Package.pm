@@ -39,12 +39,11 @@ L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 =pod
@@ -66,7 +65,9 @@ If the package statement is done any different way, it returns false.
 sub namespace {
 	my $self = shift;
 	my $namespace = $self->schild(1) or return '';
-	isa($namespace, 'PPI::Token::Word') ? $namespace->content : '';
+	$namespace->isa('PPI::Token::Word')
+		? $namespace->content
+		: '';
 }
 
 =pod
@@ -91,8 +92,8 @@ sub file_scoped {
 	my $self     = shift;
 	my ($Parent, $Document) = ($self->parent, $self->top);
 	$Parent and $Document and $Parent == $Document
-	and isa($Document, 'PPI::Document')
-	and ! isa($Document, 'PPI::Document::Fragment');
+	and $Document->isa('PPI::Document')
+	and ! $Document->isa('PPI::Document::Fragment');
 }
 
 1;

@@ -54,14 +54,14 @@ For more unusual tasks, by all means forge onwards.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
+use Params::Util  '_INSTANCE';
 use PPI           ();
 use PPI::Token    ();
 use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 	$errstr  = '';
 }
 
@@ -115,7 +115,8 @@ Returns a L<PPI::Document> object, or C<undef> on error.
 
 sub lex_file {
 	my $self = ref $_[0] ? shift : shift->new;
-	my $file = (defined $_[0] and ! ref $_[0]) ? shift : return $self->_error(
+	my $file = (defined $_[0] and ! ref $_[0]) ? shift
+		: return $self->_error(
 		"Did not pass a filename to PPI::Lexer::lex_file"
 		);
 
@@ -146,7 +147,8 @@ Returns a L<PPI::Document> object, or C<undef> on error.
 
 sub lex_source {
 	my $self   = ref $_[0] ? shift : shift->new;
-	my $source = (defined $_[0] and ! ref $_[0]) ? shift : return $self->_error(
+	my $source = (defined $_[0] and ! ref $_[0]) ? shift
+		: return $self->_error(
 		"Did not pass a string to PPI::Lexer::lex_source"
 		);
 
@@ -176,7 +178,8 @@ Returns a L<PPI::Document> object, or C<undef> on error.
 
 sub lex_tokenizer {
 	my $self      = ref $_[0] ? shift : shift->new;
-	my $Tokenizer = isa(ref $_[0], 'PPI::Tokenizer') ? shift : return $self->_error(
+	my $Tokenizer = _INSTANCE(shift, 'PPI::Tokenizer')
+		or return $self->_error(
 		"Did not pass a PPI::Tokenizer object to PPI::Lexer::lex_tokenizer"
 		);
 
@@ -203,7 +206,7 @@ sub lex_tokenizer {
 
 sub _lex_document {
 	my $self     = shift;
-	my $Document = isa(ref $_[0], 'PPI::Document') ? shift : return undef;
+	my $Document = _INSTANCE(shift, 'PPI::Document') or return undef;
 
 	# Start the processing loop
 	my $Token;
@@ -330,9 +333,10 @@ BEGIN {
 }
 
 sub _resolve_new_statement {
-	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node')  ? shift : return undef;
-	my $Token  = isa($_[0], 'PPI::Token') ? shift : return undef;
+	my ($self, $Parent, $Token) = @_;
+	# my $self   = shift;
+	# my $Parent = _INSTANCE(shift, 'PPI::Node')  or die "Bad param 1";
+	# my $Token  = _INSTANCE(shift, 'PPI::Token') or die "Bad param 2";
 
 	# Is it a token in our known classes list
 	my $class = $STATEMENT_CLASSES{$Token->content};
@@ -402,7 +406,7 @@ sub _resolve_new_statement {
 		return 'PPI::Statement::Expression';
 	}
 
-	if ( isa($Token, 'PPI::Token::Label') ) {
+	if ( _INSTANCE($Token, 'PPI::Token::Label') ) {
 		return 'PPI::Statement::Compound';
 	}
 
@@ -412,8 +416,9 @@ sub _resolve_new_statement {
 }
 
 sub _lex_statement {
-	my $self      = shift;
-	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
+	my ($self, $Statement) = @_;
+	# my $self      = shift;
+	# my $Statement = _INSTANCE(shift, 'PPI::Statement') or die "Bad param 1";
 
 	# Handle some special statements
 	if ( $Statement->isa('PPI::Statement::End') ) {
@@ -446,7 +451,7 @@ sub _lex_statement {
 		}
 
 		# Any normal character just gets added
-		unless ( isa($Token, 'PPI::Token::Structure') ) {
+		unless ( $Token->isa('PPI::Token::Structure') ) {
 			$self->_add_element( $Statement, $Token ) or return undef;
 			next;
 		}
@@ -481,8 +486,8 @@ sub _lex_statement {
 
 sub _lex_statement_end {
 	my $self      = shift;
-	my $Statement = isa($_[0], 'PPI::Statement::End') ? shift : return undef;
-	
+	my $Statement = _INSTANCE(shift, 'PPI::Statement::End') or die "Bad param 1";
+
 	# End of the file, EVERYTHING is ours
 	my $Token;
 	while ( $Token = $self->_get_token ) {
@@ -502,9 +507,10 @@ sub _lex_statement_end {
 # to determine if the there is a statement boundary between the two, or if
 # the statement can continue with the token.
 sub _statement_continues {
-	my $self      = shift;
-	my $Statement = isa($_[0], 'PPI::Statement') ? shift : return undef;
-	my $Token     = isa($_[0], 'PPI::Token')     ? shift : return undef;
+	my ($self, $Statement, $Token) = @_;
+	# my $self      = shift;
+	# my $Statement = _INSTANCE(shift, 'PPI::Statement') or die "Bad param 1";
+	# my $Token     = _INSTANCE(shift, 'PPI::Token')     or die "Bad param 2";
 
 	# Alrighty then, there are only three implied end statement types,
 	# ::Scheduled blocks, ::Sub declarations, and ::Compound statements.
@@ -514,7 +520,7 @@ sub _statement_continues {
 
 	# Of these three, ::Scheduled and ::Sub both follow the same simple
 	# rule and can be handled first.
-	my @part = $Statement->schildren;
+	my @part      = $Statement->schildren;
 	my $LastChild = $part[-1] or return undef;
 	unless ( $Statement->isa('PPI::Statement::Compound') ) {
 		# If the last significant element of the statement is a block,
@@ -594,7 +600,7 @@ sub _statement_continues {
 	}
 
 	# Handle the common "after round braces" case
-	if ( isa($LastChild, 'PPI::Structure') and $LastChild->braces eq '()' ) {
+	if ( $LastChild->isa('PPI::Structure') and $LastChild->braces eq '()' ) {
 		# LABEL while (EXPR) ...
 		# LABEL while (EXPR) ...
 		# LABEL for (EXPR; EXPR; EXPR) ...
@@ -606,7 +612,7 @@ sub _statement_continues {
 
 	if ( $type eq 'for' ) {
 		# LABEL for (EXPR; EXPR; EXPR) BLOCK
-		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'for' ) {
+		if ( $LastChild->isa('PPI::Token::Word') and $LastChild->content eq 'for' ) {
 			# LABEL for ...
 			if ( $Token->isa('PPI::Token::Structure') && $Token->content eq '(' ) {
 				return 1;
@@ -615,7 +621,7 @@ sub _statement_continues {
 			# In this case, we can also behave like a foreach
 			$type = 'foreach';
 
-		} elsif ( isa($LastChild, 'PPI::Structure::Block') ) {
+		} elsif ( $LastChild->isa('PPI::Structure::Block') ) {
 			# LABEL for (EXPR; EXPR; EXPR) BLOCK
 			# That's it, nothing can continue
 			return '';
@@ -623,7 +629,7 @@ sub _statement_continues {
 	}
 
 	# Handle the common continue case
-	if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'continue' ) {
+	if ( $LastChild->isa('PPI::Token::Word') and $LastChild->content eq 'continue' ) {
 		# LABEL while (EXPR) BLOCK continue ...
 		# LABEL foreach VAR (LIST) BLOCK continue ...
 		# LABEL BLOCK continue ...
@@ -632,7 +638,7 @@ sub _statement_continues {
 	}
 
 	# Handle the common continuable block case
-	if ( isa($LastChild, 'PPI::Structure::Block') ) {
+	if ( $LastChild->isa('PPI::Structure::Block') ) {
 		# LABEL while (EXPR) BLOCK
 		# LABEL while (EXPR) BLOCK ...
 		# LABEL for (EXPR; EXPR; EXPR) BLOCK
@@ -640,7 +646,7 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) BLOCK ...
 		# LABEL BLOCK ...
 		# Is this the block for a continue?
-		if ( isa($part[-2], 'PPI::Token::Word') and $part[-2]->content eq 'continue' ) {
+		if ( _INSTANCE($part[-2], 'PPI::Token::Word') and $part[-2]->content eq 'continue' ) {
 			# LABEL while (EXPR) BLOCK continue BLOCK
 			# LABEL foreach VAR (LIST) BLOCK continue BLOCK
 			# LABEL BLOCK continue BLOCK
@@ -661,7 +667,7 @@ sub _statement_continues {
 		# LABEL while (EXPR) BLOCK
 		# LABEL while (EXPR) BLOCK continue BLOCK
 		# The only case not covered is the while ...
-		if ( isa($LastChild, 'PPI::Token::Word') and $LastChild->content eq 'while' ) {
+		if ( $LastChild->isa('PPI::Token::Word') and $LastChild->content eq 'while' ) {
 			# LABEL while ...
 			# Only a condition structure will do
 			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
@@ -673,9 +679,9 @@ sub _statement_continues {
 		# LABEL foreach VAR (LIST) BLOCK continue BLOCK
 		# The only two cases that have not been covered already are
 		# 'foreach ...' and 'foreach VAR ...'
-		return undef unless isa($LastChild, 'PPI::Token');
+		return undef unless $LastChild->isa('PPI::Token');
 
-		if ( isa($LastChild, 'PPI::Token::Symbol') ) {
+		if ( $LastChild->isa('PPI::Token::Symbol') ) {
 			# LABEL foreach my $scalar ...
 			# Only an open round brace will do
 			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
@@ -735,9 +741,10 @@ BEGIN {
 # Given a parent element, and a token which will open a structure, determine
 # the class that the structure should be.
 sub _resolve_new_structure {
-	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node')             ? shift : return undef;
-	my $Token  = isa($_[0], 'PPI::Token::Structure') ? shift : return undef;
+	my ($self, $Parent, $Token) = @_;
+	# my $self   = shift;
+	# my $Parent = _INSTANCE(shift, 'PPI::Node')             or die "Bad param 1";
+	# my $Token  = _INSTANCE(shift, 'PPI::Token::Structure') or die "Bad param 2";
 
 	return $self->_resolve_new_structure_round ($Parent) if $Token->content eq '(';
 	return $self->_resolve_new_structure_square($Parent) if $Token->content eq '[';
@@ -748,12 +755,13 @@ sub _resolve_new_structure {
 # Given a parent element, and a ( token to open a structure, determine
 # the class that the structure should be.
 sub _resolve_new_structure_round {
-	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my ($self, $Parent) = @_;
+	# my $self   = shift;
+	# my $Parent = _INSTANCE(shift, 'PPI::Node') or die "Bad param 1";
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->schild(-1);
-	if ( isa( $Element, 'PPI::Token::Word' ) ) {
+	if ( _INSTANCE($Element, 'PPI::Token::Word') ) {
 		# Can it be determined because it is a keyword?
 		if ( $ROUND_CLASSES{$Element->content} ) {
 			return $ROUND_CLASSES{$Element->content};
@@ -768,7 +776,7 @@ sub _resolve_new_structure_round {
 	# Otherwise, it must be a list
 
 	# If the previous element is -> then we mark it as a dereference
-	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
+	if ( _INSTANCE($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
 		$Element->{_dereference} = 1;
 	}
 
@@ -778,27 +786,31 @@ sub _resolve_new_structure_round {
 # Given a parent element, and a [ token to open a structure, determine
 # the class that the structure should be.
 sub _resolve_new_structure_square {
-	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my ($self, $Parent) = @_;
+	# my $self   = shift;
+	# my $Parent = _INSTANCE(shift, 'PPI::Node') or die "Bad param 1";
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->schild(-1);
 
 	# Is this a subscript, like $foo[1] or $foo{expr}
-	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
-		# $foo->[]
-		$Element->{_dereference} = 1;
-		return 'PPI::Structure::Subscript';
+	
+	if ( $Element ) {
+		if ( $Element->isa('PPI::Token::Operator') and $Element->content eq '->' ) {
+			# $foo->[]
+			$Element->{_dereference} = 1;
+			return 'PPI::Structure::Subscript';
+		}
+		if ( $Element->isa('PPI::Structure::Subscript') ) {
+			# $foo{}[]
+			return 'PPI::Structure::Subscript';
+		}
+		if ( $Element->isa('PPI::Token::Symbol') and $Element->content =~ /^(?:\$|\@)/ ) {
+			# $foo[], @foo[]
+			return 'PPI::Structure::Subscript';
+		}
+		# FIXME - More cases to catch
 	}
-	if ( isa($Element, 'PPI::Structure::Subscript') ) {
-		# $foo{}[]
-		return 'PPI::Structure::Subscript';
-	}
-	if ( isa($Element, 'PPI::Token::Symbol') and $Element->content =~ /^(?:\$|\@)/ ) {
-		# $foo[], @foo[]
-		return 'PPI::Structure::Subscript';
-	}
-	# FIXME - More cases to catch
 
 	# Otherwise, we assume that it's an anonymous arrayref constructor
 	'PPI::Structure::Constructor';
@@ -807,25 +819,28 @@ sub _resolve_new_structure_square {
 # Given a parent element, and a { token to open a structure, determine
 # the class that the structure should be.
 sub _resolve_new_structure_curly {
-	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my ($self, $Parent) = @_;
+	# my $self   = shift;
+	# my $Parent = _INSTANCE(shift, 'PPI::Node') or die "Bad param 1";
 
 	# Get the last significant element in the parent
 	my $Element = $Parent->schild(-1);
 
 	# Is this a subscript, like $foo[1] or $foo{expr}
-	if ( isa($Element, 'PPI::Token::Operator') and $Element->content eq '->' ) {
-		# $foo->{}
-		$Element->{_dereference} = 1;
-		return 'PPI::Structure::Subscript';
-	}
-	if ( isa($Element, 'PPI::Structure::Subscript') ) {
-		# $foo[]{}
-		return 'PPI::Structure::Subscript';
-	}
-	if ( isa($Element, 'PPI::Token::Symbol') and $Element->content =~ /^(?:\$|\@)/ ) {
-		# $foo{}, @foo{}
-		return 'PPI::Structure::Subscript';
+	if ( $Element ) {
+		if ( $Element->isa('PPI::Token::Operator') and $Element->content eq '->' ) {
+			# $foo->{}
+			$Element->{_dereference} = 1;
+			return 'PPI::Structure::Subscript';
+		}
+		if ( $Element->isa('PPI::Structure::Subscript') ) {
+			# $foo[]{}
+			return 'PPI::Structure::Subscript';
+		}
+		if ( $Element->isa('PPI::Token::Symbol') and $Element->content =~ /^(?:\$|\@)/ ) {
+			# $foo{}, @foo{}
+			return 'PPI::Structure::Subscript';
+		}
 	}
 
 	# Are we in a compound statement
@@ -843,8 +858,9 @@ sub _resolve_new_structure_curly {
 }
 
 sub _lex_structure {
-	my $self      = shift;
-	my $Structure = isa($_[0], 'PPI::Structure') ? shift : return undef;
+	my ($self, $Structure) = @_;
+	# my $self      = shift;
+	# my $Structure = _INSTANCE(shift, 'PPI::Structure') or die "Bad param 1";
 
 	# Start the processing loop
 	my $Token;
@@ -856,7 +872,7 @@ sub _lex_structure {
 		}
 
 		# Anything other than a Structure starts a Statement
-		unless ( ref $Token eq 'PPI::Token::Structure' ) {
+		unless ( $Token->isa('PPI::Token::Structure') ) {
 			# Because _resolve_new_statement may well delay and
 			# rollback itself, we need to add the delayed tokens early
 			$self->_add_delayed( $Structure ) or return undef;
@@ -950,18 +966,19 @@ sub _get_token {
 
 # Delay the addition of a insignificant elements
 sub _delay_element {
-	my $self    = shift;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	# my $self    = shift;
+	# my $Element = _INSTANCE(shift, 'PPI::Element') or die "Bad param 1";
 
 	# Take from the front, add to the end
-	push @{$self->{delayed}}, $Element;
+	push @{ $_[0]->{delayed} }, $_[1];
 }
 
 # Add an Element to a Node, including any delayed Elements
 sub _add_element {
-	my $self    = shift;
-	my $Parent  = isa($_[0], 'PPI::Node')    ? shift : return undef;
-	my $Element = isa($_[0], 'PPI::Element') ? shift : return undef;
+	my ($self, $Parent, $Element) = @_;
+	# my $self    = shift;
+	# my $Parent  = _INSTANCE(shift, 'PPI::Node')    or die "Bad param 1";
+	# my $Element = _INSTANCE(shift, 'PPI::Element') or die "Bad param 2";
 
 	# Handle a special case, where a statement is not fully resolved
 	if ( ref $Parent eq 'PPI::Statement' ) {
@@ -988,8 +1005,9 @@ sub _add_element {
 
 # Specifically just add any delayed tokens, if any.
 sub _add_delayed {
-	my $self   = shift;
-	my $Parent = isa($_[0], 'PPI::Node') ? shift : return undef;
+	my ($self, $Parent) = @_;
+	# my $self   = shift;
+	# my $Parent = _INSTANCE(shift, 'PPI::Node') or die "Bad param 1";
 
 	# Add any delayed
 	foreach my $el ( @{$self->{delayed}} ) {
