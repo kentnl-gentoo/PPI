@@ -1,5 +1,21 @@
 Revision history for Perl extension PPI
 
+1.110    Fri Jan 27 2005
+	General
+	- Added test support for the third location component (Arjen Laarhoven)
+	- Various bug fixes
+	  (Releasing early with only small changes at the request of Perl::Critic)
+
+	Details:
+	- Fixed CPAN #16924: PPI::Statement::Sub.pm fix to use Params::Util line to resolve _INSTANCE error
+	- Fixed CPAN #16837: typo in PPI::Statement::Expression POD
+	- Fixed CPAN #16973: PPI 1.109 shouldn't require List::Util 1.18
+	  (We do need 1.18 to avoid a leak, but it doesn't work everywhere)
+	- Fixed CPAN #16814: _INSTANCE method not defined in PPI::Statement::Sub (dupe)
+	- Arjen Laarhoven added to CVS committers
+	- Added a third element to ->location return arrayref that contains the visual
+	  starting column of the token, taking into account tabbing.
+
 1.109    Fri Dec 30 2005
 	General:
 	- Various bug fixes

@@ -77,7 +77,7 @@ use overload '""'           => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.109';
+	$VERSION = '1.110';
 	$errstr  = '';
 }
 
@@ -271,7 +271,7 @@ tab width.
 sub tab_width {
 	my $self = shift;
 	return $self->{tab_width} unless @_;
-	Carp::croak("PPI FEATURE INCOMPLETE(Only naive tabs (width 1) are supported at this time)");
+	$self->{tab_width} = shift;
 }
 
 =pod
@@ -483,7 +483,7 @@ sub index_locations {
 		# Calculate the new location if needed.
 		$location = $first
 			? $self->_add_location( $location, $Tokens[$_ - 1], \$heredoc )
-			: [ 1, 1 ];
+			: [ 1, 1, 1 ];
 		$first = $_;
 		last;
 	}
@@ -511,12 +511,16 @@ sub _add_location {
 	my $newlines =()= $content =~ /\n/g;
 	unless ( $newlines ) {
 		# Handle the simple case
-		return [ $start->[0], $start->[1] + length($content) ];
+		return [
+			$start->[0],
+			$start->[1] + length($content),
+			$start->[2] + $self->_visual_length($content, $start->[2])
+		];
 	}
 
 	# This is the more complex case where we hit or
 	# span a newline boundary.
-	my $location = [ $start->[0] + $newlines, 1 ];
+	my $location = [ $start->[0] + $newlines, 1, 1 ];
 	if ( $heredoc and $$heredoc ) {
 		$location->[0] += $$heredoc;
 		$$heredoc = 0;
@@ -526,9 +530,34 @@ sub _add_location {
 	# after their last newline.
 	if ( $content =~ /\n([^\n]+?)\z/ ) {
 		$location->[1] += length($1);
+		$location->[2] += $self->_visual_length($1, $location->[2]);
 	}
 
 	$location;
+}
+
+sub _visual_length {
+	my ($self, $content, $pos) = @_;
+
+	my $tab_width = $self->tab_width;
+	my ($length, $vis_inc);
+
+	return length $content if $content !~ /\t/;
+
+	# Split the content in tab and non-tab parts and calculate the
+	# "visual increase" of each part.
+	for my $part ( split(/(\t)/, $content) ) {
+		if ($part eq "\t") {
+			$vis_inc = $tab_width - ($pos-1) % $tab_width;
+		}
+		else {
+			$vis_inc = length $part;
+		}
+		$length += $vis_inc;
+		$pos    += $vis_inc;
+	}
+
+	$length;
 }
 
 =pod

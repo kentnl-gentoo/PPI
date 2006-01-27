@@ -33,11 +33,11 @@ L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 use strict;
 use base 'PPI::Statement';
 use List::Util   ();
-use Params::Util ();
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.109';
+	$VERSION = '1.110';
 }
 
 # Lexer clue

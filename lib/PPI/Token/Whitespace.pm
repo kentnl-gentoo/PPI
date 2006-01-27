@@ -47,7 +47,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.109';
+	$VERSION = '1.110';
 }
 
 =pod
@@ -322,6 +322,9 @@ sub __TOKENIZER__on_char {
 		) {
 			return 'Regexp::Match';
 		}
+
+		# Or as the very first thing in a file
+		return 'Regexp::Match' if $prec eq '';
 
 		# What about the char after the slash? There's some things
 		# that would be highly illogical to see if its an operator.

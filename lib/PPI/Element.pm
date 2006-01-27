@@ -37,7 +37,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.109';
+	$VERSION = '1.110';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -633,10 +633,15 @@ indexed the Element locations using C<PPI::Document::index_locations>, the
 C<location> method will return the location of the first character of the
 Element within the Document.
 
-Returns the location as a reference to a two-element array in the form
-C<[ $line, $col ]>. The values are in a human format, with the first
-character of the file located at C<[ 1, 1 ]>. Returns C<undef> on error,
-or if the L<PPI::Document> object has not been indexed.
+Returns the location as a reference to a three-element array in the form
+C<[ $line, $rowchar, $col ]>. The values are in a human format, with the
+first character of the file located at C<[ 1, 1, 1 ]>. 
+
+The second and third numbers are similar, except that the second is the
+literal horozontal character, and the third is the visual column, taking
+into account tabbing.
+
+Returns C<undef> on error, or if the L<PPI::Document> object has not been indexed.
 
 =cut
 

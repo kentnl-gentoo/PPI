@@ -4,7 +4,7 @@ name           'PPI';
 all_from       'lib/PPI.pm';
 requires       'Carp'             => 0;
 requires       'Clone'            => '0.17';
-requires       'List::Util'       => '1.18';
+requires       'List::Util'       => '1.17'; # Should be 1.18 ASAP
 requires       'List::MoreUtils'  => '0.13';
 requires       'Params::Util'     => '0.05';
 requires       'IO::Scalar'       => '2.105';

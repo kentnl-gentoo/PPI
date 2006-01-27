@@ -30,7 +30,7 @@ classes.
 
 =head1 METHODS
 
-C<PPI::Statement::Null> has no additional methods beyond the default ones
+C<PPI::Statement::Expression> has no additional methods beyond the default ones
 provided by L<PPI::Statement>, L<PPI::Node> and L<PPI::Element>.
 
 =cut
@@ -40,7 +40,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.109';
+	$VERSION = '1.110';
 }
 
 1;

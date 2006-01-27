@@ -138,6 +138,8 @@ t.data/08_regression/08_partial_regex_substitution.code
 t.data/08_regression/08_partial_regex_substitution.dump
 t.data/08_regression/09_for_var.code
 t.data/08_regression/09_for_var.dump
+t.data/08_regression/10_leading_regexp.code
+t.data/08_regression/10_leading_regexp.dump
 t.data/11_util/test.pm
 t.data/13_data/Foo.pm
 t.data/15_transform/sample1.pm
