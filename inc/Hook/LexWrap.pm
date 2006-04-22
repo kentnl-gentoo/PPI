@@ -1,4 +1,4 @@
-#line 1 "inc/Hook/LexWrap.pm - /usr/local/share/perl/5.8.4/Hook/LexWrap.pm"
+#line 1
 package Hook::LexWrap;
 our $VERSION = '0.20';
 use 5.006;

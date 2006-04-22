@@ -1,10 +1,11 @@
-#line 1 "inc/Class/Inspector.pm - /usr/local/share/perl/5.8.4/Class/Inspector.pm"
+#line 1
 package Class::Inspector;
 
 #line 40
 
 # Load Overhead: 236k
 
+use 5.005;
 # We don't want to use strict refs, since we do a lot of things in here
 # that arn't strict refs friendly.
 use strict     qw{vars subs};
@@ -13,7 +14,7 @@ use File::Spec ();
 # Globals
 use vars qw{$VERSION $RE_IDENT $RE_CLASS $UNIX};
 BEGIN {
-	$VERSION = '1.13';
+	$VERSION = '1.14';
 
 	# Predefine some regexs
 	$RE_IDENT = qr/\A[^\W\d]\w*\z/s;
@@ -30,14 +31,14 @@ BEGIN {
 #####################################################################
 # Basic Methods
 
-#line 80
+#line 81
 
 sub installed {
 	my $class = shift;
 	!! ($class->loaded_filename($_[0]) or $class->resolved_filename($_[0]));
 }
 
-#line 104
+#line 105
 
 sub loaded {
 	my $class = shift;
@@ -67,7 +68,7 @@ sub _loaded {
 	'';
 }
 
-#line 150
+#line 151
 
 sub filename {
 	my $class = shift;
@@ -75,7 +76,7 @@ sub filename {
 	File::Spec->catfile( split /(?:'|::)/, $name ) . '.pm';
 }
 
-#line 176
+#line 177
 
 sub resolved_filename {
 	my $class     = shift;
@@ -93,7 +94,7 @@ sub resolved_filename {
 	'';
 }
 
-#line 205
+#line 206
 
 sub loaded_filename {
 	my $class    = shift;
@@ -108,7 +109,7 @@ sub loaded_filename {
 #####################################################################
 # Sub Related Methods
 
-#line 232
+#line 233
 
 sub functions {
 	my $class = shift;
@@ -122,7 +123,7 @@ sub functions {
 	\@functions;
 }
 
-#line 258
+#line 259
 
 sub function_refs {
 	my $class = shift;
@@ -138,7 +139,7 @@ sub function_refs {
 	\@functions;
 }
 
-#line 287
+#line 288
 
 sub function_exists {
 	my $class    = shift;
@@ -152,7 +153,7 @@ sub function_exists {
 	defined &{"${name}::$function"};
 }
 
-#line 366
+#line 367
 
 sub methods {
 	my $class     = shift;
@@ -238,7 +239,7 @@ sub methods {
 #####################################################################
 # Search Methods
 
-#line 467
+#line 468
 
 sub subclasses {
 	my $class = shift;
@@ -369,4 +370,4 @@ sub _inc_to_local {
 
 1;
 
-#line 630
+#line 631

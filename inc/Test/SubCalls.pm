@@ -1,4 +1,4 @@
-#line 1 "inc/Test/SubCalls.pm - /usr/local/share/perl/5.8.4/Test/SubCalls.pm"
+#line 1
 package Test::SubCalls;
 
 #line 42

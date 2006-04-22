@@ -1,4 +1,4 @@
-#line 1 "inc/Test/ClassAPI.pm - /usr/local/share/perl/5.8.4/Test/ClassAPI.pm"
+#line 1
 package Test::ClassAPI;
 
 # Allows us to test class APIs in a simplified manner.

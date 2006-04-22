@@ -1,4 +1,4 @@
-#line 1 "inc/Config/Tiny.pm - /usr/local/share/perl/5.8.4/Config/Tiny.pm"
+#line 1
 package Config::Tiny;
 
 # If you thought Config::Simple was small...
@@ -8,7 +8,7 @@ use strict;
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.04';
+	$VERSION = '2.05';
 	$errstr  = '';
 }
 

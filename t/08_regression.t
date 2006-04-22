@@ -6,7 +6,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -14,7 +13,11 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
+		lib->import(
+			catdir('blib', 'arch'),
+			catdir('blib', 'lib' ),
+			catdir('lib'),
+			);
 	}
 }
 
@@ -22,6 +25,7 @@ BEGIN {
 BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer;
 use PPI::Dumper;
+use Params::Util '_INSTANCE';
 
 sub pause {
 	local $@;
@@ -36,13 +40,13 @@ sub pause {
 #####################################################################
 # Prepare
 
-# For each new item in t.data/08_regression add another 11 tests
+# For each new item in t/data/08_regression add another 11 tests
 
-use Test::More tests => 131;
+use Test::More tests => 153;
 
 use vars qw{$testdir};
 BEGIN {
-	$testdir = catdir( 't.data', '08_regression' );
+	$testdir = catdir( 't', 'data', '08_regression' );
 }
 
 # Does the test directory exist?
@@ -66,12 +70,14 @@ foreach my $codefile ( @code ) {
 	# Does the .code file have a matching .dump file
 	my $dumpfile = $codefile;
 	$dumpfile =~ s/\.code$/\.dump/;
-	ok( (-f $dumpfile and -r $dumpfile), "$codefile: Found matching .dump file" );
+	my $codename = $codefile;
+	$codename =~ s/\.code$//;
+	ok( (-f $dumpfile and -r $dumpfile), "$codename: Found matching .dump file" );
 
 	# Create the lexer and get the Document object
 	my $Document = $Lexer->lex_file( $codefile );
-	ok( $Document,                          "$codefile: Lexer->Document returns true" );
-	ok( isa( $Document, 'PPI::Document' ),  "$codefile: Lexer creates Document object" );
+	ok( $Document, "$codename: Lexer->Document returns true" );
+	ok( _INSTANCE($Document, 'PPI::Document'), "$codename: Object isa PPI::Document" );
 
 	my $rv;
 	SKIP: {
@@ -79,17 +85,17 @@ foreach my $codefile ( @code ) {
 
 		# Are there any unknown things?
 		is( $Document->find_any('Token::Unknown'), '',
-			"$codefile: Contains no PPI::Token::Unknown elements" );
+			"$codename: Contains no PPI::Token::Unknown elements" );
 		is( $Document->find_any('Structure::Unknown'), '',
-			"$codefile: Contains no PPI::Structure::Unknown elements" );
+			"$codename: Contains no PPI::Structure::Unknown elements" );
 		is( $Document->find_any('Statement::Unknown'), '',
-			"$codefile: Contains no PPI::Statement::Unknown elements" );
+			"$codename: Contains no PPI::Statement::Unknown elements" );
 	
 		# Get the dump array ref for the Document object
 		my $Dumper = PPI::Dumper->new( $Document );
-		ok( isa( $Dumper, 'PPI::Dumper' ), "$codefile: Dumper created" );
+		ok( _INSTANCE($Dumper, 'PPI::Dumper'), "$codename: Object isa PPI::Dumper" );
 		my @dump_list = $Dumper->list;
-		ok( scalar @dump_list, "$codefile: Got dump content from dumper" );
+		ok( scalar @dump_list, "$codename: Got dump content from dumper" );
 	
 		# Try to get the .dump file array
 		open( DUMP, $dumpfile ) or die "open: $!";
@@ -98,11 +104,11 @@ foreach my $codefile ( @code ) {
 		chomp @content;
 	
 		# Compare the two
-		is_deeply( \@dump_list, \@content, "$codefile: Generated dump matches stored dump" );
+		is_deeply( \@dump_list, \@content, "$codename: Generated dump matches stored dump" );
 	
 		# Also, do a round-trip check
 		$rv = open( CODEFILE, '<', $codefile );
-		ok( $rv, "$codefile: Opened file" );
+		ok( $rv, "$codename: Opened file" );
 	}
 	SKIP: {
 		unless ( $Document and $rv ) {
@@ -111,7 +117,7 @@ foreach my $codefile ( @code ) {
 		my $source = do { local $/ = undef; <CODEFILE> };
 		$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
-		is( $Document->serialize, $source, "$codefile: Round-trip back to source was ok" );
+		is( $Document->serialize, $source, "$codename: Round-trip back to source was ok" );
 	}
 }
 

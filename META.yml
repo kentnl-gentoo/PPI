@@ -1,12 +1,11 @@
 
 no_index: 
   directory: 
-    - t.data
     - inc
     - t
-generated_by: Module::Install version 0.54
+generated_by: Module::Install version 0.62
 distribution_type: module
-version: 1.110
+version: 1.111
 name: PPI
 author: Adam Kennedy <cpan@ali.as>, L<http://ali.as/>
 license: perl
@@ -22,7 +21,7 @@ requires:
   Carp: 0
   perl: 5.005
   List::Util: 1.17
-  Params::Util: 0.05
+  Params::Util: 0.10
   Clone: 0.17
   Digest::MD5: 2.27
   List::MoreUtils: 0.13

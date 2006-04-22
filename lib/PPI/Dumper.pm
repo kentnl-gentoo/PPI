@@ -37,7 +37,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.110';
+	$VERSION = '1.111';
 }
 
 
@@ -94,6 +94,12 @@ Should the dumper show comment tokens. In situations where you have
 a lot of comments, the code can often be made clearer by ignoring
 comment tokens. True/value value, on by default.
 
+=item locations
+
+Should the dumper show the location of each token. The values shown are
+[ line, rowchar, column ]. See L<PPI::Element/"location"> for a description of
+what these values really are. True/false value, off by default.
+
 =back
 
 =cut
@@ -112,6 +118,7 @@ sub new {
 			content    => 1,  # Show the object contents
 			whitespace => 1,  # Show whitespace tokens
 			comments   => 1,  # Show comment tokens
+			locations  => 0,  # Show token locations
 			},
 		}, $class;
 
@@ -129,6 +136,16 @@ sub new {
 
 	$self->{indent_string} = join '', (' ' x $self->{display}->{indent});
 
+	# Try to auto-call index_locations. If it failes, turn of locations display
+	if ( $self->{display}->{locations} ) {
+		my $Document = $Element->isa('PPI::Document') ? $Element : $Element->top;
+		if ( $Document->isa('PPI::Document') ) {
+			$Document->index_locations();
+		} else {
+			$self->{display}->{locations} = 0;
+		}
+	}
+        
 	$self;
 }
 
@@ -229,7 +246,20 @@ sub _element_string {
 	if ( $self->{display}->{memaddr} ) {
 		$string .= $Element->refaddr . '  ';
 	}
-
+        
+        # Add the location if such exists
+	if ( $self->{display}->{locations} ) {
+		my $loc_string;
+		if ( $Element->isa('PPI::Token') ) {
+			my $location = $Element->location;
+			if ($location) {
+				$loc_string = sprintf("[ % 4d, % 3d, % 3d ] ", @$location);
+			}
+		}
+		# Output location or pad with 20 spaces
+		$string .= $loc_string || " " x 20;
+	}
+        
 	# Add the indent
 	if ( $self->{display}->{indent} ) {
 		$string .= $indent;
@@ -248,7 +278,6 @@ sub _element_string {
 			$content =~ s/\t/\\t/g;
 			$string .= "  \t'$content'";
 		}
-
 	} elsif ( $Element->isa('PPI::Structure') ) {
 		# Add the content
 		if ( $self->{display}->{content} ) {

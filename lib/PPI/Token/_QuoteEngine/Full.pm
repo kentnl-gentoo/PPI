@@ -9,7 +9,7 @@ use Carp  ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '1.110';
+	$VERSION = '1.111';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -271,7 +271,6 @@ sub _fill_braced {
 
 	# Advance into the second region
 	$t->{line_cursor}++;
-	$DB::single = 1;
 	$section->{position} = length($self->{content});
 	$section->{size}     = 0;
 

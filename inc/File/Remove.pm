@@ -1,4 +1,4 @@
-#line 1 "inc/File/Remove.pm - /usr/local/share/perl/5.8.4/File/Remove.pm"
+#line 1
 package File::Remove;
 
 #line 96
