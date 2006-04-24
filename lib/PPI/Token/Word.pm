@@ -39,7 +39,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '1.111';
+	$VERSION = '1.112';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -134,8 +134,7 @@ sub __TOKENIZER__commit {
 	my $line = substr( $t->{line}, $t->{line_cursor} );
 	unless ( $line =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
 		# Programmer error
-		$DB::single = 1;
-		die "Fatal error... regex failed to match when expected";
+		die "Fatal error... regex failed to match in '$line' when expected";
 	}
 
 	# Special Case: If we accidentally treat eq'foo' like the word "eq'foo",

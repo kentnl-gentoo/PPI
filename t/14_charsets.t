@@ -36,7 +36,7 @@ sub good_ok {
 	my $message = shift;
 	my $doc = PPI::Document->new( \$source );
 	ok( _INSTANCE($doc, 'PPI::Document'), $message );
-	if ( ! INSTANCE($doc, 'PPI::Document') ) {
+	if ( ! _INSTANCE($doc, 'PPI::Document') ) {
 		diag($PPI::Document::errstr);
 	}
 }
@@ -49,6 +49,12 @@ SKIP: {
 	eval { require 5.008005 };
 	if ( $@ ) {
 		skip( "Unicode support requires perl >= 5.8.5", 11 );
+	}
+
+	# In some (weird) cases with custom locales, things aren't words
+	# that should be
+	unless ( "ä" =~ /\w/ ) {
+		skip( "Bizare Unicode-incompatible locale detected", 11 );
 	}
 
 	# Testing accented characters in UTF-8
