@@ -5,7 +5,7 @@ no_index:
     - t
 generated_by: Module::Install version 0.62
 distribution_type: module
-version: 1.112
+version: 1.113
 name: PPI
 author: Adam Kennedy <cpan@ali.as>, L<http://ali.as/>
 license: perl

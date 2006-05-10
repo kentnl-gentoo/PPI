@@ -3,9 +3,7 @@ inc/Class/Inspector.pm
 inc/Config/Tiny.pm
 inc/File/Remove.pm
 inc/Hook/LexWrap.pm
-inc/Module/AutoInstall.pm
 inc/Module/Install.pm
-inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
