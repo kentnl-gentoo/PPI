@@ -5,7 +5,7 @@ no_index:
     - t
 generated_by: Module::Install version 0.62
 distribution_type: module
-version: 1.113
+version: 1.114
 name: PPI
 author: Adam Kennedy <cpan@ali.as>, L<http://ali.as/>
 license: perl
@@ -16,7 +16,7 @@ build_requires:
   Test::SubCalls: 0.01
   Test::ClassAPI: 1.02
 requires: 
-  IO::Scalar: 2.105
+  IO::String: 1.07
   Storable: 2.14
   Carp: 0
   perl: 5.005
@@ -24,5 +24,6 @@ requires:
   Params::Util: 0.10
   Clone: 0.17
   Digest::MD5: 2.27
+  Task::Weaken: 0
   List::MoreUtils: 0.13
 abstract: Parse, Analyze and Manipulate Perl (without perl)
