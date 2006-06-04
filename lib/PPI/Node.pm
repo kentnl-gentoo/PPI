@@ -58,7 +58,7 @@ use Params::Util    '_INSTANCE',
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.114';
+	$VERSION = '1.115';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -518,6 +518,30 @@ and were removed, B<non-recursively>. This might also be zero, so avoid a
 simple true/false test on the return false of the C<prune> method. It
 returns C<undef> on error, which you probably B<should> test for.
 
+=begin testing prune 2
+
+my $document = PPI::Document->new( \<<'END_PERL' );
+#!/usr/bin/perl
+
+use strict;
+
+sub one { 1 }
+sub two { 2 }
+sub three { 3 }
+
+print one;
+print "\n";
+print three;
+print "\n";
+
+exit;
+END_PERL
+isa_ok( $document, 'PPI::Document' );
+ok( defined($document->prune ('PPI::Statement::Sub')),
+	'Pruned multiple subs ok' );
+
+=end testing
+
 =cut
 
 sub prune {
@@ -534,6 +558,7 @@ sub prune {
 				# Delete the child
 				$element->delete or return undef;
 				$pruned++;
+				next;
 			}
 
 			# Support the undef == "don't descend"

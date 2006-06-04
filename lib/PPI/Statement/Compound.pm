@@ -55,13 +55,14 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION %TYPES};
 BEGIN {
-	$VERSION = '1.114';
+	$VERSION = '1.115';
 
 	# Keyword type map
 	%TYPES = (
 		'if'      => 'if',
 		'unless'  => 'if',
 		'while'   => 'while',
+		'until'   => 'while',
 		'foreach' => 'foreach',
 		);
 }

@@ -16,7 +16,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.114';
+	$VERSION = '1.115';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -96,8 +96,8 @@ sub elements {
 		# Return the number of elements in scalar context.
 		# This is memory-cheaper than creating another big array
 		return scalar(@{$self->{children}})
-			+ ($self->{start} ? 1 : 0)
-			+ ($self->{start} ? 1 : 0);
+			+ ($self->{start}  ? 1 : 0)
+			+ ($self->{finish} ? 1 : 0);
 	}
 }
 

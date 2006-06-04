@@ -11,19 +11,15 @@ use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 
 use File::Spec;
 use File::Path qw(rmtree);
+use File::Glob qw(bsd_glob);
 
-$VERSION = '0.30';
+$VERSION = '0.31';
 
 our $glue;
 
 sub expand (@)
 {
-    my @args;
-
-    for (@_) {
-        push @args, glob;
-    }
-    @args;
+    map { bsd_glob $_ } @_;
 }
 
 # acts like unlink would until given a directory as an argument, then

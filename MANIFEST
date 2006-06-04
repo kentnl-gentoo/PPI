@@ -140,6 +140,8 @@ t/data/05_lexer_practical/09_heredoc.code
 t/data/05_lexer_practical/09_heredoc.dump
 t/data/05_lexer_practical/10_readline.code
 t/data/05_lexer_practical/10_readline.dump
+t/data/08_regression/01_rt_cpan_19629.code
+t/data/08_regression/01_rt_cpan_19629.dump
 t/data/08_regression/01_rt_cpan_8752.code
 t/data/08_regression/01_rt_cpan_8752.dump
 t/data/08_regression/02_rt_cpan_9582.code
@@ -171,6 +173,7 @@ t/data/15_transform/sample1.pm.out
 t/data/basic.pl
 t/data/test2.txt
 t/ppi_element.t
+t/ppi_node.t
 t/ppi_normal.t
 t/ppi_statement_variable.t
 t/ppi_token__quoteengine_full.t
