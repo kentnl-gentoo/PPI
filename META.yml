@@ -1,20 +1,20 @@
-abstract: 'Parse, Analyze and Manipulate Perl (without perl)'
-author: 'Adam Kennedy <cpan@ali.as>, L<http://ali.as/>'
-build_requires:
+abstract: Parse, Analyze and Manipulate Perl (without perl)
+author: Adam Kennedy <cpan@ali.as>, L<http://ali.as/>
+build_requires: 
   File::Remove: 0.22
   File::Spec: 0.84
   Test::ClassAPI: 1.02
   Test::More: 0.47
   Test::SubCalls: 0.01
 distribution_type: module
-generated_by: Module::Install version 0.62
+generated_by: Module::Install version 0.63
 license: perl
 name: PPI
-no_index:
-  directory:
+no_index: 
+  directory: 
     - inc
     - t
-requires:
+requires: 
   Carp: 0
   Clone: 0.17
   Digest::MD5: 2.27
@@ -25,4 +25,4 @@ requires:
   Storable: 2.14
   Task::Weaken: 0
   perl: 5.005
-version: 1.115
+version: 1.116

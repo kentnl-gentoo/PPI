@@ -61,7 +61,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.115';
+	$VERSION = '1.116';
 	$errstr  = '';
 }
 
@@ -242,27 +242,12 @@ sub _lex_document {
 
 		# Is this the opening of a structure?
 		if ( $Token->__LEXER__opens ) {
-			# Resolve the class for the Structure and create it
-			my $_class = $self->_resolve_new_structure($Document, $Token) or return undef;
-			if ( $_class eq 'PPI::Structure::List' ) {
-				# This should actually have a Statement
-				$self->_rollback( $Token );
-				my $Statement = PPI::Statement->new          or return undef;
-				$self->_add_delayed( $Document )             or return undef;
-				$self->_lex_statement( $Statement )          or return undef;
-				$self->_add_element( $Document, $Statement ) or return undef;
-				next;
-			}
-
-			# Create the structure
-			my $Structure = $_class->new( $Token ) or return undef;
-
-			# Move the lexing down into the structure
-			$self->_add_delayed( $Document )    or return undef;
-			$self->_lex_structure( $Structure ) or return undef;
-
-			# Add the resolved Structure to the Document $self-
-			$self->_add_element( $Document, $Structure ) or return undef;
+			# This should actually have a Statement instead
+			$self->_rollback( $Token );
+			my $Statement = PPI::Statement->new          or return undef;
+			$self->_add_delayed( $Document )             or return undef;
+			$self->_lex_statement( $Statement )          or return undef;
+			$self->_add_element( $Document, $Statement ) or return undef;
 			next;
 		}
 
@@ -337,6 +322,7 @@ BEGIN {
 		'next'     => 'PPI::Statement::Break',
 		'last'     => 'PPI::Statement::Break',
 		'return'   => 'PPI::Statement::Break',
+                'goto'     => 'PPI::Statement::Break',
 
 		# Special sections of the file
 		'__DATA__' => 'PPI::Statement::Data',
@@ -349,6 +335,33 @@ sub _resolve_new_statement {
 	# my $self   = shift;
 	# my $Parent = _INSTANCE(shift, 'PPI::Node')  or die "Bad param 1";
 	# my $Token  = _INSTANCE(shift, 'PPI::Token') or die "Bad param 2";
+
+	# Check for things like ( parent => ... )
+	if ( $Parent->isa('PPI::Structure::List') ) {
+		if ( $Token->isa('PPI::Token::Word') ) {
+			# Is the next significant token a =>
+			# Read ahead to the next significant token
+			my $Next;
+			while ( $Next = $self->_get_token ) {
+				unless ( $Next->significant ) {
+					$self->_delay_element( $Next ) or return undef;
+					next;
+				}
+
+				# Got the next token
+				if ( $Next->isa('PPI::Token::Operator') and $Next->content eq '=>' ) {
+					# Is an ordinary expression
+					$self->_rollback( $Next );
+					return 'PPI::Statement::Expression';
+				} else {
+					last;
+				}
+			}
+
+			# Rollback and continue
+			$self->_rollback( $Next );
+		}
+	}
 
 	# Is it a token in our known classes list
 	my $class = $STATEMENT_CLASSES{$Token->content};
@@ -911,6 +924,15 @@ sub _lex_structure {
 			###         Statement::Expression in here somewhere.
 			# Determine the class for the structure and create it
 			my $_class = $self->_resolve_new_structure($Structure, $Token) or return undef;
+			if ( $_class eq 'PPI::Structure::List' ) {
+				# This should actually have a Statement
+				$self->_rollback( $Token );
+				my $Statement = PPI::Statement->new           or return undef;
+				$self->_add_delayed( $Structure )             or return undef;
+				$self->_lex_statement( $Statement )           or return undef;
+				$self->_add_element( $Structure, $Statement ) or return undef;
+				next;
+			}
 			my $Structure2 = $_class->new( $Token ) or return undef;
 
 			# Move the lexing down into the Structure
@@ -1114,15 +1136,15 @@ and Structure subclasses.
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main module
+See the L<support section|PPI/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
-Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2001 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

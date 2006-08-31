@@ -33,12 +33,11 @@ so on and so forth.
 
 =head1 METHODS
 
-Again, for the most part you should really B<need> to do anything very
-significant with whitespace.
+Again, for the most part you should really B<not> need to do anything
+very significant with whitespace.
 
 But there are a couple of convenience methods provided, beyond those
-provided by the parent L<PPI::Token> and L<PPI::Element>
-classes.
+provided by the parent L<PPI::Token> and L<PPI::Element> classes.
 
 =cut
 
@@ -47,7 +46,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.115';
+	$VERSION = '1.116';
 }
 
 =pod
@@ -55,7 +54,7 @@ BEGIN {
 =head2 null
 
 Because PPI sees documents as sitting on a sort of substrate made of
-whitespace, there is a couple of corner cases that get particularly
+whitespace, there are a couple of corner cases that get particularly
 nasty if they don't find whitespace in certain places.
 
 Imagine walking down the beach to go into the ocean, and then quite
@@ -85,9 +84,9 @@ C<tidy> is a convenience method for removing unneeded whitespace.
 
 Specifically, it removes any whitespace from the end of a line.
 
-Note that this B<doesn't> include in POD, where you may well need
+Note that this B<doesn't> include POD, where you may well need
 to keep certain types of whitespace. The entire POD chunk lives
-in it's own L<PPI::Token::Pod> object.
+in its own L<PPI::Token::Pod> object.
 
 =cut
 
@@ -112,7 +111,7 @@ BEGIN {
 	foreach ( qw!; [ ] { } )! )                       { $COMMITMAP[ord $_] = 'PPI::Token::Structure' }
 	foreach ( 0 .. 9 )                                { $CLASSMAP[ord $_]  = 'Number'   }
 	foreach ( qw{= ? | + > . ! ~ ^} )                 { $CLASSMAP[ord $_]  = 'Operator' }
-	foreach ( qw{* $ @ & : - %} )                     { $CLASSMAP[ord $_]  = 'Unknown'  }
+	foreach ( qw{* $ @ & : %} )                       { $CLASSMAP[ord $_]  = 'Unknown'  }
 
 	# Miscellaneous remainder
 	$COMMITMAP[ord '#'] = 'PPI::Token::Comment';
@@ -353,6 +352,19 @@ sub __TOKENIZER__on_char {
 
 		# Otherwise, commit like a normal bareword
 		return PPI::Token::Word->__TOKENIZER__commit($t);
+
+	} elsif ( $_ == 45 ) { # $_ eq '-'
+		# Look for an obvious operator operand context
+		my $context = $t->_opcontext;
+		if ( $context eq 'operator' ) {
+			return 'Operator';
+		} elsif ( $context eq 'operand' ) {
+			return 'Number';
+		} else {
+			# More logic needed
+			return 'Unknown';
+		}
+
 	} elsif ( $_ >= 128 ) { # Outside ASCII
             return 'PPI::Token::Word'->__TOKENIZER__commit($t) if $t =~ /\w/;
             return 'Whitespace' if $t =~ /\s/;
@@ -372,15 +384,15 @@ sub __TOKENIZER__on_line_end { $_[1]->_finalize_token if $_[1]->{token} }
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main module
+See the L<support section|PPI/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
-Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2001 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

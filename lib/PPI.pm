@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.115';
+	$VERSION       = '1.116';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -170,7 +170,10 @@ the SourceForge project that publishes PPI and a large collection of other
 applications and modules related to the (document) parsing of Perl source
 code.
 
-You can find this project at L<http://sf.net/projects/parseperl>.
+You can find this project at L<http://sf.net/projects/parseperl>,
+however we no longer use the SourceForge CVS server.  Instead, the
+current development version of PPI is available via SVN at
+L<http://svn.phase-n.com/svn/cpan/trunk/PPI/>.
 
 =head2 Why Parse Perl?
 
@@ -709,7 +712,7 @@ C<Parse::Perl> project itself.
 
 =head1 SUPPORT
 
-Bugs should be always be reported vi the following URI
+Bugs should be always be reported via the following URI
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PPI>
 
@@ -784,7 +787,7 @@ genuinely could never have been completed. He has my deepest thanks.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2001 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

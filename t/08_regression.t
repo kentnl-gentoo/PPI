@@ -5,24 +5,12 @@
 # Some other regressions tests are included here for simplicity.
 
 use strict;
-use lib ();
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$PPI::XS_DISABLE = 1;
+	$PPI::XS_DISABLE = 1; # Prevent warning
 }
-
-# Load the code to test
-BEGIN { $PPI::XS_DISABLE = 1 }
 use PPI::Lexer;
 use PPI::Dumper;
 use Params::Util '_INSTANCE';
@@ -42,7 +30,7 @@ sub pause {
 
 # For each new item in t/data/08_regression add another 11 tests
 
-use Test::More tests => 164;
+use Test::More tests => 210;
 
 use vars qw{$testdir};
 BEGIN {
@@ -224,4 +212,85 @@ SCOPE: {
 }
 is( $_, 1234, 'Remains after document creation and destruction' );
 
-exit();
+
+
+
+
+#####################################################################
+# Bug 16815: location of Structure::List is not defined.
+
+SCOPE: {
+	my $code = '@foo = (1,2)';
+	my $doc = PPI::Document->new(\$code);
+	isa_ok( $doc, 'PPI::Document' );
+	ok( $doc->find_first('Structure::List')->location, '->location for a ::List returns true' );
+}
+
+
+
+
+
+#####################################################################
+# Bug 18413: PPI::Node prune() implementation broken
+
+SCOPE: {
+	my $doc = PPI::Document->new( \<<'END_PERL' );
+#!/usr/bin/perl
+
+use warnings;
+
+sub one { 1 }
+sub two { 2 }
+sub three { 3 }
+
+print one;
+print "\n";
+print three;
+print "\n";
+
+exit;
+END_PERL
+	isa_ok( $doc, 'PPI::Document' );
+	ok( defined $doc->prune('PPI::Statement::Sub'), '->prune ok' );
+}
+
+
+
+
+
+#####################################################################
+# Bug 19883: 'package' bareword used as hash key is detected as package statement
+
+SCOPE: {
+	my $doc = PPI::Document->new( \'(package => 123)' );
+	isa_ok( $doc, 'PPI::Document' );
+	isa_ok( $doc->child(0)->child(0)->child(0), 'PPI::Statement' );
+	isa_ok( $doc->child(0)->child(0)->child(0), 'PPI::Statement::Expression' );
+}
+
+
+
+
+
+#####################################################################
+# Bug 19629: End of list mistakenly seen as end of statement
+
+SCOPE: {
+	my $doc = PPI::Document->new( \'()' );
+	isa_ok( $doc, 'PPI::Document' );
+	isa_ok( $doc->child(0), 'PPI::Statement' );
+}
+
+SCOPE: {
+	my $doc = PPI::Document->new( \'{}' );
+	isa_ok( $doc, 'PPI::Document' );
+	isa_ok( $doc->child(0), 'PPI::Statement' );
+}
+
+SCOPE: {
+	my $doc = PPI::Document->new( \'[]' );
+	isa_ok( $doc, 'PPI::Document' );
+	isa_ok( $doc->child(0), 'PPI::Statement' );
+}
+
+exit(0);

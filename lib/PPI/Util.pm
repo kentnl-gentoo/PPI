@@ -10,7 +10,7 @@ use Params::Util '_INSTANCE',
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.115';
+	$VERSION   = '1.116';
 	@EXPORT_OK = qw{_Document _slurp};
 }
 
@@ -35,7 +35,7 @@ sub _Document {
 	undef;
 }
 
-# Provide a single _slurp implementation
+# Provide a simple _slurp implementation
 sub _slurp {
 	my $file = shift;
 	local $/ = undef;

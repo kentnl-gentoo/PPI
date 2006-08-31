@@ -37,7 +37,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.115';
+	$VERSION = '1.116';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -650,7 +650,7 @@ sub location {
 	unless ( exists $self->{_location} ) {
 		# Are we inside a normal document?
 		my $Document = $self->document or return undef;
-		unless ( $Document->isa('PPI::Document::Fragment') ) {
+		if ( $Document->isa('PPI::Document::Fragment') ) {
 			# Because they can't be serialized, document fragments
 			# do not support the concept of location.
 			return undef;
@@ -777,15 +777,15 @@ as error handlers.
 
 =head1 SUPPORT
 
-See the L<support section|PPI/SUPPORT> in the main module
+See the L<support section|PPI/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
-Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2001 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

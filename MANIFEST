@@ -19,6 +19,7 @@ inline2test.tpl
 lib/PPI.pm
 lib/PPI/Cache.pm
 lib/PPI/Document.pm
+lib/PPI/Document/File.pm
 lib/PPI/Document/Fragment.pm
 lib/PPI/Document/Normalized.pm
 lib/PPI/Dumper.pm
@@ -118,6 +119,7 @@ t/18_cache.t
 t/19_selftesting.t
 t/20_tokenizer_regression.t
 t/21_exhaustive.t
+t/22_readonly.t
 t/99_pod.t
 t/data/03_empiric/test.dat
 t/data/05_lexer_practical/01_simpleassign.code
@@ -142,6 +144,8 @@ t/data/05_lexer_practical/10_readline.code
 t/data/05_lexer_practical/10_readline.dump
 t/data/08_regression/01_rt_cpan_19629.code
 t/data/08_regression/01_rt_cpan_19629.dump
+t/data/08_regression/01_rt_cpan_19629b.code
+t/data/08_regression/01_rt_cpan_19629b.dump
 t/data/08_regression/01_rt_cpan_8752.code
 t/data/08_regression/01_rt_cpan_8752.dump
 t/data/08_regression/02_rt_cpan_9582.code
@@ -166,6 +170,10 @@ t/data/08_regression/11_multiply_vs_glob_cast.code
 t/data/08_regression/11_multiply_vs_glob_cast.dump
 t/data/08_regression/12_pow.code
 t/data/08_regression/12_pow.dump
+t/data/08_regression/13_goto.code
+t/data/08_regression/13_goto.dump
+t/data/08_regression/14_minus.code
+t/data/08_regression/14_minus.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
