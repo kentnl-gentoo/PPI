@@ -5,6 +5,7 @@ build_requires:
   File::Spec: 0.84
   Test::ClassAPI: 1.02
   Test::More: 0.47
+  Test::Object: 0.06
   Test::SubCalls: 0.01
 distribution_type: module
 generated_by: Module::Install version 0.63
@@ -25,4 +26,4 @@ requires:
   Storable: 2.14
   Task::Weaken: 0
   perl: 5.005
-version: 1.116
+version: 1.117

@@ -13,6 +13,7 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Test/ClassAPI.pm
+inc/Test/Object.pm
 inc/Test/SubCalls.pm
 inline2test.conf
 inline2test.tpl
@@ -174,12 +175,19 @@ t/data/08_regression/13_goto.code
 t/data/08_regression/13_goto.dump
 t/data/08_regression/14_minus.code
 t/data/08_regression/14_minus.dump
+t/data/08_regression/15_dash_t.code
+t/data/08_regression/15_dash_t.dump
+t/data/08_regression/16_sub_declaration.code
+t/data/08_regression/16_sub_declaration.dump
+t/data/08_regression/17_scope.code
+t/data/08_regression/17_scope.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
 t/data/15_transform/sample1.pm.out
 t/data/basic.pl
 t/data/test2.txt
+t/lib/PPI.pm
 t/ppi_element.t
 t/ppi_node.t
 t/ppi_normal.t
