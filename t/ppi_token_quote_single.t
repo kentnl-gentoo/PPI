@@ -5,7 +5,8 @@
 use strict;
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
+	$|  = 1;
+	$^W = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
@@ -15,12 +16,13 @@ use PPI;
 use Test::More tests => 3;
 
 # =begin testing string 3
-SCOPE: {
-	my $Document = PPI::Document->new( \"print 'foo';" );
-	isa_ok( $Document, 'PPI::Document' );
-	my $Single = $Document->find_first('Token::Quote::Single');
-	isa_ok( $Single, 'PPI::Token::Quote::Single' );
-	is( $Single->string, 'foo', '->string returns as expected' );
+{
+my $Document = PPI::Document->new( \"print 'foo';" );
+isa_ok( $Document, 'PPI::Document' );
+my $Single = $Document->find_first('Token::Quote::Single');
+isa_ok( $Single, 'PPI::Token::Quote::Single' );
+is( $Single->string, 'foo', '->string returns as expected' );
 }
+
 
 1;

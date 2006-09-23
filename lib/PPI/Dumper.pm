@@ -37,7 +37,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 
@@ -80,7 +80,7 @@ True/false value, on by default.
 =item content
 
 Should the dumper show the content of each element. True/false value,
-on by defauilt.
+on by default.
 
 =item whitespace
 

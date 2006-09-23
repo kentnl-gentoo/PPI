@@ -15,7 +15,7 @@ PPI::Token::Structure - Token class for characters that define code structure
 =head1 DESCRIPTION
 
 The C<PPI::Token::Structure> class is used for tokens that control the
-generaly tree structure or code.
+generally tree structure or code.
 
 This consists of seven characters. These are the six brace characters from
 the "round", "curly" and "square" pairs, plus the semi-colon statement
@@ -33,7 +33,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 # Set the matching braces, done as an array

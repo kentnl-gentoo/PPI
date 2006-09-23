@@ -33,7 +33,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 
@@ -71,7 +71,7 @@ sub canonical {
 
 The C<symbol> method returns the ACTUAL symbol this token refers to.
 
-A token of C<$foo> might actually be refering to C<@foo>, if it is found
+A token of C<$foo> might actually be referring to C<@foo>, if it is found
 in the form C<$foo[1]>.
 
 This method attempts to resolve these issues to determine the actual
@@ -98,11 +98,11 @@ sub symbol {
 	my $braces = $after->braces;
 	return $symbol unless defined $braces;
 	if ( $type eq '$' ) {
-		return substr( $symbol, 0, 1, '@' ) if $braces eq '[]';
-		return substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
+		substr( $symbol, 0, 1, '@' ) if $braces eq '[]';
+		substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
 
 	} elsif ( $type eq '@' ) {
-		return substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
+		substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
 
 	}
 

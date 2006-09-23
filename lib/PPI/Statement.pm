@@ -155,7 +155,7 @@ use PPI::Statement::Variable       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 # "Normal" statements end at a statement terminator ;
@@ -190,7 +190,7 @@ sub new {
 
 =head2 label
 
-One factor common to most statements is their ability to be labelled.
+One factor common to most statements is their ability to be labeled.
 
 The C<label> method returns the label for a statement, if one has been
 defined, but without the trailing colon. Take the following example

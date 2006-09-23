@@ -4,7 +4,7 @@ package PPI::Token::Unknown;
 
 =head1 NAME
 
-PPI::Token::Unknown - Token of unknown or as-yet indetermined type
+PPI::Token::Unknown - Token of unknown or as-yet undetermined type
 
 =head1 INHERITANCE
 
@@ -32,7 +32,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 
@@ -98,8 +98,8 @@ sub __TOKENIZER__on_char {
 			return $t->_finalize_token->__TOKENIZER__on_char( $t );
 		}
 
-		if ( $_ eq '*' ) {
-			# Power operator '**'
+		if ( $_ eq '*' || $_ eq '=' ) {
+			# Power operator '**' or mult-assign '*='
 			return $t->_set_token_class( 'Operator' ) ? 1 : undef;
 		}
 

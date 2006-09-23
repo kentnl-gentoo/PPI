@@ -61,7 +61,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 	$errstr  = '';
 }
 
@@ -183,7 +183,7 @@ sub lex_tokenizer {
 		"Did not pass a PPI::Tokenizer object to PPI::Lexer::lex_tokenizer"
 		);
 
-	# Create the empty
+	# Create the empty document
 	my $Document = PPI::Document->new;
 
 	# Lex the token stream into the document

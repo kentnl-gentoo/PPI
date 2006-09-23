@@ -24,9 +24,9 @@ PPI::Statement::Null - A useless null statement
 =head1 DESCRIPTION
 
 C<PPI::Statement::Null> is a utility class designed to handle situations
-where PPI encounters a naked statement seperator.
+where PPI encounters a naked statement separator.
 
-Although strictly speaking, the semicolon is a statement B<seperator>
+Although strictly speaking, the semicolon is a statement B<separator>
 and not a statement B<terminator>, PPI considers a semicolon to be a
 statement terminator under most circumstances.
 
@@ -45,7 +45,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 # A null statement is not significant

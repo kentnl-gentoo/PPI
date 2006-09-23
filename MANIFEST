@@ -121,6 +121,8 @@ t/19_selftesting.t
 t/20_tokenizer_regression.t
 t/21_exhaustive.t
 t/22_readonly.t
+t/23_file.t
+t/99_author.t
 t/99_pod.t
 t/data/03_empiric/test.dat
 t/data/05_lexer_practical/01_simpleassign.code
@@ -143,6 +145,12 @@ t/data/05_lexer_practical/09_heredoc.code
 t/data/05_lexer_practical/09_heredoc.dump
 t/data/05_lexer_practical/10_readline.code
 t/data/05_lexer_practical/10_readline.dump
+t/data/05_lexer_practical/11_dor.code
+t/data/05_lexer_practical/11_dor.dump
+t/data/07_token/hex.code
+t/data/07_token/hex.dump
+t/data/07_token/range_operator.code
+t/data/07_token/range_operator.dump
 t/data/08_regression/01_rt_cpan_19629.code
 t/data/08_regression/01_rt_cpan_19629.dump
 t/data/08_regression/01_rt_cpan_19629b.code
@@ -181,6 +189,12 @@ t/data/08_regression/16_sub_declaration.code
 t/data/08_regression/16_sub_declaration.dump
 t/data/08_regression/17_scope.code
 t/data/08_regression/17_scope.dump
+t/data/08_regression/18_decimal_point.code
+t/data/08_regression/18_decimal_point.dump
+t/data/08_regression/19_long_operators.code
+t/data/08_regression/19_long_operators.dump
+t/data/08_regression/19_long_operators2.code
+t/data/08_regression/19_long_operators2.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm

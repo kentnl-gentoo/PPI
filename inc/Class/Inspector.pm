@@ -3,23 +3,22 @@ package Class::Inspector;
 
 #line 40
 
-# Load Overhead: 236k
-
+use 5.005;
 # We don't want to use strict refs, since we do a lot of things in here
 # that arn't strict refs friendly.
-use strict     qw{vars subs};
+use strict qw{vars subs};
 use File::Spec ();
 
 # Globals
 use vars qw{$VERSION $RE_IDENT $RE_CLASS $UNIX};
 BEGIN {
-	$VERSION = '1.13';
+	$VERSION = '1.16';
 
 	# Predefine some regexs
 	$RE_IDENT = qr/\A[^\W\d]\w*\z/s;
 	$RE_CLASS = qr/\A[^\W\d]\w*(?:(?:'|::)[^\W\d]\w*)*\z/s;
 
-	# Are we on Unix?
+	# Are we on something Unix-like?
 	$UNIX = !! ( $File::Spec::ISA[0] eq 'File::Spec::Unix' );
 }
 
@@ -30,14 +29,14 @@ BEGIN {
 #####################################################################
 # Basic Methods
 
-#line 80
+#line 79
 
 sub installed {
 	my $class = shift;
 	!! ($class->loaded_filename($_[0]) or $class->resolved_filename($_[0]));
 }
 
-#line 104
+#line 103
 
 sub loaded {
 	my $class = shift;
@@ -67,7 +66,7 @@ sub _loaded {
 	'';
 }
 
-#line 150
+#line 149
 
 sub filename {
 	my $class = shift;
@@ -75,7 +74,7 @@ sub filename {
 	File::Spec->catfile( split /(?:'|::)/, $name ) . '.pm';
 }
 
-#line 176
+#line 175
 
 sub resolved_filename {
 	my $class     = shift;
@@ -93,7 +92,7 @@ sub resolved_filename {
 	'';
 }
 
-#line 205
+#line 204
 
 sub loaded_filename {
 	my $class    = shift;
@@ -108,7 +107,7 @@ sub loaded_filename {
 #####################################################################
 # Sub Related Methods
 
-#line 232
+#line 231
 
 sub functions {
 	my $class = shift;
@@ -122,7 +121,7 @@ sub functions {
 	\@functions;
 }
 
-#line 258
+#line 257
 
 sub function_refs {
 	my $class = shift;
@@ -138,7 +137,7 @@ sub function_refs {
 	\@functions;
 }
 
-#line 287
+#line 286
 
 sub function_exists {
 	my $class    = shift;
@@ -152,7 +151,7 @@ sub function_exists {
 	defined &{"${name}::$function"};
 }
 
-#line 366
+#line 365
 
 sub methods {
 	my $class     = shift;
@@ -238,7 +237,7 @@ sub methods {
 #####################################################################
 # Search Methods
 
-#line 467
+#line 466
 
 sub subclasses {
 	my $class = shift;
@@ -369,4 +368,4 @@ sub _inc_to_local {
 
 1;
 
-#line 630
+#line 629

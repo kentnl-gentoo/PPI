@@ -5,7 +5,8 @@
 use strict;
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
+	$|  = 1;
+	$^W = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
@@ -20,7 +21,7 @@ use Test::More 'no_plan';
 my $Document = PPI::Document->new(\<<'END_PERL');
 package Bar;
 my $foo = 1;
-my ($foo, $bar) = (1, 2);
+my ( $foo, $bar) = (1, 2);
 our $foo = 1;
 local $foo;
 local $foo = 1;

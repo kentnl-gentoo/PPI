@@ -49,7 +49,7 @@ use base 'PPI::Statement';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 =pod
@@ -128,7 +128,7 @@ pragma.
 sub pragma {
 	my $self = shift;
 	my $module = $self->module or return '';
-	$module =~ /^[a-z]/ ? $module : '';
+	$module =~ /^[a-z]+$/ ? $module : '';
 }
 
 =pod

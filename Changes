@@ -1,11 +1,32 @@
 Revision history for Perl extension PPI
 
+1.118   Fri 22 Sep 2006
+	Summary:
+	- Better 5.10 support
+	- Fixing various (mostly parsing) bugs
+
+	Details:
+	- Upgraded to Module::Install 0.64
+	- Improving support for dor and added //= operators
+        - Fixed parsing of binary, octal and hex numbers
+        - Fixed parsing of /= and *=
+	- Fixed #21571 symbol() returns just sigil with adjacent braces
+	- Fixed #21575 variables() chokes on list with whitespace
+	- Fixed #20480 (Misparse of some floating-point numbers.)
+	- Fixed #19999: Make test fails (undeclared global variable $document) under Perl 5.6.2
+	  (or at least, I think I have. This needs double-checking on Perl 5.6.2)
+	- Partially Fixed #16952: [PATCH] Speed up tokenizer char-by-char
+	  (Did not apply the patch, but fixed a bug noted as an aside in the report)
+	- PPI::Document::File was returning a plain PPI::Document object, fixed.
+	- FINALLY added some basic POD for PPI::Structure, the one class I somehow
+	  keep forgetting to do.
+
 1.117   Sat 02 Sep 2006
 	Summary:
 	- Fixing bugs introduced in 1.116
 
 	Details:
-	- Simple compound statements "{ 1 }" were not end-detecting properly	
+	- Simple compound statements "{ 1 }" were not end-detecting properly
 	- The new handling for the "-" character was shortcutting naively
 	- Labelled compound statements were not end-detecting properly
 	- { package => 1 } was treating package incorrectly

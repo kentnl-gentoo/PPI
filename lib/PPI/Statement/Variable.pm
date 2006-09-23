@@ -44,7 +44,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 =pod
@@ -91,7 +91,7 @@ if it is unable to find any variables.
 my $Document = PPI::Document->new(\<<'END_PERL');
 package Bar;
 my $foo = 1;
-my ($foo, $bar) = (1, 2);
+my ( $foo, $bar) = (1, 2);
 our $foo = 1;
 local $foo;
 local $foo = 1;
@@ -135,7 +135,7 @@ sub variables {
 
 	# If it's a list, return as a list
 	if ( _INSTANCE($schild[1], 'PPI::Structure::List') ) {
-		my $Expression = $schild[1]->child(0);
+		my $Expression = $schild[1]->schild(0);
 		$Expression and
 		$Expression->isa('PPI::Statement::Expression') or return ();
 

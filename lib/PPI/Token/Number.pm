@@ -34,7 +34,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 =head2 base
@@ -73,6 +73,10 @@ sub __TOKENIZER__on_char {
 			return 1;
 		} elsif ( $char =~ /\d/ ) {
 			$token->{_base} = 8;
+			# You cannot have 8s and 9s on octals
+			if ( $char eq '8' or $char eq '9' ) {
+				$token->{_error} = "Illegal character in octal number '$char'";
+			}
 			return 1;
 		} elsif ( $char eq '.' ) {
 			return 1;
@@ -99,12 +103,10 @@ sub __TOKENIZER__on_char {
 			} else {
 				# Will this be the first .?
 				if ( $token->{content} =~ /\./ ) {
-					return 1;
-				} else {
 					# Flag as a base256.
 					$token->{_base} = 256;
-					return 1;
 				}
+				return 1;
 			}
 		}
 
@@ -118,11 +120,7 @@ sub __TOKENIZER__on_char {
 		}
 
 	} elsif ( $token->{_base} == 16 ) {
-		if ( $char =~ /\w/ ) {
-			unless ( $char =~ /[\da-f]/ ) {
-				# Add a warning if it contains non-hex chars
-				$token->{_error} = "Illegal character in hexidecimal number '$char'";
-			}
+		if ( $char =~ /[\da-f]/ ) {
 			return 1;
 		}
 

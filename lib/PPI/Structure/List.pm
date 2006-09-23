@@ -4,7 +4,7 @@ package PPI::Structure::List;
 
 =head1 NAME
 
-PPI::Structure::List - An explicit list or scoping brace
+PPI::Structure::List - Explicit list or precedence ordering braces
 
 =head1 SYNOPSIS
 
@@ -40,7 +40,7 @@ use base 'PPI::Structure';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.117';
+	$VERSION = '1.118';
 }
 
 1;
