@@ -9,7 +9,7 @@ use Carp  ();
 
 use vars qw{$VERSION %quotes %sections};
 BEGIN {
-	$VERSION = '1.118';
+	$VERSION = '1.199_01';
 
 	# Prototypes for the different braced sections
 	%sections = (
@@ -22,27 +22,27 @@ BEGIN {
 	# For each quote type, the extra fields that should be set.
 	# This should give us faster initialization.
 	%quotes = (
-		'q'   => { operator => 'q',   braced => undef, seperator => undef, _sections => 1 },
-		'qq'  => { operator => 'qq',  braced => undef, seperator => undef, _sections => 1 },
-		'qx'  => { operator => 'qx',  braced => undef, seperator => undef, _sections => 1 },
-		'qw'  => { operator => 'qw',  braced => undef, seperator => undef, _sections => 1 },
-		'qr'  => { operator => 'qr',  braced => undef, seperator => undef, _sections => 1, modifiers => 1 },
-		'm'   => { operator => 'm',   braced => undef, seperator => undef, _sections => 1, modifiers => 1 },
-		's'   => { operator => 's',   braced => undef, seperator => undef, _sections => 2, modifiers => 1 },
-		'tr'  => { operator => 'tr',  braced => undef, seperator => undef, _sections => 2, modifiers => 1 },
+		'q'   => { operator => 'q',   braced => undef, separator => undef, _sections => 1 },
+		'qq'  => { operator => 'qq',  braced => undef, separator => undef, _sections => 1 },
+		'qx'  => { operator => 'qx',  braced => undef, separator => undef, _sections => 1 },
+		'qw'  => { operator => 'qw',  braced => undef, separator => undef, _sections => 1 },
+		'qr'  => { operator => 'qr',  braced => undef, separator => undef, _sections => 1, modifiers => 1 },
+		'm'   => { operator => 'm',   braced => undef, separator => undef, _sections => 1, modifiers => 1 },
+		's'   => { operator => 's',   braced => undef, separator => undef, _sections => 2, modifiers => 1 },
+		'tr'  => { operator => 'tr',  braced => undef, separator => undef, _sections => 2, modifiers => 1 },
 
 		# Y is the little used varient of tr
-		'y'   => { operator => 'y',   braced => undef, seperator => undef, _sections => 2, modifiers => 1 },
+		'y'   => { operator => 'y',   braced => undef, separator => undef, _sections => 2, modifiers => 1 },
 
-		'/'   => { operator => undef, braced => 0,     seperator => '/',   _sections => 1, modifiers => 1 },
+		'/'   => { operator => undef, braced => 0,     separator => '/',   _sections => 1, modifiers => 1 },
 
 		# Angle brackets quotes mean "readline(*FILEHANDLE)"
-		'<'   => { operator => undef, braced => 1,     seperator => undef, _sections => 1, },
+		'<'   => { operator => undef, braced => 1,     separator => undef, _sections => 1, },
 
 		# The final ( and kind of depreciated ) "first match only" one is not
 		# used yet, since I'm not sure on the context differences between
 		# this and the trinary operator, but its here for completeness.
-		'?'   => { operator => undef, braced => 0,     seperator => '?',   _sections => 1, modifieds => 1 },
+		'?'   => { operator => undef, braced => 0,     separator => '?',   _sections => 1, modifieds => 1 },
 		);
 }
 
@@ -107,7 +107,7 @@ sub _fill {
 	# Load in the operator stuff if needed
 	if ( $self->{operator} ) {
 		# In an operator based quote-like, handle the gap between the
-		# operator and the opening seperator.
+		# operator and the opening separator.
 		if ( substr( $t->{line}, $t->{line_cursor}, 1 ) =~ /\s/ ) {
 			# Go past the gap
 			my $gap = $self->_scan_quote_like_operator_gap( $t );
@@ -120,26 +120,26 @@ sub _fill {
 			$self->{content} .= $gap;
 		}
 
-		# The character we are now on is the seperator. Capture,
+		# The character we are now on is the separator. Capture,
 		# and advance into the first section.
-		$_ = substr( $t->{line}, $t->{line_cursor}++, 1 );
-		$self->{content} .= $_;
+		my $sep = substr( $t->{line}, $t->{line_cursor}++, 1 );
+		$self->{content} .= $sep;
 
 		# Determine if these are normal or braced type sections
-		if ( my $section = $sections{$_} ) {
+		if ( my $section = $sections{$sep} ) {
 			$self->{braced}        = 1;
 			$self->{sections}->[0] = Clone::clone($section);
 		} else {
 			$self->{braced}    = 0;
-			$self->{seperator} = $_;
+			$self->{separator} = $sep;
 		}
 	}
 
 	# Parse different based on whether we are normal or braced
-	$_ = $self->{braced}
+	my $rv = $self->{braced}
 		? $self->_fill_braced($t)
-		: $self->_fill_normal($t)
-		or return $_;
+ 		: $self->_fill_normal($t);
+	return $rv if !$rv;
 
 	# Return now unless it has modifiers ( i.e. s/foo//eieio )
 	return 1 unless $self->{modifiers};
@@ -160,8 +160,8 @@ sub _fill_normal {
 	my $self = shift;
 	my $t    = shift;
 
-	# Get the content up to the next seperator
-	my $string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
+	# Get the content up to the next separator
+	my $string = $self->_scan_for_unescaped_character( $t, $self->{separator} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file
@@ -184,8 +184,8 @@ sub _fill_normal {
 	# Advance into the next section
 	$t->{line_cursor}++;
 
-	# Get the content up to the end seperator
-	$string = $self->_scan_for_unescaped_character( $t, $self->{seperator} );
+	# Get the content up to the end separator
+	$string = $self->_scan_for_unescaped_character( $t, $self->{separator} );
 	return undef unless defined $string;
 	if ( ref $string ) {
 		# End of file
@@ -210,18 +210,18 @@ sub _fill_braced {
 
 	# Get the content up to the close character
 	my $section = $self->{sections}->[0];
-	$_ = $self->_scan_for_brace_character( $t, $section->{_close} );
-	return undef unless defined $_;
-	if ( ref $_ ) {
+	my $brace_str = $self->_scan_for_brace_character( $t, $section->{_close} );
+	return undef unless defined $brace_str;
+	if ( ref $brace_str ) {
 		# End of file
-		$self->{content} .= $$_;
+		$self->{content} .= $$brace_str;
 		return 0;
 	}
 
 	# Complete the properties of the first section
 	$section->{position} = length $self->{content};
-	$section->{size}     = length($_) - 1;
-	$self->{content} .= $_;
+	$section->{size}     = length($brace_str) - 1;
+	$self->{content} .= $brace_str;
 	delete $section->{_close};
 
 	# We are done if there is only one section
@@ -233,14 +233,14 @@ sub _fill_braced {
 	my $char = substr( $t->{line}, ++$t->{line_cursor}, 1 );
 	if ( $char =~ /\s/ ) {
 		# Go past the gap
-		$_ = $self->_scan_quote_like_operator_gap( $t );
-		return undef unless defined $_;
-		if ( ref $_ ) {
+		my $gap_str = $self->_scan_quote_like_operator_gap( $t );
+		return undef unless defined $gap_str;
+		if ( ref $gap_str ) {
 			# End of file
-			$self->{content} .= $$_;
+			$self->{content} .= $$gap_str;
 			return 0;
 		}
-		$self->{content} .= $_;
+		$self->{content} .= $gap_str;
 		$char = substr( $t->{line}, $t->{line_cursor}, 1 );
 	}
 
@@ -275,18 +275,18 @@ sub _fill_braced {
 	$section->{size}     = 0;
 
 	# Get the content up to the close character
-	$_ = $self->_scan_for_brace_character( $t, $section->{_close} );
-	return undef unless defined $_;
-	if ( ref $_ ) {
+	$brace_str = $self->_scan_for_brace_character( $t, $section->{_close} );
+	return undef unless defined $brace_str;
+	if ( ref $brace_str ) {
 		# End of file
-		$self->{content} .= $$_;
-		$section->{size} = length($$_);
+		$self->{content} .= $$brace_str;
+		$section->{size} = length($$brace_str);
 		delete $section->{_close};
 		return 0;
 	} else {
 		# Complete the properties for the second section
-		$self->{content} .= $_;
-		$section->{size} = length($_) - 1;
+		$self->{content} .= $brace_str;
+		$section->{size} = length($brace_str) - 1;
 		delete $section->{_close};
 	}
 

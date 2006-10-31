@@ -10,7 +10,7 @@ use Params::Util '_INSTANCE',
 
 use vars qw{$VERSION @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.118';
+	$VERSION   = '1.199_01';
 	@EXPORT_OK = qw{_Document _slurp};
 }
 
@@ -39,6 +39,7 @@ sub _Document {
 sub _slurp {
 	my $file = shift;
 	local $/ = undef;
+	local *PPIUTIL;
 	open( PPIUTIL, '<', $file ) or return "open($file) failed: $!";
 	my $source = <PPIUTIL>;
 	close( PPIUTIL ) or return "close($file) failed: $!";

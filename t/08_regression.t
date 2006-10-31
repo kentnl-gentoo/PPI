@@ -30,8 +30,7 @@ sub pause {
 
 # For each new item in t/data/08_regression add another 11 tests
 
-use Test::More tests => 306;
-use Test::Object;
+use Test::More tests => 392;
 use t::lib::PPI;
 
 #####################################################################
@@ -88,7 +87,7 @@ my $expected = bless {
 		size     => 3,
 		type     => '<>',
 	} ],
-	seperator => undef,
+	separator => undef,
 	};
 is_deeply( { %$regexp }, $expected, 'Complex regexp matches expected' );
 }
@@ -119,7 +118,7 @@ my $expected = bless {
 		size     => 0,
 		type     => '',
 	} ],
-	seperator => undef,
+	separator => undef,
 	};
 is_deeply( { %$regexp }, $expected, 'Badly short regexp matches expected' );
 }

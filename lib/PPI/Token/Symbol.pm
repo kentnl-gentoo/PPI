@@ -33,7 +33,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.118';
+	$VERSION = '1.199_01';
 }
 
 
@@ -193,7 +193,7 @@ sub __TOKENIZER__on_char {
 		(?: : (?!:) | # Allow single-colon non-magic vars
 			(?: \w+ | \' (?!\d) \w+ | \:: \w+ )
 			(?:
-				# Allow both :: and ' in namespace seperators
+				# Allow both :: and ' in namespace separators
 				(?: \' (?!\d) \w+ | \:: \w+ )
 			)*
 			(?: :: )? # Technically a compiler-magic hash, but keep it here

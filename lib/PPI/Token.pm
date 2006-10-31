@@ -26,7 +26,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.118';
+	$VERSION = '1.199_01';
 }
 
 # We don't load the abstracts, they are loaded
@@ -37,6 +37,12 @@ use PPI::Token::Whitespace            ();
 use PPI::Token::Comment               ();
 use PPI::Token::Pod                   ();
 use PPI::Token::Number                ();
+use PPI::Token::Number::Binary        ();
+use PPI::Token::Number::Octal         ();
+use PPI::Token::Number::Hex           ();
+use PPI::Token::Number::Float         ();
+use PPI::Token::Number::Exp           ();
+use PPI::Token::Number::Version       ();
 use PPI::Token::Word                  ();
 use PPI::Token::DashedWord            ();
 use PPI::Token::Symbol                ();

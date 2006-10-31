@@ -45,7 +45,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '1.118';
+	$VERSION = '1.199_01';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly
@@ -84,7 +84,7 @@ sub __TOKENIZER__on_char {
 	if ( $content eq '.' ) {
 		if ( $char =~ /^[0-9]$/ ) {
 			# This is a decimal number
-			$t->_set_token_class('Number');
+			$t->_set_token_class('Number::Float');
 			return $t->{class}->__TOKENIZER__on_char( $t );
 		}
 	}

@@ -245,9 +245,8 @@ DESCRIPTION
 
     The one minor exception at this time is that if the newlines for your
     file are wrong (meaning not matching the platform newline format), PPI
-    will localisation of them for you. (It isn't to be convenient,
-    supporting arbitrary newlines would make some of the code more
-    complicated)
+    will localise them for you. (It isn't to be convenient, supporting
+    arbitrary newlines would make some of the code more complicated)
 
     Better control of the newline type is on the wish list though, and
     anyone wanting to help out is encouraged to contact the author.
@@ -332,7 +331,7 @@ IMPLEMENTATION
     standard Perl syntax.
 
   The PDOM Class Tree
-    The following lists all of the 62 current PDOM classes, listing with
+    The following lists all of the 67 current PDOM classes, listing with
     indentation based on inheritance.
 
        PPI::Element
@@ -366,6 +365,12 @@ IMPLEMENTATION
              PPI::Token::Comment
              PPI::Token::Pod
              PPI::Token::Number
+                PPI::Token::Number::Binary
+                PPI::Token::Number::Octal
+                PPI::Token::Number::Hex
+                PPI::Token::Number::Float
+                   PPI::Token::Number::Exp
+                PPI::Token::Number::Version
              PPI::Token::Word
              PPI::Token::DashedWord
              PPI::Token::Symbol
@@ -413,6 +418,10 @@ IMPLEMENTATION
     represents a complete file of Perl source code as you might find it on
     disk.
 
+    There are some specialised types of document, such as
+    PPI::Document::File and PPI::Document::Normalized but for the purposes
+    of the PDOM they are all just considered to be the same thing.
+
     Each Document will contain a number of Statements, Structures and
     Tokens.
 
@@ -420,31 +429,34 @@ IMPLEMENTATION
     as a single contiguous statement by perl itself. You should note that a
     Statement is as close as PPI can get to "parsing" the code in the sense
     that perl-itself parses Perl code when it is building the op-tree.
-    Because of the assumed isolation, PPI cannot accurately determine
-    precedence of operators or which tokens are implicit arguments to a sub
-    call.
 
-    So rather than lead you on with a bad guess, PPI does not attempt to
-    determine precedence or sub parameters at all.
+    Because of the isolation and Perl's syntax, it is provably impossible
+    for PPI to accurately determine precedence of operators or which tokens
+    are implicit arguments to a sub call.
+
+    So rather than lead you on with a bad guess that has a strong chance of
+    being wrong, PPI does not attempt to determine precedence or sub
+    parameters at all.
 
     At a fundamental level, it only knows that this series of elements
-    represents a single Statement as perl sees it, and does so with
-    reasonable certainty.
+    represents a single Statement as perl sees it, but it can do so with
+    enough certainty that it can be trusted.
 
-    However for specific Statement types the PDOM is able to derive
-    additional useful information about their meaning. For the best and most
-    heavily used example, see PPI::Statement::Include.
+    However, for specific Statement types the PDOM is able to derive
+    additional useful information about their meaning. For the best, most
+    useful, and most heavily used example, see PPI::Statement::Include.
 
     A PPI::Structure is any series of tokens contained within matching
     braces. This includes code blocks, conditions, function argument braces,
-    anonymous array constructors, lists, scoping braces and all other
-    syntactic structures represented by a matching pair of braces, including
-    "<READLINE>" braces.
+    anonymous array and hash constructors, lists, scoping braces and all
+    other syntactic structures represented by a matching pair of braces,
+    including (although it may not seem obvious at first) "<READLINE>"
+    braces.
 
     Each Structure contains none, one, or many Tokens and Structures (the
     rules for which vary for the different Structure subclasses)
 
-    In the PDOM structure rules, a Statement can never directly contain
+    Under the PDOM structure rules, a Statement can never directly contain
     another child Statement, a Structure can never directly contain another
     child Structure, and a Document can never contain another Document
     anywhere in the tree.
@@ -453,7 +465,7 @@ IMPLEMENTATION
 
   The PDOM at Work
     To demonstrate the PDOM in use lets start with an example showing how
-    the PDOM tree might look for the following chunk of simple Perl code.
+    the tree might look for the following chunk of simple Perl code.
 
       #!/usr/bin/perl
 
@@ -461,12 +473,13 @@ IMPLEMENTATION
 
       exit();
 
-    Translated into a PDOM tree it would have the following structure.
+    Translated into a PDOM tree it would have the following structure (as
+    shown via the included PPI::Dumper).
 
       PPI::Document
         PPI::Token::Comment                '#!/usr/bin/perl\n'
         PPI::Token::Whitespace             '\n'
-        PPI::Statement
+        PPI::Statement::Expression
           PPI::Token::Bareword             'print'
           PPI::Structure::List             ( ... )
             PPI::Token::Whitespace         ' '
@@ -476,7 +489,7 @@ IMPLEMENTATION
           PPI::Token::Structure            ';'
         PPI::Token::Whitespace             '\n'
         PPI::Token::Whitespace             '\n'
-        PPI::Statement
+        PPI::Statement::Expression
           PPI::Token::Bareword             'exit'
           PPI::Structure::List             ( ... )
           PPI::Token::Structure            ';'
@@ -494,13 +507,13 @@ IMPLEMENTATION
 
       PPI::Document
         PPI::Token::Comment                '#!/usr/bin/perl\n'
-        PPI::Statement
+        PPI::Statement::Expression
           PPI::Token::Bareword             'print'
           PPI::Structure::List             ( ... )
             PPI::Statement::Expression
               PPI::Token::Quote::Double    '"Hello World!"'
           PPI::Token::Structure            ';'
-        PPI::Statement
+        PPI::Statement::Expression
           PPI::Token::Bareword             'exit'
           PPI::Structure::List             ( ... )
           PPI::Token::Structure            ';'
@@ -524,15 +537,18 @@ IMPLEMENTATION
 
     PPI::Document::Fragment
         A cohesive fragment of a larger Document. Although not of any real
-        current use, it is planned for use in certain internal tree
+        current use, it is needed for use in certain internal tree
         manipulation algorithms.
 
         For example, doing things like cut/copy/paste etc. Very similar to a
         PPI::Document, but has some additional methods and does not
         represent a lexical scope boundary.
 
+        A document fragment is also non-serializable, and so cannot be
+        written out to a file.
+
     PPI::Dumper
-        A simple class for dumping readable debugging version of PDOM
+        A simple class for dumping readable debugging versions of PDOM
         structures, such as in the demonstration above.
 
     PPI::Element
@@ -636,8 +652,6 @@ TO DO
 
     - We can always write more and better unit tests
 
-    - Refactor PPI::Token::Number into multiple subclasses (1.200)
-
     - Complete the full implementation of ->literal (1.200)
 
     - Full understanding of scoping (due 1.300)
@@ -675,7 +689,7 @@ SUPPORT
     bit enabled, contact the author.
 
 AUTHOR
-    Adam Kennedy *adamk@cpan.org*
+    Adam Kennedy <adamk@cpan.org>
 
 ACKNOWLEDGMENTS
     A huge thank you to Phase N Australia (<http://phase-n.com/>) for
@@ -687,17 +701,17 @@ ACKNOWLEDGMENTS
     refactoring and completion run.
 
     Also, to the various co-maintainers that have contributed both large and
-    small with tests and patches and the especially those rare few who have
+    small with tests and patches and especially to those rare few who have
     deep-dived into the guts to (gasp) add a feature.
 
       - Dan Brook       : PPIx::XPath, Acme::PerlML
       - Audrey Tang     : "Line Noise" Testing
-      - Arjen Laarhoven : Three-element -E<gt>location
+      - Arjen Laarhoven : Three-element ->location support
 
-    Most of all, thanks to those brave soles willing to dive in and use,
-    test drive and provide feedback on PPI before version 1.000, in some
-    cases before it made it to beta quality, and still did extremely
-    distasteful things (like eating 50 meg of RAM a second).
+    And finally, thanks to those brave ( and foolish :) ) soles willing to
+    dive in and use, test drive and provide feedback on PPI before version
+    1.000, in some cases before it made it to beta quality, and still did
+    extremely distasteful things (like eating 50 meg of RAM a second).
 
     I owe you all a beer. Corner me somewhere and collect at your
     convenience. If I missed someone who wasn't in my email history, thank
@@ -729,14 +743,14 @@ ACKNOWLEDGMENTS
       - Johnny Lee
       - Johan Lindstrom
 
-    And to single one person out, thanks go to Randal Schwartz who (mostly)
-    spent a great number of hours in IRC over a critical 6 month period
-    explaining why Perl is impossibly unparsable and constantly shoving evil
-    and ugly corner cases in my face. He remained a tireless devil's
-    advocate and without his support this project genuinely could never have
-    been completed.
+    And to single one person out, thanks go to Randal Schwartz who spent a
+    great number of hours in IRC over a critical 6 month period explaining
+    why Perl is impossibly unparsable and constantly shoving evil and ugly
+    corner cases in my face. He remained a tireless devil's advocate, and
+    without his support this project genuinely could never have been
+    completed.
 
-    So for my schooling in the Deep Magik, you have my deepest gratitude
+    So for my schooling in the Deep Magiks, you have my deepest gratitude
     Randal.
 
 COPYRIGHT

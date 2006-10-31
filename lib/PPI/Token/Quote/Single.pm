@@ -40,7 +40,7 @@ use base 'PPI::Token::_QuoteEngine::Simple',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.118';
+	$VERSION = '1.199_01';
 }
 
 
@@ -67,6 +67,47 @@ is( $Single->string, 'foo', '->string returns as expected' );
 sub string {
 	my $str = $_[0]->{content};
 	substr( $str, 1, length($str) - 2 );
+}
+
+=pod
+
+=begin testing literal 21
+
+my @pairs = (
+	"''",          '',
+	"'f'",         'f',
+	"'f\\'b'",     "f\'b",
+	"'f\\nb'",     "f\\nb",
+	"'f\\\\b'",    "f\\b",
+	"'f\\\\\\b'", "f\\\\b",
+	"'f\\\\\\\''", "f\\'",
+);
+while ( @pairs ) {
+	my $from  = shift @pairs;
+	my $to    = shift @pairs;
+	my $doc   = PPI::Document->new( \"print $from;" );
+	isa_ok( $doc, 'PPI::Document' );
+	my $quote = $doc->find_first('Token::Quote::Single');
+	isa_ok( $quote, 'PPI::Token::Quote::Single' );
+	is( $quote->literal, $to, "The source $from becomes $to ok" );
+}
+
+=end testing 
+
+=cut
+
+my %literal_unescape = (
+	"\\'"  => "'",
+	"\\\\" => "\\",
+);
+sub literal {
+	my $self = shift;
+	my $str  = $self->string;
+
+	# Unescape \\ and \' ONLY
+	$str =~ s/(\\.)/$literal_unescape{$1} || $1/ge;
+
+	return $str;
 }
 
 1;

@@ -67,6 +67,12 @@ lib/PPI/Token/HereDoc.pm
 lib/PPI/Token/Label.pm
 lib/PPI/Token/Magic.pm
 lib/PPI/Token/Number.pm
+lib/PPI/Token/Number/Binary.pm
+lib/PPI/Token/Number/Exp.pm
+lib/PPI/Token/Number/Float.pm
+lib/PPI/Token/Number/Hex.pm
+lib/PPI/Token/Number/Octal.pm
+lib/PPI/Token/Number/Version.pm
 lib/PPI/Token/Operator.pm
 lib/PPI/Token/Pod.pm
 lib/PPI/Token/Prototype.pm
@@ -147,6 +153,8 @@ t/data/05_lexer_practical/10_readline.code
 t/data/05_lexer_practical/10_readline.dump
 t/data/05_lexer_practical/11_dor.code
 t/data/05_lexer_practical/11_dor.dump
+t/data/07_token/exp.code
+t/data/07_token/exp.dump
 t/data/07_token/hex.code
 t/data/07_token/hex.dump
 t/data/07_token/range_operator.code
@@ -155,8 +163,6 @@ t/data/08_regression/01_rt_cpan_19629.code
 t/data/08_regression/01_rt_cpan_19629.dump
 t/data/08_regression/01_rt_cpan_19629b.code
 t/data/08_regression/01_rt_cpan_19629b.dump
-t/data/08_regression/01_rt_cpan_8752.code
-t/data/08_regression/01_rt_cpan_8752.dump
 t/data/08_regression/02_rt_cpan_9582.code
 t/data/08_regression/02_rt_cpan_9582.dump
 t/data/08_regression/03_rt_cpan_9614.code
@@ -195,6 +201,14 @@ t/data/08_regression/19_long_operators.code
 t/data/08_regression/19_long_operators.dump
 t/data/08_regression/19_long_operators2.code
 t/data/08_regression/19_long_operators2.dump
+t/data/08_regression/20_hash_constructor.code
+t/data/08_regression/20_hash_constructor.dump
+t/data/08_regression/21_list_of_refs.code
+t/data/08_regression/21_list_of_refs.dump
+t/data/08_regression/22_hash_vs_brace.code
+t/data/08_regression/22_hash_vs_brace.dump
+t/data/08_regression/23_rt_cpan_8752.code
+t/data/08_regression/23_rt_cpan_8752.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm

@@ -3,7 +3,8 @@ package t::lib::PPI;
 use File::Spec::Functions ':ALL';
 use Test::More;
 use Test::Object;
-use Params::Util '_INSTANCE';
+use Params::Util    '_INSTANCE';
+use List::MoreUtils 'any';
 use PPI::Dumper;
 
 use vars qw{$VERSION};
@@ -68,6 +69,51 @@ sub unknown_objects {
 
 	1;
 }
+
+
+
+
+#####################################################################
+# Are there any invalid nestings?
+
+Test::Object->register(
+	class => 'PPI::Document',
+	tests => 1,
+	code  => \&nested_statements,
+);
+
+sub nested_statements {
+	my $doc = shift;
+
+	ok( ! $doc->find_any( sub {
+		_INSTANCE($_[1], 'PPI::Statement')
+		and
+		any { _INSTANCE($_, 'PPI::Statement') } $_[1]->children
+		} ),
+		'Document contains no nested statements',
+	);	
+}
+
+Test::Object->register(
+	class => 'PPI::Document',
+	tests => 1,
+	code  => \&nested_structures,
+);
+
+sub nested_structures {
+	my $doc = shift;
+
+	ok( ! $doc->find_any( sub {
+		_INSTANCE($_[1], 'PPI::Structure')
+		and
+		any { _INSTANCE($_, 'PPI::Structure') } $_[1]->children
+		} ),
+		'Document contains no nested structures',
+	);	
+}
+
+
+
 
 
 #####################################################################

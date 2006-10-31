@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.118';
+	$VERSION       = '1.199_01';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -19,6 +19,7 @@ use PPI::Token                ();
 use PPI::Statement            ();
 use PPI::Structure            ();
 use PPI::Document             ();
+use PPI::Document::File       ();
 use PPI::Document::Normalized ();
 use PPI::Normal               ();
 use PPI::Tokenizer            ();
@@ -294,7 +295,7 @@ B<What goes in, will come out. Every time.>
 
 The one minor exception at this time is that if the newlines for your file
 are wrong (meaning not matching the platform newline format), PPI will
-localisation of them for you. (It isn't to be convenient, supporting
+localise them for you. (It isn't to be convenient, supporting
 arbitrary newlines would make some of the code more complicated)
 
 Better control of the newline type is on the wish list though, and
@@ -384,7 +385,7 @@ syntax.
 
 =head2 The PDOM Class Tree
 
-The following lists all of the 62 current PDOM classes, listing with indentation
+The following lists all of the 67 current PDOM classes, listing with indentation
 based on inheritance.
 
    PPI::Element
@@ -418,6 +419,12 @@ based on inheritance.
          PPI::Token::Comment
          PPI::Token::Pod
          PPI::Token::Number
+            PPI::Token::Number::Binary
+            PPI::Token::Number::Octal
+            PPI::Token::Number::Hex
+            PPI::Token::Number::Float
+               PPI::Token::Number::Exp
+            PPI::Token::Number::Version
          PPI::Token::Word
          PPI::Token::DashedWord
          PPI::Token::Symbol
@@ -466,46 +473,54 @@ At the top of all complete PDOM trees is a L<PPI::Document> object. It
 represents a complete file of Perl source code as you might find it on
 disk.
 
+There are some specialised types of document, such as L<PPI::Document::File>
+and L<PPI::Document::Normalized> but for the purposes of the PDOM they are
+all just considered to be the same thing.
+
 Each Document will contain a number of B<Statements>, B<Structures> and
 B<Tokens>.
 
 A L<PPI::Statement> is any series of Tokens and Structures that are treated
 as a single contiguous statement by perl itself. You should note that a
 Statement is as close as PPI can get to "parsing" the code in the sense that
-perl-itself parses Perl code when it is building the op-tree. Because of the
-assumed isolation, PPI cannot accurately determine precedence of operators
-or which tokens are implicit arguments to a sub call.
+perl-itself parses Perl code when it is building the op-tree.
 
-So rather than lead you on with a bad guess, PPI does not attempt to
-determine precedence or sub parameters at all.
+Because of the isolation and Perl's syntax, it is provably impossible for
+PPI to accurately determine precedence of operators or which tokens are
+implicit arguments to a sub call.
 
-At a fundamental level, it only knows that this series of elements represents
-a single Statement as perl sees it, and does so with reasonable certainty.
+So rather than lead you on with a bad guess that has a strong chance of
+being wrong, PPI does not attempt to determine precedence or sub parameters
+at all.
 
-However for specific Statement types the PDOM is able to derive additional
-useful information about their meaning. For the best and most heavily used
-example, see L<PPI::Statement::Include>.
+At a fundamental level, it only knows that this series of elements
+represents a single Statement as perl sees it, but it can do so with
+enough certainty that it can be trusted.
+
+However, for specific Statement types the PDOM is able to derive additional
+useful information about their meaning. For the best, most useful, and most
+heavily used example, see L<PPI::Statement::Include>.
 
 A L<PPI::Structure> is any series of tokens contained within matching braces.
 This includes code blocks, conditions, function argument braces, anonymous
-array constructors, lists, scoping braces and all other syntactic structures
-represented by a matching pair of braces, including C<E<lt>READLINEE<gt>>
-braces.
+array and hash constructors, lists, scoping braces and all other syntactic
+structures represented by a matching pair of braces, including (although it
+may not seem obvious at first) C<E<lt>READLINEE<gt>> braces.
 
 Each Structure contains none, one, or many Tokens and Structures (the rules
 for which vary for the different Structure subclasses)
 
-In the PDOM structure rules, a Statement can B<never> directly contain another
-child Statement, a Structure can B<never> directly contain another child
-Structure, and a Document can B<never> contain another Document anywhere in
-the tree.
+Under the PDOM structure rules, a Statement can B<never> directly contain
+another child Statement, a Structure can B<never> directly contain another
+child Structure, and a Document can B<never> contain another Document
+anywhere in the tree.
 
 Aside from these three rules, the PDOM tree is extremely flexible.
 
 =head2 The PDOM at Work
 
 To demonstrate the PDOM in use lets start with an example showing how the
-PDOM tree might look for the following chunk of simple Perl code.
+tree might look for the following chunk of simple Perl code.
 
   #!/usr/bin/perl
 
@@ -513,12 +528,13 @@ PDOM tree might look for the following chunk of simple Perl code.
 
   exit();
 
-Translated into a PDOM tree it would have the following structure.
+Translated into a PDOM tree it would have the following structure (as shown
+via the included L<PPI::Dumper>).
 
   PPI::Document
     PPI::Token::Comment                '#!/usr/bin/perl\n'
     PPI::Token::Whitespace             '\n'
-    PPI::Statement
+    PPI::Statement::Expression
       PPI::Token::Bareword             'print'
       PPI::Structure::List             ( ... )
         PPI::Token::Whitespace         ' '
@@ -528,7 +544,7 @@ Translated into a PDOM tree it would have the following structure.
       PPI::Token::Structure            ';'
     PPI::Token::Whitespace             '\n'
     PPI::Token::Whitespace             '\n'
-    PPI::Statement
+    PPI::Statement::Expression
       PPI::Token::Bareword             'exit'
       PPI::Structure::List             ( ... )
       PPI::Token::Structure            ';'
@@ -545,13 +561,13 @@ whitespace. Here it is again, sans the distracting whitespace tokens.
 
   PPI::Document
     PPI::Token::Comment                '#!/usr/bin/perl\n'
-    PPI::Statement
+    PPI::Statement::Expression
       PPI::Token::Bareword             'print'
       PPI::Structure::List             ( ... )
         PPI::Statement::Expression
           PPI::Token::Quote::Double    '"Hello World!"'
       PPI::Token::Structure            ';'
-    PPI::Statement
+    PPI::Statement::Expression
       PPI::Token::Bareword             'exit'
       PPI::Structure::List             ( ... )
       PPI::Token::Structure            ';'
@@ -579,16 +595,19 @@ The Document object, the root of the PDOM.
 =item L<PPI::Document::Fragment>
 
 A cohesive fragment of a larger Document. Although not of any real current
-use, it is planned for use in certain internal tree manipulation
+use, it is needed for use in certain internal tree manipulation
 algorithms.
 
 For example, doing things like cut/copy/paste etc. Very similar to a
 L<PPI::Document>, but has some additional methods and does not represent
 a lexical scope boundary.
 
+A document fragment is also non-serializable, and so cannot be written out
+to a file.
+
 =item L<PPI::Dumper>
 
-A simple class for dumping readable debugging version of PDOM structures,
+A simple class for dumping readable debugging versions of PDOM structures,
 such as in the demonstration above.
 
 =item L<PPI::Element>
@@ -704,8 +723,6 @@ C<Parse::Perl> project itself.
 
 - We can B<always> write more and better unit tests
 
-- Refactor PPI::Token::Number into multiple subclasses (1.200)
-
 - Complete the full implementation of -E<gt>literal (1.200)
 
 - Full understanding of scoping (due 1.300)
@@ -745,7 +762,7 @@ enabled, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy I<adamk@cpan.org>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 ACKNOWLEDGMENTS
 
@@ -758,16 +775,16 @@ Another big thank you to The Perl Foundation
 refactoring and completion run.
 
 Also, to the various co-maintainers that have contributed both large and
-small with tests and patches and the especially those rare few who have
+small with tests and patches and especially to those rare few who have
 deep-dived into the guts to (gasp) add a feature.
 
   - Dan Brook       : PPIx::XPath, Acme::PerlML
   - Audrey Tang     : "Line Noise" Testing
-  - Arjen Laarhoven : Three-element -E<gt>location
+  - Arjen Laarhoven : Three-element ->location support
 
-Most of all, thanks to those brave soles willing to dive in and use,
-test drive and provide feedback on PPI before version 1.000, in some
-cases before it made it to beta quality, and still did extremely
+And finally, thanks to those brave ( and foolish :) ) soles willing to dive
+in and use, test drive and provide feedback on PPI before version 1.000,
+in some cases before it made it to beta quality, and still did extremely
 distasteful things (like eating 50 meg of RAM a second).
 
 I owe you all a beer. Corner me somewhere and collect at your convenience.
@@ -799,14 +816,14 @@ If I missed someone who wasn't in my email history, thank you too :)
   - Johnny Lee
   - Johan Lindstrom
 
-And to single one person out, thanks go to Randal Schwartz who (mostly)
+And to single one person out, thanks go to Randal Schwartz who
 spent a great number of hours in IRC over a critical 6 month period
 explaining why Perl is impossibly unparsable and constantly shoving evil
-and ugly corner cases in my face. He remained a tireless devil's advocate
+and ugly corner cases in my face. He remained a tireless devil's advocate,
 and without his support this project genuinely could never have been
 completed.
 
-So for my schooling in the Deep Magik, you have my deepest gratitude Randal.
+So for my schooling in the Deep Magiks, you have my deepest gratitude Randal.
 
 =head1 COPYRIGHT
 

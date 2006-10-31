@@ -15,7 +15,7 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2192;
+use Test::More tests => 2230;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -152,6 +152,7 @@ PPI::Token=isa
 [PPI::Token::Number]
 PPI::Token=isa
 base=method
+literal=method
 
 [PPI::Token::Symbol]
 PPI::Token=isa
@@ -185,6 +186,11 @@ parameters=method
 [PPI::Token::DashedWord]
 PPI::Token=isa
 
+[PPI::Token::HereDoc]
+PPI::Token=isa
+heredoc=method
+terminator=method
+
 [PPI::Token::_QuoteEngine]
 
 [PPI::Token::_QuoteEngine::Simple]
@@ -200,6 +206,7 @@ string=method
 [PPI::Token::Quote::Single]
 PPI::Token=isa
 PPI::Token::Quote=isa
+literal=method
 
 [PPI::Token::Quote::Double]
 PPI::Token=isa
@@ -410,7 +417,7 @@ import=method
 remove_insignificant_elements=method
 remove_useless_attributes=method
 remove_useless_pragma=method
-remove_statement_seperator=method
+remove_statement_separator=method
 remove_useless_return=method
 
 [PPI::Document::Normalized]

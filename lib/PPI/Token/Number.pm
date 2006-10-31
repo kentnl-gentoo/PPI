@@ -34,20 +34,39 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.118';
+	$VERSION = '1.199_01';
 }
 
 =head2 base
 
-Returns the base for the number.  This is 10 for decimal, 16 for hexadecimal, etc.
+The C<base> method is provided by all of the ::Number subclasses.
+This is 10 for decimal, 16 for hexadecimal, 2 for binary, etc.
 
 =cut
 
 sub base {
-	my $self = shift;
-	return $self->{_base} || 10;
+	return 10;
 }
 
+=head2 literal
+
+Return the numeric value of this token.
+
+=cut
+
+sub literal {
+	my $self = shift;
+	return 0+$self->_literal;
+}
+
+sub _literal {
+	# De-sugar the string representation
+	my $self = shift;
+	my $str = $self->content;
+	$str =~ s/^\+//;
+	$str =~ s/_//g;
+	return $str;
+}
 
 #####################################################################
 # Tokenizer Methods
@@ -66,75 +85,26 @@ sub __TOKENIZER__on_char {
 	if ( $token->{content} =~ /^-?0_*$/ ) {
 		# This could be special
 		if ( $char eq 'x' ) {
-			$token->{_base} = 16;
-			return 1;
+			return $t->_set_token_class( 'Number::Hex' ) ? 1 : undef;
 		} elsif ( $char eq 'b' ) {
-			$token->{_base} = 2;
-			return 1;
+			return $t->_set_token_class( 'Number::Binary' ) ? 1 : undef;
 		} elsif ( $char =~ /\d/ ) {
-			$token->{_base} = 8;
 			# You cannot have 8s and 9s on octals
 			if ( $char eq '8' or $char eq '9' ) {
 				$token->{_error} = "Illegal character in octal number '$char'";
 			}
-			return 1;
-		} elsif ( $char eq '.' ) {
-			return 1;
-		} else {
-			# End of the number... its just 0
-			return $t->_finalize_token->__TOKENIZER__on_char( $t );
+			return $t->_set_token_class( 'Number::Octal' ) ? 1 : undef;
 		}
 	}
 
-	$token->{_base} = 10 unless $token->{_base};
+	# Handle the easy case, integer or real.
+	return 1 if $char =~ /\d/o;
 
-	if ( $token->{_base} == 10 or $token->{_base} == 256 ) {
-		# Handle the easy case, integer or real.
-		return 1 if $char =~ /\d/o;
-
-		if ( $char eq '.' ) {
-			if ( $token->{content} =~ /\.$/ ) {
-				# We have a .., which is an operator.
-				# Take the . off the end of the token..
-				# and finish it, then make the .. operator.
-				chop $t->{token}->{content};
-				$t->_new_token('Operator', '..') or return undef;
-				return 0;
-			} else {
-				# Will this be the first .?
-				if ( $token->{content} =~ /\./ ) {
-					# Flag as a base256.
-					$token->{_base} = 256;
-				}
-				return 1;
-			}
-		}
-
-	} elsif ( $token->{_base} == 8 ) {
-		if ( $char =~ /\d/ ) {
-			# You cannot have 8s and 9s on octals
-			if ( $char eq '8' or $char eq '9' ) {
-				$token->{_error} = "Illegal character in octal number '$char'";
-			}
-			return 1;
-		}
-
-	} elsif ( $token->{_base} == 16 ) {
-		if ( $char =~ /[\da-f]/ ) {
-			return 1;
-		}
-
-	} elsif ( $token->{_base} == 2 ) {
-		if ( $char =~ /[\w\d]/ ) {
-			unless ( $char eq '1' or $char eq '0' ) {
-				# Add a warning if it contains non-hex chars
-				$token->{_error} = "Illegal character in binary number '$char'";
-			}
-			return 1;
-		}
-
-	} else {
-		Carp::croak("Unknown number type 'base$token->{_base}'");
+	if ( $char eq '.' ) {
+		return $t->_set_token_class( 'Number::Float' ) ? 1 : undef;
+	}
+	if ( $char eq 'e' || $char eq 'E' ) {
+		return $t->_set_token_class( 'Number::Exp' ) ? 1 : undef;
 	}
 
 	# Doesn't fit a special case, or is after the end of the token
@@ -146,14 +116,22 @@ sub __TOKENIZER__on_char {
 
 =pod
 
+=head1 CAVEATS
+
+Compared to Perl, the number tokenizer is too liberal about allowing
+underscores anywhere.  For example, the following is a syntax error in
+Perl, but is allowed in PPI:
+
+   0_b10
+
 =head1 TO DO
 
-- Add proper unit testing to this
+- Treak v-strings as binary strings or barewords, not as "base-256"
+  numbers
 
-- Add support for exponential notation
+- Break out decimal integers into their own subclass?
 
-- What the hell is a base256 number and why did I use it.
-  Surely it should be something more like "base1000" or "version".
+- Implement literal()
 
 =head1 SUPPORT
 
