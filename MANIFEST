@@ -25,6 +25,8 @@ lib/PPI/Document/Fragment.pm
 lib/PPI/Document/Normalized.pm
 lib/PPI/Dumper.pm
 lib/PPI/Element.pm
+lib/PPI/Exception.pm
+lib/PPI/Exception/ParserTimeout.pm
 lib/PPI/Find.pm
 lib/PPI/Lexer.pm
 lib/PPI/Node.pm
@@ -209,6 +211,14 @@ t/data/08_regression/22_hash_vs_brace.code
 t/data/08_regression/22_hash_vs_brace.dump
 t/data/08_regression/23_rt_cpan_8752.code
 t/data/08_regression/23_rt_cpan_8752.dump
+t/data/08_regression/24_compound.code
+t/data/08_regression/24_compound.dump
+t/data/08_regression/25_hash_block.code
+t/data/08_regression/25_hash_block.dump
+t/data/08_regression/26_rt_cpan_23253.code
+t/data/08_regression/26_rt_cpan_23253.dump
+t/data/08_regression/27_constant_hash.code
+t/data/08_regression/27_constant_hash.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm

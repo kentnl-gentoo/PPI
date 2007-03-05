@@ -94,7 +94,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.199_01';
+	$VERSION = '1.199_02';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -239,6 +239,12 @@ sub last_element {
 }
 
 
+# Location is same as the start token, if any
+sub location {
+	my $self  = shift;
+	my $first = $self->first_element or return undef;
+	$first->location;
+}
 
 
 

@@ -1,104 +1,130 @@
 #line 1
 package File::Remove;
 
-#line 96
-
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
-@ISA = qw(Exporter);
-# we export nothing by default :)
-@EXPORT_OK = qw(remove rm trash);
+BEGIN {
+	$VERSION   = '0.34';
+	@ISA       = qw(Exporter);
+	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
+}
 
-use File::Spec;
-use File::Path qw(rmtree);
+# If we ever need a Mac::Glue object,
+# we will want to cache it.
+my $glue;
+
+use File::Spec ();
+use File::Path ();
 use File::Glob qw(bsd_glob);
 
-$VERSION = '0.31';
-
-our $glue;
-
-sub expand (@)
-{
-    map { bsd_glob $_ } @_;
+sub expand (@) {
+	map { File::Glob::bsd_glob($_) } @_;
 }
+
+# Are we on VMS?
+# If so copy File::Path and assume VMS::Filespec is loaded
+use constant IS_VMS => $^O eq 'VMS';
+
+
+
+
+
+#####################################################################
+# Main Functions
 
 # acts like unlink would until given a directory as an argument, then
 # it acts like rm -rf ;) unless the recursive arg is zero which it is by
 # default
-sub remove (@)
-{
-    my $recursive;
-    if(ref $_[0] eq 'SCALAR') {
-        $recursive = shift;
-    }
-    else {
-        $recursive = \0;
-    }
-    my @files = expand @_;
-    my @removes;
+sub remove (@) {
+	my $recursive = (ref $_[0] eq 'SCALAR') ? shift : \0;
+	my @files     = expand @_;
 
-    my $ret;
-    for (@files) {
-        print "file: $_\n" if $debug;
-        if(-f $_ || -l $_) {
-            print "file unlink: $_\n" if $debug;
-	    my $result = $unlink ? $unlink->($_) : unlink($_);
-	    push(@removes, $_) if $result;
-        }
-        elsif(-d $_) {
-	    print "dir: $_\n" if $debug;
-	    # XXX: this regex seems unnecessary, and may trigger bugs someday.
-	    # TODO: but better to trim trailing slashes for now.
-	    s/\/$//;
-	    if ($$recursive) {
-		my $result = rmtree([$_], $debug, 1);
-		push(@removes, $_) if $result;
-	    } else {
-		my ($save_mode) = (stat $_)[2];
-		chmod $save_mode & 0777,$_; # just in case we cannot remove it.
-		my $result = $rmdir ? $rmdir->($_) : rmdir($_);
-		push(@removes, $_) if $result;
-	    }
-        } else {
-	    print "???: $_\n" if $debug;
+	# Iterate over the files
+	my @removes;
+	foreach my $path ( @files ) {
+		unless ( -e $path ) {
+			print "missing: $path\n" if $debug;
+			push @removes, $path; # Say we deleted it
+			next;
+		}
+		unless ( IS_VMS ? VMS::Filespec::candelete($path) : -w $path ) {
+			print "nowrite: $path\n" if $debug;
+			next;
+		}
+
+		if ( -f $path or -l $path ) {
+			print "file: $path\n" if $debug;
+			if ( $unlink ? $unlink->($path) : unlink($path) ) {
+				push @removes, $path;
+			}
+
+		} elsif ( -d $path ) {
+			print "dir: $path\n" if $debug;
+			my $dir = File::Spec->canonpath( $path );
+			if ( $$recursive ) {
+				if ( File::Path::rmtree( [ $dir ], $debug, 0 ) ) {
+					push @removes, $path;
+				}
+
+			} else {
+				my ($save_mode) = (stat $dir)[2];
+				chmod $save_mode & 0777, $dir; # just in case we cannot remove it.
+				if ( $rmdir ? $rmdir->($dir) : rmdir($dir) ) {
+					push @removes, $path;
+				}
+			}
+
+		} else {
+			print "???: $path\n" if $debug;
+		}
 	}
-    }
 
-    @removes;
+	return @removes;
 }
 
-sub rm (@) { goto &remove }
+sub rm (@) {
+	goto &remove;
+}
 
 sub trash (@) {
-    our $unlink = $unlink;
-    our $rmdir = $rmdir;
-    if (ref($_[0]) eq 'HASH') {
-	my %options = %{+shift @_};
-	$unlink = $options{'unlink'};
-	$rmdir = $options{'rmdir'};
-    } elsif ($^O eq 'cygwin' || $^O =~ /^MSWin/) {
-	eval 'use Win32::FileOp ();';
-	die "Can't load Win32::FileOp to support the Recycle Bin: \$@ = $@" if length $@;
-	$unlink = \&Win32::FileOp::Recycle;
-	$rmdir = \&Win32::FileOp::Recycle;
-    } elsif ($^O eq 'darwin') {
-	unless ($glue) {
-	    eval 'use Mac::Glue ();';
-	    die "Can't load Mac::Glue::Finder to support the Trash Can: \$@ = $@" if length $@;
-	    $glue = Mac::Glue->new('Finder');
+	local $unlink = $unlink;
+	local $rmdir  = $rmdir;
+
+	if ( ref $_[0] eq 'HASH' ) {
+		my %options = %{+shift @_};
+		$unlink = $options{unlink};
+		$rmdir  = $options{rmdir};
+
+	} elsif ( $^O eq 'cygwin' || $^O =~ /^MSWin/ ) {
+		eval 'use Win32::FileOp ();';
+		die "Can't load Win32::FileOp to support the Recycle Bin: \$@ = $@" if length $@;
+		$unlink = \&Win32::FileOp::Recycle;
+		$rmdir  = \&Win32::FileOp::Recycle;
+
+	} elsif ( $^O eq 'darwin' ) {
+		unless ( $glue ) {
+			eval 'use Mac::Glue ();';
+			die "Can't load Mac::Glue::Finder to support the Trash Can: \$@ = $@" if length $@;
+			$glue = Mac::Glue->new('Finder');
+		}
+		my $code = sub {
+			my @files = map { Mac::Glue::param_type(Mac::Glue::typeAlias() => $_) } @_;
+			$glue->delete(\@files);
+		};
+		$unlink = $code;
+		$rmdir  = $code;
+	} else {
+		die "Support for trash() on platform '$^O' not available at this time.\n";
 	}
-	my $code = sub {
-	    my @files = map { Mac::Glue::param_type(Mac::Glue::typeAlias() => $_) } @_;
-	    $glue->delete(\@files);
-	};
-	$unlink = $code;
-	$rmdir = $code;
-    } else {
-	die "Support for trash() on platform '$^O' not available at this time.\n";
-    }
-    goto &remove;
+	goto &remove;
 }
 
-sub undelete (@) { goto &trash }
+sub undelete (@) {
+	goto &trash;
+}
 
 1;
+
+__END__
+
+#line 230
