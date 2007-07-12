@@ -8,7 +8,7 @@ use strict;
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.10';
+	$VERSION = '2.04';
 	$errstr  = '';
 }
 
@@ -110,4 +110,4 @@ sub _error { $errstr = $_[1]; undef }
 
 __END__
 
-#line 256
+#line 253

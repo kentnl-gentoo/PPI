@@ -132,7 +132,7 @@ DESCRIPTION
     You can find this project at <http://sf.net/projects/parseperl>, however
     we no longer use the SourceForge CVS server. Instead, the current
     development version of PPI is available via SVN at
-    <http://svn.phase-n.com/svn/cpan/trunk/PPI/>.
+    <http://svn.ali.as/cpan/trunk/PPI/>.
 
   Why Parse Perl?
     Once you can accept that we will never be able to parse Perl well enough
@@ -659,7 +659,7 @@ TO DO
 SUPPORT
     This module is stored in an Open Repository at the following address.
 
-    <http://svn.phase-n.com/svn/cpan/trunk/PPI>
+    <http://svn.ali.as/cpan/trunk/PPI>
 
     Write access to the repository is made available automatically to any
     published CPAN author, and to most other volunteers on request.

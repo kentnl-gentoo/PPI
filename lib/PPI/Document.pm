@@ -81,7 +81,7 @@ use constant HAS_ALARM            => (
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.199_02';
+	$VERSION = '1.199_03';
 	$errstr  = '';
 }
 
@@ -154,7 +154,7 @@ sub new {
 	my %attr    = @_;
 	my $timeout = delete $attr{timeout};
 	if ( $timeout and ! HAS_ALARM ) {
-		Carp::croak("This platform does not support PPI timeouts");
+		Carp::croak("This platform does not support PPI parser timeouts");
 	}
 
 	# Check the data source

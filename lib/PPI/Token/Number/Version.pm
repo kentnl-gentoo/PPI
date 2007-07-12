@@ -34,7 +34,7 @@ use base 'PPI::Token::Number';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.199_02';
+	$VERSION = '1.199_03';
 }
 
 =head2 base
@@ -77,7 +77,7 @@ sub __TOKENIZER__on_char {
 			# Take the . off the end of the token..
 			# and finish it, then make the .. operator.
 			chop $t->{token}->{content};
-			$t->_new_token('Operator', '..') or return undef;
+			$t->_new_token('Operator', '..');
 			return 0;
 		} else {
 			return 1;

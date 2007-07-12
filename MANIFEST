@@ -131,7 +131,6 @@ t/21_exhaustive.t
 t/22_readonly.t
 t/23_file.t
 t/99_author.t
-t/99_pod.t
 t/data/03_empiric/test.dat
 t/data/05_lexer_practical/01_simpleassign.code
 t/data/05_lexer_practical/01_simpleassign.dump
@@ -219,6 +218,8 @@ t/data/08_regression/26_rt_cpan_23253.code
 t/data/08_regression/26_rt_cpan_23253.dump
 t/data/08_regression/27_constant_hash.code
 t/data/08_regression/27_constant_hash.dump
+t/data/08_regression/28_backref_style_heredoc.code
+t/data/08_regression/28_backref_style_heredoc.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
