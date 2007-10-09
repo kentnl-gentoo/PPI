@@ -47,7 +47,7 @@ use Clone ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.199_03';
+	$VERSION = '1.199_05';
 }
 
 =pod
@@ -253,6 +253,9 @@ sub __TOKENIZER__on_char {
 			return 'QuoteLike::Readline';
 		}
 		if ( $prev->isa('PPI::Token::Operator') and $prec eq '=' ) {
+			return 'QuoteLike::Readline';
+		}
+		if ( $prev->isa('PPI::Token::Operator') and $prec eq ',' ) {
 			return 'QuoteLike::Readline';
 		}
 

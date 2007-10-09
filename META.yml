@@ -9,7 +9,7 @@ build_requires:
   Test::Object: 0.07
   Test::SubCalls: 1.06
 distribution_type: module
-generated_by: Module::Install version 0.67
+generated_by: Module::Install version 0.65
 license: perl
 meta-spec: 
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
@@ -25,9 +25,9 @@ requires:
   Digest::MD5: 2.27
   IO::String: 1.07
   List::MoreUtils: 0.13
-  List::Util: 1.18
+  List::Util: 1.19
   Params::Util: 0.10
   Storable: 2.14
   Task::Weaken: 0
   perl: 5.005
-version: 1.199_03
+version: 1.199_05

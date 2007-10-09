@@ -81,7 +81,7 @@ use PPI::Exception  ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.199_03';
+	$VERSION = '1.199_05';
 	$errstr  = '';
 }
 
@@ -794,6 +794,7 @@ my %OBVIOUS_CONTENT = (
 	'{' => 'operand',
 	'[' => 'operand',
 	';' => 'operand',
+	'}' => 'operator',
 );
 
 # Try to determine operator/operand context, is possible.

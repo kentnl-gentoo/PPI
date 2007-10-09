@@ -50,7 +50,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.199_03';
+	$VERSION = '1.199_05';
 }
 
 
@@ -103,6 +103,18 @@ foreach my $Quote ( @$quotes ) {
 #	my $class = ref $_[0] || $_[0];
 #	die "$class does not implement method ->string";
 #}
+
+=head2 literal
+
+The C<literal> method is provided by ::Quote:Literal and
+::Quote::Single.  This returns the value of the string as Perl sees
+it: without the quote marks and with C<\\> and C<\'> resolved to C<\>
+and C<'>.
+
+The C<literal> method is not implemented by ::Quote::Double or
+::Quote::Interpolate yet.
+
+=cut
 
 1;
 

@@ -1,5 +1,24 @@
 Revision history for Perl extension PPI
 
+1.199_05 Tue  9 Oct 2007
+	Summary:
+	- This is the first release candidate for 1.200
+	- Fix some parser corner cases
+
+	Details:
+	- Fixed parsing of %!, $^\w, and %^H
+	- Fixed parsing of @{$foo}-1
+	- Fixed parsing of <$fh1>, <$fh2>
+
+1.199_04 
+	Summary:
+	- Build tweaks
+	- More regression changes
+
+	Details:
+	- Increasing List::Util dependency to 1.19
+	  (Removes a memory leak on Win32)
+
 1.199_03 Thu 12 Jul 2007
 	Summary:
 	- Support for a few more rare/legacy Perl syntax

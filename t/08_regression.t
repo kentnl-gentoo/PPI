@@ -28,14 +28,14 @@ sub pause {
 #####################################################################
 # Prepare
 
-# For each new item in t/data/08_regression add another 11 tests
+# For each new item in t/data/08_regression add another 14 tests
 
-use Test::More tests => 466;
+use Test::More tests => 564;
 use t::lib::PPI;
 
 #####################################################################
 # Code/Dump Testing
-# ntests = 2 + 11 * nfiles
+# ntests = 2 + 14 * nfiles
 
 t::lib::PPI->run_testdir( catdir( 't', 'data', '08_regression' ) );
 

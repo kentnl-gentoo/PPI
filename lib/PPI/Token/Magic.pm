@@ -46,7 +46,7 @@ use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '1.199_03';
+	$VERSION = '1.199_05';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.
@@ -59,7 +59,7 @@ BEGIN {
 
 		$^L $^A $^E $^C $^D $^F $^H
 		$^I $^M $^N $^O $^P $^R $^S
-		$^T $^V $^W $^X
+		$^T $^V $^W $^X %^H
 
 		$::|
 	}, '$}', '$,', '$#', '$#+', '$#-' ) {
@@ -118,9 +118,16 @@ sub __TOKENIZER__on_char {
 			return PPI::Token::ArrayIndex->__TOKENIZER__on_char( $t );
 		}
 
-		if ( $c =~ /^\$\^\w/o ) {
+		if ( $c =~ /^\$\^\w+$/o ) {
 			# It's an escaped char magic... maybe ( like $^M )
-			return 1;
+			my $next = substr( $t->{line}, $t->{line_cursor}+1, 1 ); # Peek ahead
+			if ($magic{$c} && (!$next || $next !~ /\w/)) {
+				$t->{token}->{content} = $c;
+				$t->{line_cursor}++;
+			} else {
+				# Maybe it's a long magic variable like $^WIDE_SYSTEM_CALLS
+				return 1;
+			}
 		}
 
 		if ( $c =~ /^\$\#\{/ ) {
@@ -131,6 +138,18 @@ sub __TOKENIZER__on_char {
 
 			# ... and create a new token for the block
 			return $t->_new_token( 'Structure', '{' );
+		}
+	} elsif ($c =~ /^%\^/) {
+		return 1 if $c eq '%^';
+		# It's an escaped char magic... maybe ( like %^H )
+		if ($magic{$c}) {
+			$t->{token}->{content} = $c;
+			$t->{line_cursor}++;
+		} else {
+			# Back off, treat '%' as an operator
+			chop $t->{token}->{content};
+			bless $t->{token}, $t->{class} = 'PPI::Token::Operator';
+			$t->{line_cursor}--;
 		}
 	}
 

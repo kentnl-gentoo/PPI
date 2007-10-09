@@ -94,7 +94,7 @@ use PPI::Structure::Unknown     ();
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.199_03';
+	$VERSION = '1.199_05';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -273,6 +273,11 @@ sub content {
 	}
 	$content .= $self->{finish}->content if $self->{finish};
 	$content;
+}
+
+# Is the structure completed
+sub _complete {
+	!! ( defined $_[0]->{finish} );
 }
 
 # You can insert either another structure, or a token

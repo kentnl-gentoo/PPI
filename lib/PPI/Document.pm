@@ -81,7 +81,7 @@ use constant HAS_ALARM            => (
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.199_03';
+	$VERSION = '1.199_05';
 	$errstr  = '';
 }
 
@@ -723,6 +723,18 @@ sub scope { 1 }
 
 #####################################################################
 # PPI::Element Methods
+
+# Is the document complete.
+# Cascase to the last significant child
+sub complete {
+	my $self  = shift;
+	my $child = $self->schild(-1);
+	return !! (
+		$child
+		and
+		$child->complete
+	);
+}
 
 sub insert_before {
 	return undef;
