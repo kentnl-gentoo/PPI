@@ -30,4 +30,4 @@ requires:
   Storable: 2.14
   Task::Weaken: 0
   perl: 5.005
-version: 1.199_05
+version: 1.199_06
