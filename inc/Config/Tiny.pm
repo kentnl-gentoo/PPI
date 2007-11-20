@@ -3,13 +3,11 @@ package Config::Tiny;
 
 # If you thought Config::Simple was small...
 
-use 5.004;
 use strict;
-
-use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.10';
-	$errstr  = '';
+	require 5.004;
+	$Config::Tiny::VERSION = '2.12';
+	$Config::Tiny::errstr  = '';
 }
 
 # Create an empty object
@@ -48,6 +46,9 @@ sub read_string {
 
 		# Skip comments and empty lines
 		next if /^\s*(?:\#|\;|$)/;
+
+		# Remove inline comments
+		s/\s\;\s.+$//g;
 
 		# Handle section headers
 		if ( /^\s*\[\s*(.+?)\s*\]\s*$/ ) {
@@ -103,11 +104,11 @@ sub write_string {
 }
 
 # Error handling
-sub errstr { $errstr }
-sub _error { $errstr = $_[1]; undef }
+sub errstr { $Config::Tiny::errstr }
+sub _error { $Config::Tiny::errstr = $_[1]; undef }
 
 1;
 
 __END__
 
-#line 256
+#line 267

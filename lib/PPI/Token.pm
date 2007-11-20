@@ -27,7 +27,7 @@ use PPI::Exception ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.201';
+	$VERSION = '1.202_01';
 }
 
 # We don't load the abstracts, they are loaded
@@ -153,7 +153,7 @@ The C<length> method returns the length of the string in a Token.
 
 =cut
 
-sub length { &CORE::length($_[0]->{content}) }
+sub length { CORE::length($_[0]->{content}) }
 
 
 

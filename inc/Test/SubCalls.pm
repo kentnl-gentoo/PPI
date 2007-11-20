@@ -7,11 +7,12 @@ use 5.006; # Only because of Lex::HookWrap. Otherwise 5.005
 use strict;
 use Test::Builder ();
 use Hook::LexWrap ();
-use base 'Exporter';
+use Exporter      ();
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
+	@ISA     = 'Exporter';
 	@EXPORT  = qw{sub_track sub_calls sub_reset sub_reset_all};
 }
 
@@ -26,7 +27,7 @@ my %CALLS = ();
 #####################################################################
 # Test::SubCalls Functions
 
-#line 78
+#line 79
 
 sub sub_track {
 	# Check the sub name is valid
@@ -51,7 +52,7 @@ sub sub_track {
 	1;
 }
 
-#line 120
+#line 121
 
 sub sub_calls {
 	# Check the sub name is valid
@@ -73,7 +74,7 @@ sub sub_calls {
 	$Test->is_num( $CALLS{$subname}, $count, $message );
 }
 
-#line 152
+#line 153
 
 sub sub_reset {
 	# Check the sub name is valid
@@ -87,7 +88,7 @@ sub sub_reset {
 	1;
 }
 
-#line 175
+#line 176
 
 sub sub_reset_all {
 	foreach my $subname ( keys %CALLS ) {
@@ -98,4 +99,4 @@ sub sub_reset_all {
 
 1;
 
-#line 213
+#line 214

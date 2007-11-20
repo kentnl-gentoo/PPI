@@ -1,6 +1,7 @@
 --- 
 abstract: Parse, Analyze and Manipulate Perl (without perl)
-author: Adam Kennedy <adamk@cpan.org>
+author: 
+  - Adam Kennedy <adamk@cpan.org>
 build_requires: 
   File::Remove: 0.34
   File::Spec: 0.84
@@ -9,7 +10,7 @@ build_requires:
   Test::Object: 0.07
   Test::SubCalls: 1.06
 distribution_type: module
-generated_by: Module::Install version 0.65
+generated_by: Module::Install version 0.68
 license: perl
 meta-spec: 
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
@@ -30,4 +31,4 @@ requires:
   Storable: 2.14
   Task::Weaken: 0
   perl: 5.005
-version: 1.201
+version: 1.202_01
