@@ -1,10 +1,11 @@
 #line 1
 package File::Remove;
 
+use 5.005;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '0.39';
+	$VERSION   = '1.40';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
 
@@ -21,7 +22,7 @@ use File::Path ();
 use File::Glob ();
 
 sub expand (@) {
-	map { File::Glob::bsd_glob($_) } @_;
+	map { -e $_ ? $_ : File::Glob::bsd_glob($_) } @_;
 }
 
 # $debug variable must be set before loading File::Remove.
@@ -179,4 +180,4 @@ sub undelete (@) {
 
 __END__
 
-#line 282
+#line 283

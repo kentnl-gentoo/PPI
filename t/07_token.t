@@ -13,7 +13,7 @@ BEGIN {
 use PPI;
 
 # Execute the tests
-use Test::More tests => 276;
+use Test::More tests => 279;
 use t::lib::PPI;
 
 #####################################################################
@@ -126,7 +126,7 @@ SCOPE: {
 		}
 
 		if ($base != 256) {
-			no warnings;
+			$^W = !1;
 			my $literal = eval $code;
 			if ($@) {
 				is($token->literal, undef, "literal('$code'), $@");

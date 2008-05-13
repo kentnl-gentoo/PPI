@@ -139,6 +139,12 @@ of the methods that are subclass-specific.
 use strict;
 use base 'PPI::Node';
 use Params::Util                   '_INSTANCE';
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.202_03';
+}
+
 use PPI::Statement::Break          ();
 use PPI::Statement::Compound       ();
 use PPI::Statement::Data           ();
@@ -152,11 +158,6 @@ use PPI::Statement::Sub            ();
 use PPI::Statement::UnmatchedBrace ();
 use PPI::Statement::Unknown        ();
 use PPI::Statement::Variable       ();
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '1.202_01';
-}
 
 # "Normal" statements end at a statement terminator ;
 # Some are not, and need the more rigorous _statement_continues to see
@@ -311,7 +312,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2006 Adam Kennedy.
+Copyright 2001 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

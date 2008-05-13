@@ -81,7 +81,7 @@ use PPI::Exception  ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.202_01';
+	$VERSION = '1.202_03';
 	$errstr  = '';
 }
 
@@ -132,7 +132,10 @@ sub new {
 		tokens         => [],
 		token_cursor   => 0,
 		token_eof      => 0,
-		}, $class;
+
+		# Perl 5 blocks
+		v6             => [],
+	}, $class;
 
 	if ( ! defined $_[0] ) {
 		# We weren't given anything
@@ -394,7 +397,7 @@ sub decrement_cursor {
 
 # Fetches the next line from the input line buffer
 # Returns undef at EOF.
- sub _get_line {
+sub _get_line {
 	my $self = shift;
 	return undef unless $self->{source}; # EOF hit previously
 
@@ -405,7 +408,7 @@ sub decrement_cursor {
 	$self->{source} = undef unless defined $line;
 
 	# Return the line (or EOF flag)
-	$line; # string or undef
+	return $line; # string or undef
 }
 
 # Fetches the next line, ready to process
@@ -1089,7 +1092,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2006 Adam Kennedy.
+Copyright 2001 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

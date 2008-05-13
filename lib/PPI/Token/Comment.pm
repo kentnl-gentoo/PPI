@@ -63,7 +63,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.202_01';
+	$VERSION = '1.202_03';
 }
 
 ### XS -> PPI/XS.xs:_PPI_Token_Comment__significant 0.900+
@@ -136,7 +136,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2006 Adam Kennedy.
+Copyright 2001 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

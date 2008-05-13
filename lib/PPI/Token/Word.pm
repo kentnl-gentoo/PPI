@@ -40,7 +40,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '1.202_01';
+	$VERSION = '1.202_03';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -57,6 +57,8 @@ BEGIN {
 	# Copy in OPERATOR from PPI::Token::Operator
 	*OPERATOR = *PPI::Token::Operator::OPERATOR;
 }
+
+=pod
 
 =head2 literal
 
@@ -267,12 +269,25 @@ sub __TOKENIZER__commit {
 		$token_class = 'Operator';
 
 	} else {
-		# Now, if the next character is a :, its a label
-		my $char = substr( $t->{line}, $t->{line_cursor}, 1 );
-		if ( $char eq ':' ) {
-			$word .= ':';
-			$t->{line_cursor}++;
-			$token_class = 'Label';
+		# If the next character is a ':' then its a label...
+		my $string = substr( $t->{line}, $t->{line_cursor} );
+		if ( $string =~ /^(\s*:)(?!:)/ ) {
+			if ( $tokens and $tokens->[0]->{content} eq 'sub' ) {
+				# ... UNLESS its after 'sub' in which
+				# case it is a sub name and an attribute
+				# operator.
+				# We COULD have checked this at the top
+				# level of checks, but this would impose
+				# an additional performance per-word
+				# penalty, and every other case where the
+				# attribute operator doesn't directly
+				# touch the object name already works.
+				$token_class = 'Word';
+			} else {
+				$word .= $1;
+				$t->{line_cursor} += length($1);
+				$token_class = 'Label';
+			}
 		} elsif ( $word eq '_' ) {
 			$token_class = 'Magic';
 		} else {
@@ -348,7 +363,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2006 Adam Kennedy.
+Copyright 2001 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

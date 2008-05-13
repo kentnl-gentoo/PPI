@@ -17,8 +17,8 @@ PPI::Token::Magic - Tokens representing magic variables
 
   # When we say magic variables, we mean these...
   $1   $2   $3   $4   $5   $6   $7   $8   $9
-  $_   $&   $`   $'   $+   @+   $*   $.   $/    $|
-  $\\  $"   $;   $%   $=   $-   @-   $)   $#
+  $_   $&   $`   $'   $+   @+   %+   $*   $.    $/    $|
+  $\\  $"   $;   $%   $=   $-   @-   %-   $)    $#
   $~   $^   $:   $?   $!   %!   $@   $$   $<    $>
   $(   $0   $[   $]   @_   @*   $}   $,   $#+   $#-
   $^L  $^A  $^E  $^C  $^D  $^F  $^H
@@ -46,14 +46,14 @@ use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '1.202_01';
+	$VERSION = '1.202_03';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.
 	foreach ( qw{
 		$1 $2 $3 $4 $5 $6 $7 $8 $9
-		$_ $& $` $' $+ @+ $* $. $/ $|
-		$\\ $" $; $% $= $- @- $)
+		$_ $& $` $' $+ @+ %+ $* $. $/ $|
+		$\\ $" $; $% $= $- @- %- $)
 		$~ $^ $: $? $! %! $@ $$ $< $>
 		$( $0 $[ $] @_ @*
 
@@ -174,7 +174,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2006 Adam Kennedy.
+Copyright 2001 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

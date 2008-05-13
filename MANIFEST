@@ -39,6 +39,7 @@ lib/PPI/Statement/Data.pm
 lib/PPI/Statement/End.pm
 lib/PPI/Statement/Expression.pm
 lib/PPI/Statement/Include.pm
+lib/PPI/Statement/Include/Perl6.pm
 lib/PPI/Statement/Null.pm
 lib/PPI/Statement/Package.pm
 lib/PPI/Statement/Scheduled.pm
@@ -130,6 +131,8 @@ t/20_tokenizer_regression.t
 t/21_exhaustive.t
 t/22_readonly.t
 t/23_file.t
+t/24_v6.t
+t/97_meta.t
 t/99_author.t
 t/data/03_empiric/test.dat
 t/data/05_lexer_practical/01_simpleassign.code
@@ -234,10 +237,18 @@ t/data/08_regression/32_readline.code
 t/data/08_regression/32_readline.dump
 t/data/08_regression/33_magic_carat_long.code
 t/data/08_regression/33_magic_carat_long.dump
+t/data/08_regression/34_attr_whitespace.code
+t/data/08_regression/34_attr_whitespace.dump
+t/data/08_regression/35_attr_perlsub.code
+t/data/08_regression/35_attr_perlsub.dump
+t/data/08_regression/36_begin_label.code
+t/data/08_regression/36_begin_label.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
 t/data/15_transform/sample1.pm.out
+t/data/24_v6/Grammar.pm
+t/data/24_v6/Simple.pm
 t/data/basic.pl
 t/data/test2.txt
 t/lib/PPI.pm
