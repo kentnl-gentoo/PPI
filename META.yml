@@ -10,11 +10,12 @@ build_requires:
   Test::Object: 0.07
   Test::SubCalls: 1.07
 distribution_type: module
-generated_by: 'Module::Install version 0.72'
+generated_by: 'Module::Install version 0.73'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
   version: 1.3
+module_name: PPI
 name: PPI
 no_index:
   directory:
@@ -30,4 +31,4 @@ requires:
   Storable: 2.14
   Task::Weaken: 0
   perl: 5.6.0
-version: 1.202_03
+version: 1.203
