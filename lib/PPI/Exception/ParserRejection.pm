@@ -1,4 +1,4 @@
-package PPI::Exception::ParserTimeout;
+package PPI::Exception::ParserRejection;
 
 use strict;
 use base 'PPI::Exception';

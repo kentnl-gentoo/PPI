@@ -30,12 +30,21 @@ unless ( @files ) {
 	exit();
 }
 
-# Find all the testable perl files in t.data
-foreach my $dir ( '05_lexer_practical', '07_token', '08_regression',
-                  '11_util', '13_data', '15_transform' ) {
-	my @perl = find_files( $dir );
+# Find all the testable perl files in t/data
+foreach my $dir (
+	'05_lexer',
+	'07_token',
+	'08_regression',
+	'11_util',
+	'13_data',
+	'15_transform'
+) {
+	my @perl = find_files( catdir( 't', 'data', $dir ) );
 	push @files, @perl;
 }
+
+# Add the test scripts themselves
+push @files, find_files( 't' );
 
 # Declare our plan
 Test::More::plan( tests => scalar(@files) * 8 );
@@ -71,37 +80,38 @@ sub roundtrip_ok {
 		$source =~ s/(?:\015{1,2}\012|\015|\012)/\n/g;
 
 		# Load the file as a Document
-		my $Document = PPI::Document->new( $file );
-		isa_ok( $Document, 'PPI::Document' );
+		SKIP: {
+			skip( 'Ignoring 14_charset.t', 6 ) if $file =~ /14_charset/;
 
-		# Serialize it back out, and compare with the raw version
-		my $content = $Document->serialize;
-		ok( length($content), "$file: PPI::Document serializes" );
-		is( $content, $source, "$file: Round trip was successful" );
+			my $Document = PPI::Document->new( $file );
+			isa_ok( $Document, 'PPI::Document' );
 
-		# Are there any unknown things?
-		is( $Document->find_any('Token::Unknown'), '',
-			"$file: Contains no PPI::Token::Unknown elements" );
-		is( $Document->find_any('Structure::Unknown'), '',
-			"$file: Contains no PPI::Structure::Unknown elements" );
-		is( $Document->find_any('Statement::Unknown'), '',
-			"$file: Contains no PPI::Statement::Unknown elements" );
+			# Serialize it back out, and compare with the raw version
+			my $content = $Document->serialize;
+			ok( length($content), "$file: PPI::Document serializes" );
+			is( $content, $source, "$file: Round trip was successful" );
+
+			# Are there any unknown things?
+			is( $Document->find_any('Token::Unknown'), '',
+				"$file: Contains no PPI::Token::Unknown elements" );
+			is( $Document->find_any('Structure::Unknown'), '',
+				"$file: Contains no PPI::Structure::Unknown elements" );
+			is( $Document->find_any('Statement::Unknown'), '',
+				"$file: Contains no PPI::Statement::Unknown elements" );
+		}
 	}	
 }
 
 # Find file names in named t/data dirs
 sub find_files {
-	my $dir  = shift;
-	my $testdir = catdir( 't', 'data', $dir );
+	my $testdir  = shift;
 	
 	# Does the test directory exist?
 	-e $testdir and -d $testdir and -r $testdir or die "Failed to find test directory $testdir";
 	
 	# Find the .code test files
 	opendir( TESTDIR, $testdir ) or die "opendir: $!";
-	my @perl = map { catfile( $testdir, $_ ) } sort grep { /\.(?:code|pm)$/ } readdir(TESTDIR);
+	my @perl = map { catfile( $testdir, $_ ) } sort grep { /\.(?:code|pm|t)$/ } readdir(TESTDIR);
 	closedir( TESTDIR ) or die "closedir: $!";
 	return @perl;
 }
-
-1;
