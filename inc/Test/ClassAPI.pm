@@ -13,7 +13,7 @@ use Params::Util     '_INSTANCE';
 
 use vars qw{$VERSION $CONFIG $SCHEDULE $EXECUTED %IGNORE *DATA};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 
 	# Config starts empty
 	$CONFIG   = undef;

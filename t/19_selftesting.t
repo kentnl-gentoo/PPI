@@ -6,19 +6,22 @@
 # Using PPI to analyse its own code at install-time? Fuck yeah! :)
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
-use PPI;
-use Class::Inspector;
-use constant CI => 'Class::Inspector';
-use Params::Util qw{ _CLASS _ARRAY _INSTANCE _IDENTIFIER };
+
 use Test::More; # Plan comes later
+use Test::NoWarnings;
 use Test::Object;
+use File::Spec::Functions ':ALL';
+use Params::Util qw{ _CLASS _ARRAY _INSTANCE _IDENTIFIER };
+use Class::Inspector;
+use PPI;
 use t::lib::PPI;
+
+use constant CI => 'Class::Inspector';
 
 
 
@@ -30,7 +33,7 @@ use t::lib::PPI;
 # Find all of the files to be checked
 my %tests = map { $_ => $INC{$_} } grep { ! /\bXS\.pm/ } grep { /^PPI\b/ } keys %INC;
 unless ( %tests ) {
-	Test::More::plan( tests => 1 );
+	Test::More::plan( tests => 2 );
 	ok( undef, "Failed to find any files to test" );
 	exit();
 }
@@ -43,7 +46,7 @@ foreach my $dir ( '05_lexer', '08_regression', '11_util', '13_data', '15_transfo
 }
 
 # Declare our plan
-Test::More::plan( tests => scalar(@files) * 10 + 3 );
+Test::More::plan( tests => scalar(@files) * 12 + 4 );
 
 
 
@@ -78,8 +81,17 @@ is_deeply( $bad, [ 'Bad::Class1', 'Bad::Class2', 'Bad::Class3', 'Bad::Class4' ],
 # Run the Tests
 
 foreach my $file ( @files ) {
+	# MD5 the raw file
+	my $md5a = PPI::Util::md5hex_file($file);
+	like( $md5a, qr/^[0-9a-f]{32}\z/, 'md5hex_file ok' );
+
+	# Load the file
 	my $Document = PPI::Document->new($file);
 	ok( _INSTANCE($Document, 'PPI::Document'), "$file: Parsed ok" );
+
+	# Compare the preload signature to the post-load value
+	my $md5b = $Document->hex_id;
+	is( $md5b, $md5a, '->hex_id matches md5hex' );
 
 	# By this point, everything should have parsed properly at least
 	# once, so no need to skip.
@@ -160,7 +172,7 @@ sub bug_bad_isa_class_name {
 	# The list should be the params list for an isa call
 	my $Word = $List->sprevious_sibling            or return '';
 	$Word->isa('PPI::Token::Word')                 or return '';
-	$Word->content =~ /^(?:UNIVERSAL::)?isa$/s     or return '';
+	$Word->content =~ /^(?:UNIVERSAL::)?isa\z/s    or return '';
 
 	# Is the class real and loaded?
 	CI->loaded($Element->string)                  and return '';

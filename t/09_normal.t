@@ -4,14 +4,17 @@
 # (only very basic at this point)
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
+
+use Test::More tests => 14;
+use Test::NoWarnings;
+use File::Spec::Functions ':ALL';
 use PPI;
-use Test::More tests => 13;
+
 
 
 
@@ -19,7 +22,7 @@ use Test::More tests => 13;
 #####################################################################
 # Creation and Manipulation
 
-{
+SCOPE: {
 	my $Document = PPI::Document->new(\'my $foo = bar();');
 	isa_ok( $Document, 'PPI::Document' );
 
@@ -37,7 +40,7 @@ use Test::More tests => 13;
 # Basic Empiric Tests
 
 # Basic empiric testing
-{
+SCOPE: {
 	# The following should be equivalent
 	my $Document1 = PPI::Document->new( \'my $foo = 1; # comment' );
 	my $Document2 = PPI::Document->new( \'my  $foo=1 ;# different comment' );

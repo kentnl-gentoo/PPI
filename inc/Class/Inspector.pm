@@ -3,24 +3,23 @@ package Class::Inspector;
 
 #line 40
 
-use 5.005;
+use 5.006;
 # We don't want to use strict refs anywhere in this module, since we do a
-# lot of things in here that arn't strict refs friendly.
+# lot of things in here that aren't strict refs friendly.
 use strict qw{vars subs};
+use warnings;
 use File::Spec ();
 
 # Globals
 use vars qw{$VERSION $RE_IDENTIFIER $RE_CLASS $UNIX};
 BEGIN {
-	$VERSION = '1.22';
+	$VERSION = '1.24';
 
 	# If Unicode is available, enable it so that the
 	# pattern matches below match unicode method names.
 	# We can safely ignore any failure here.
-	eval {
-		require utf8;
-		utf8->import;
-	};
+	local $@;
+	eval "require utf8; utf8->import";
 
 	# Predefine some regexs
 	$RE_IDENTIFIER = qr/\A[^\W\d]\w*\z/s;
@@ -37,14 +36,14 @@ BEGIN {
 #####################################################################
 # Basic Methods
 
-#line 87
+#line 86
 
 sub installed {
 	my $class = shift;
 	!! ($class->loaded_filename($_[0]) or $class->resolved_filename($_[0]));
 }
 
-#line 111
+#line 110
 
 sub loaded {
 	my $class = shift;
@@ -74,7 +73,7 @@ sub _loaded {
 	'';
 }
 
-#line 157
+#line 156
 
 sub filename {
 	my $class = shift;
@@ -82,7 +81,7 @@ sub filename {
 	File::Spec->catfile( split /(?:\'|::)/, $name ) . '.pm';
 }
 
-#line 183
+#line 182
 
 sub resolved_filename {
 	my $class     = shift;
@@ -100,7 +99,7 @@ sub resolved_filename {
 	'';
 }
 
-#line 212
+#line 211
 
 sub loaded_filename {
 	my $class    = shift;
@@ -115,7 +114,7 @@ sub loaded_filename {
 #####################################################################
 # Sub Related Methods
 
-#line 239
+#line 238
 
 sub functions {
 	my $class = shift;
@@ -129,7 +128,7 @@ sub functions {
 	\@functions;
 }
 
-#line 265
+#line 264
 
 sub function_refs {
 	my $class = shift;
@@ -145,7 +144,7 @@ sub function_refs {
 	\@functions;
 }
 
-#line 294
+#line 293
 
 sub function_exists {
 	my $class    = shift;
@@ -159,7 +158,7 @@ sub function_exists {
 	defined &{"${name}::$function"};
 }
 
-#line 373
+#line 372
 
 sub methods {
 	my $class     = shift;
@@ -245,7 +244,7 @@ sub methods {
 #####################################################################
 # Search Methods
 
-#line 474
+#line 473
 
 sub subclasses {
 	my $class = shift;
@@ -263,6 +262,7 @@ sub subclasses {
 			# over that (bizarre) class. That would at limit
 			# problems with finding subclasses to only the
 			# modules that have broken ->isa implementation.
+			local $@;
 			eval {
 				if ( $c->isa($name) ) {
 					# Add to the found list, but don't add the class itself
@@ -378,4 +378,4 @@ sub _inc_to_local {
 
 1;
 
-#line 639
+#line 635

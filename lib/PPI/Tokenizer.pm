@@ -89,7 +89,7 @@ use PPI::Exception::ParserRejection ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 
@@ -101,7 +101,7 @@ BEGIN {
 
 =pod
 
-=head2 new $source | \@lines | \$source
+=head2 new $file | \@lines | \$source
 
 The main C<new> constructor creates a new Tokenizer object. These
 objects have no configuration parameters, and can only be used once,
@@ -133,7 +133,7 @@ sub new {
 
 		# Parse state
 		token        => undef,
-		class        => 'PPI::Token::Whitespace',
+		class        => 'PPI::Token::BOM',
 		zone         => 'PPI::Token::Whitespace',
 
 		# Output token buffer
@@ -635,7 +635,7 @@ sub _clean_eof {
 	# Find the last token, and if it has no content, kill it.
 	# There appears to be some evidence that such "null tokens" are
 	# somehow getting created accidentally.
-	my $last_token = $self->{tokens}->[ $#{$self->{tokens}} ];
+	my $last_token = $self->{tokens}->[ -1 ];
 	unless ( length $last_token->{content} ) {
 		pop @{$self->{tokens}};
 	}
@@ -643,7 +643,7 @@ sub _clean_eof {
 	# Now, if the last character of the last token is a space we added,
 	# chop it off, deleting the token if there's nothing else left.
 	if ( $self->{source_eof_chop} ) {
-		$last_token = $self->{tokens}->[ $#{$self->{tokens}} ];
+		$last_token = $self->{tokens}->[ -1 ];
 		$last_token->{content} =~ s/ $//;
 		unless ( length $last_token->{content} ) {
 			# Popping token
@@ -706,12 +706,21 @@ sub _previous_significant_tokens {
 }
 
 my %OBVIOUS_CLASS = (
-	'PPI::Token::Symbol'     => 'operator',
-	'PPI::Token::Magic'      => 'operator',
-	'PPI::Token::Number'     => 'operator',
-	'PPI::Token::ArrayIndex' => 'operator',
-	'PPI::Token::Quote'      => 'operator',
+	'PPI::Token::Symbol'             => 'operator',
+	'PPI::Token::Magic'              => 'operator',
+	'PPI::Token::Number'             => 'operator',
+	'PPI::Token::ArrayIndex'         => 'operator',
+	'PPI::Token::Quote::Double'      => 'operator',
+	'PPI::Token::Quote::Interpolate' => 'operator',
+	'PPI::Token::Quote::Literal'     => 'operator',
+	'PPI::Token::Quote::Single'      => 'operator',
+	'PPI::Token::QuoteLike::Backtick'    => 'operator',
+	'PPI::Token::QuoteLike::Command'     => 'operator',
+	'PPI::Token::QuoteLike::Readline'    => 'operator',
+	'PPI::Token::QuoteLike::Regexp'      => 'operator',
+	'PPI::Token::QuoteLike::Words'       => 'operator',
 );
+
 my %OBVIOUS_CONTENT = (
 	'(' => 'operand',
 	'{' => 'operand',
@@ -977,7 +986,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

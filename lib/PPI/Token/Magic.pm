@@ -46,7 +46,7 @@ use base 'PPI::Token::Symbol';
 
 use vars qw{$VERSION %magic};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 
 	# Magic variables taken from perlvar.
 	# Several things added separately to avoid warnings.
@@ -114,7 +114,7 @@ sub __TOKENIZER__on_char {
 
 		if ( $c =~ /^(\$\#)\w/ ) {
 			# This is really an array index thingy ( $#array )
-			$t->{token} = PPI::Token::ArrayIndex->new( $1 );
+			$t->{token} = PPI::Token::ArrayIndex->new( "$1" );
 			return PPI::Token::ArrayIndex->__TOKENIZER__on_char( $t );
 		}
 
@@ -174,7 +174,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

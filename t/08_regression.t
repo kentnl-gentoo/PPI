@@ -5,33 +5,26 @@
 # Some other regressions tests are included here for simplicity.
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
+
+# For each new item in t/data/08_regression add another 15 tests
+use Test::More tests => 692;
+use Test::NoWarnings;
+use File::Spec::Functions ':ALL';
+use Params::Util '_INSTANCE';
+use t::lib::PPI;
 use PPI::Lexer;
 use PPI::Dumper;
-use Params::Util '_INSTANCE';
 
 sub pause {
 	local $@;
 	eval { require Time::HiRes; };
 	$@ ? sleep(1) : Time::HiRes::sleep(0.1);
 }
-
-
-
-
-
-#####################################################################
-# Prepare
-
-# For each new item in t/data/08_regression add another 14 tests
-
-use Test::More tests => 661;
-use t::lib::PPI;
 
 
 
@@ -274,7 +267,7 @@ SCOPE: {
 	my $doc = PPI::Document->new( \'$h={};' );
 	my $hash = $doc->find('PPI::Structure::Constructor')->[0];
 	ok($hash, 'location for empty constructor - fetched a constructor');
-	is_deeply( $hash->location(), [1,4,4], 'location for empty constructor');
+	is_deeply( $hash->location(), [1,4,4,1,undef], 'location for empty constructor');
 }
 
 #####################################################################

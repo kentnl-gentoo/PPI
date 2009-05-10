@@ -3,29 +3,29 @@ NAME
 
 SYNOPSIS
       use PPI;
-  
-      # Create a new empty document
+      
+  # Create a new empty document
       my $Document = PPI::Document->new;
-  
-      # Create a document from source
+      
+  # Create a document from source
       $Document = PPI::Document->new(\'print "Hello World!\n"');
-  
-      # Load a Document from a file
+      
+  # Load a Document from a file
       $Document = PPI::Document->new('Module.pm');
-  
-      # Does it contain any POD?
+      
+  # Does it contain any POD?
       if ( $Document->find_any('PPI::Token::Pod') ) {
           print "Module contains POD\n";
       }
-  
-      # Get the name of the main package
+      
+  # Get the name of the main package
       $pkg = $Document->find_first('PPI::Statement::Package')->namespace;
-  
-      # Remove all that nasty documentation
+      
+  # Remove all that nasty documentation
       $Document->prune('PPI::Token::Pod');
       $Document->prune('PPI::Token::Comment');
-  
-      # Save the file
+      
+  # Save the file
       $Document->save('Module.pm.stripped');
 
 DESCRIPTION
@@ -53,8 +53,8 @@ DESCRIPTION
     are function signatures, as demonstrated by the following.
 
       @result = (dothis $foo, $bar);
-  
-      # Which of the following is it equivalent to?
+      
+  # Which of the following is it equivalent to?
       @result = (dothis($foo), $bar);
       @result = dothis($foo, $bar);
 
@@ -345,6 +345,8 @@ IMPLEMENTATION
                    PPI::Statement::Scheduled
                 PPI::Statement::Compound
                 PPI::Statement::Break
+                PPI::Statement::Switch
+                PPI::Statement::When
                 PPI::Statement::Data
                 PPI::Statement::End
                 PPI::Statement::Expression
@@ -359,6 +361,8 @@ IMPLEMENTATION
                 PPI::Structure::Condition
                 PPI::Structure::List
                 PPI::Structure::ForLoop
+                PPI::Structure::Given
+                PPI::Structure::WhenMatch
                 PPI::Structure::Unknown
           PPI::Token
              PPI::Token::Whitespace
@@ -754,7 +758,7 @@ ACKNOWLEDGMENTS
     Randal.
 
 COPYRIGHT
-    Copyright 2001 - 2008 Adam Kennedy.
+    Copyright 2001 - 2009 Adam Kennedy.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

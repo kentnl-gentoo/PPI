@@ -8,10 +8,10 @@ PPI::Token::QuoteLike::Words - Word list constructor quote-like operator
 
 =head1 INHERITANCE
 
-PPI::Token::QuoteLike::Words
-isa PPI::Token::QuoteLike
-    isa PPI::Token
-        isa PPI::Element
+  PPI::Token::QuoteLike::Words
+  isa PPI::Token::QuoteLike
+      isa PPI::Token
+          isa PPI::Element
 
 =head1 DESCRIPTION
 
@@ -23,12 +23,6 @@ that acts as a constructor for a list of words.
 
 =head1 METHODS
 
-There are no methods available for C<PPI::Token::QuoteLike::Words>
-beyond those provided by the parent L<PPI::Token::QuoteLike>,
-L<PPI::Token> and L<PPI::Element> classes.
-
-Got any ideas for methods? Submit a report to rt.cpan.org!
-
 =cut
 
 use strict;
@@ -37,7 +31,72 @@ use base 'PPI::Token::_QuoteEngine::Full',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
+}
+
+=pod
+
+=head2 literal
+
+Returns the words contained.  Note that this method does not check the
+context that the token is in; it always returns the list and not merely
+the last element if the token is in scalar context.
+
+=begin testing literal 16
+
+my $empty_list_document = PPI::Document->new(\<<'END_PERL');
+qw//
+qw/    /
+END_PERL
+
+isa_ok( $empty_list_document, 'PPI::Document' );
+my $empty_list_tokens =
+	$empty_list_document->find('PPI::Token::QuoteLike::Words');
+is( scalar @{$empty_list_tokens}, 2, 'Found expected empty word lists.' );
+foreach my $token ( @{$empty_list_tokens} ) {
+	my @literal = $token->literal();
+	is( scalar @literal, 0, qq<No elements for "$token"> );
+}
+
+my $non_empty_list_document = PPI::Document->new(\<<'END_PERL');
+qw/foo bar baz/
+qw/  foo bar baz  /
+END_PERL
+my @expected = qw/ foo bar baz /;
+
+isa_ok( $non_empty_list_document, 'PPI::Document' );
+my $non_empty_list_tokens =
+	$non_empty_list_document->find('PPI::Token::QuoteLike::Words');
+is(
+	scalar @{$non_empty_list_tokens},
+	2,
+	'Found expected non-empty word lists.',
+);
+foreach my $token ( @{$non_empty_list_tokens} ) {
+	my $literal = $token->literal();
+	is(
+		$literal,
+		scalar @expected,
+		qq<Scalar context literal() returns the list for "$token">,
+	);
+	my @literal = $token->literal();
+	is( scalar @literal, scalar @expected, qq<Element count for "$token"> );
+	for (my $x = 0; $x < @expected; $x++) {
+		is( $literal[$x], $expected[$x], qq<Element $x of "$token"> );
+	}
+}
+
+=end testing
+
+=cut
+
+sub literal {
+	my $self = shift;
+
+	my $content = $self->content();
+	$content = substr $self->content(), 3, length($content) - 4;
+
+	return split q< >, $content;
 }
 
 1;
@@ -52,7 +111,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

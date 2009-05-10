@@ -33,7 +33,7 @@ use PPI::Exception ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 
@@ -51,9 +51,13 @@ sub __TOKENIZER__on_char {
 	# Now, we split on the different values of the current content
 	if ( $c eq '*' ) {
 		if ( $char =~ /(?:(?!\d)\w|\:)/ ) {
-			# Symbol
-			$t->{class} = $t->{token}->set_class( 'Symbol' );
-			return 1;
+			# Symbol (unless the thing before it is a number
+			my $tokens = $t->_previous_significant_tokens(1);
+			my $p0     = $tokens->[0];
+			if ( $p0 and ! $p0->isa('PPI::Token::Number') ) {
+				$t->{class} = $t->{token}->set_class( 'Symbol' );
+				return 1;
+			}
 		}
 
 		if ( $char eq '{' ) {
@@ -312,7 +316,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

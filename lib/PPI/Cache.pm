@@ -57,7 +57,7 @@ use PPI::Document ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 sub import {
@@ -260,7 +260,7 @@ sub _md5hex {
 	my $it     = _SCALAR($_[0])
 		? PPI::Util::md5hex(${$_[0]})
 		: $_[0];
-	return (defined $it and ! ref $it and $it =~ /^[a-f0-9]{32}$/si)
+	return (defined $it and ! ref $it and $it =~ /^[a-f0-9]{32}\z/si)
 		? lc $it
 		: undef;
 }
@@ -285,7 +285,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005 Adam Kennedy.
+Copyright 2005 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

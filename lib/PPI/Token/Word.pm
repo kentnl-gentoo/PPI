@@ -40,7 +40,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %QUOTELIKE %OPERATOR};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 
 	%QUOTELIKE = (
 		'q'  => 'Quote::Literal',
@@ -84,7 +84,7 @@ while ( @pairs ) {
 	is( $word->literal, $to, "The source $from becomes $to ok" );
 }
 
-=end testing 
+=end testing
 
 =cut
 
@@ -98,13 +98,160 @@ sub literal {
 	return $word;
 }
 
+=pod
+
+=head2 method_call
+
+Answers whether this is the name of a method in a method call. Returns true if
+yes, false if no, and nothing if unknown.
+
+=begin testing method_call 24
+
+my $Document = PPI::Document->new(\<<'END_PERL');
+indirect $foo;
+indirect_class_with_colon Foo::;
+$bar->method_with_parentheses();
+print SomeClass->method_without_parentheses + 1;
+sub_call();
+$baz->chained_from->chained_to;
+a_first_thing a_middle_thing a_last_thing;
+(first_list_element, second_list_element, third_list_element);
+first_comma_separated_word, second_comma_separated_word, third_comma_separated_word;
+single_bareword_statement;
+{ bareword_no_semicolon_end_of_block }
+$buz{hash_key};
+fat_comma_left_side => $thingy;
+END_PERL
+
+isa_ok( $Document, 'PPI::Document' );
+my $words = $Document->find('Token::Word');
+is( scalar @{$words}, 23, 'Found the 23 test words' );
+my %words = map { $_ => $_ } @{$words};
+is(
+	scalar $words{indirect}->method_call(),
+	undef,
+	'Indirect notation is unknown.',
+);
+is(
+	scalar $words{indirect_class_with_colon}->method_call(),
+	1,
+	'Indirect notation with following word ending with colons is true.',
+);
+is(
+	scalar $words{method_with_parentheses}->method_call(),
+	1,
+	'Method with parentheses is true.',
+);
+is(
+	scalar $words{method_without_parentheses}->method_call(),
+	1,
+	'Method without parentheses is true.',
+);
+is(
+	scalar $words{print}->method_call(),
+	undef,
+	'Plain print is unknown.',
+);
+is(
+	scalar $words{SomeClass}->method_call(),
+	undef,
+	'Class in class method call is unknown.',
+);
+is(
+	scalar $words{sub_call}->method_call(),
+	0,
+	'Subroutine call is false.',
+);
+is(
+	scalar $words{chained_from}->method_call(),
+	1,
+	'Method that is chained from is true.',
+);
+is(
+	scalar $words{chained_to}->method_call(),
+	1,
+	'Method that is chained to is true.',
+);
+is(
+	scalar $words{a_first_thing}->method_call(),
+	undef,
+	'First bareword is unknown.',
+);
+is(
+	scalar $words{a_middle_thing}->method_call(),
+	undef,
+	'Bareword in the middle is unknown.',
+);
+is(
+	scalar $words{a_last_thing}->method_call(),
+	0,
+	'Bareword at the end is false.',
+);
+foreach my $false_word (
+	qw<
+		first_list_element second_list_element third_list_element
+		first_comma_separated_word second_comma_separated_word third_comma_separated_word
+		single_bareword_statement
+		bareword_no_semicolon_end_of_block
+		hash_key
+		fat_comma_left_side
+	>
+) {
+	is(
+		scalar $words{$false_word}->method_call(),
+		0,
+		"$false_word is false.",
+	);
+}
+
+=end testing
+
+=cut
+
+sub method_call {
+	my $self = shift;
+
+	my $previous = $self->sprevious_sibling();
+	if (
+			$previous
+		and $previous->isa('PPI::Token::Operator')
+		and $previous->content() eq '->'
+	) {
+		return 1;
+	}
+
+	my $next = $self->snext_sibling();
+	return 0 if not $next;
+
+	if (
+			$next->isa('PPI::Structure::List')
+		or	$next->isa('PPI::Token::Structure')
+		or	$next->isa('PPI::Token::Operator')
+		and	(
+				$next->content() eq q<,>
+			or	$next->content() eq q[=>]
+		)
+	) {
+		return 0;
+	}
+
+	if (
+			$next->isa('PPI::Token::Word')
+		and	$next->content() =~ m< \w :: \z >xms
+	) {
+		return 1;
+	}
+
+	return;
+}
+
 sub __TOKENIZER__on_char {
 	my $class = shift;
 	my $t     = shift;
 
 	# Suck in till the end of the bareword
-	my $line = substr( $t->{line}, $t->{line_cursor} );
-	if ( $line =~ /^(\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
+	my $rest = substr( $t->{line}, $t->{line_cursor} );
+	if ( $rest =~ /^(\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
 		$t->{token}->{content} .= $1;
 		$t->{line_cursor} += length $1;
 
@@ -165,6 +312,8 @@ sub __TOKENIZER__on_char {
 	$t->_finalize_token->__TOKENIZER__on_char( $t );
 }
 
+
+
 # We are committed to being a bareword.
 # Or so we would like to believe.
 sub __TOKENIZER__commit {
@@ -172,10 +321,10 @@ sub __TOKENIZER__commit {
 
 	# Our current position is the first character of the bareword.
 	# Capture the bareword.
-	my $line = substr( $t->{line}, $t->{line_cursor} );
-	unless ( $line =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
+	my $rest = substr( $t->{line}, $t->{line_cursor} );
+	unless ( $rest =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/ ) {
 		# Programmer error
-		die "Fatal error... regex failed to match in '$line' when expected";
+		die "Fatal error... regex failed to match in '$rest' when expected";
 	}
 
 	# Special Case: If we accidentally treat eq'foo' like the word "eq'foo",
@@ -212,14 +361,14 @@ sub __TOKENIZER__commit {
 		# Add the rest of the line as a comment, and a whitespace newline
 		# Anything after the __END__ on the line is "ignored". So we must
 		# also ignore it, by turning it into a comment.
-		$line = substr( $t->{line}, $t->{line_cursor} );
+		$rest = substr( $t->{line}, $t->{line_cursor} );
 		$t->{line_cursor} = length $t->{line};
-		if ( $line =~ /\n$/ ) {
-			chomp $line;
-			$t->_new_token( 'Comment', $line ) if length $line;
+		if ( $rest =~ /\n$/ ) {
+			chomp $rest;
+			$t->_new_token( 'Comment', $rest ) if length $rest;
 			$t->_new_token( 'Whitespace', "\n" );
 		} else {
-			$t->_new_token( 'Comment', $line ) if length $line;
+			$t->_new_token( 'Comment', $rest ) if length $rest;
 		}
 		$t->_finalize_token;
 
@@ -236,14 +385,14 @@ sub __TOKENIZER__commit {
 		$t->{zone} = 'PPI::Token::Data';
 
 		# Add the rest of the line as the Data token
-		$line = substr( $t->{line}, $t->{line_cursor} );
+		$rest = substr( $t->{line}, $t->{line_cursor} );
 		$t->{line_cursor} = length $t->{line};
-		if ( $line =~ /\n$/ ) {
-			chomp $line;
-			$t->_new_token( 'Comment', $line ) if length $line;
+		if ( $rest =~ /\n$/ ) {
+			chomp $rest;
+			$t->_new_token( 'Comment', $rest ) if length $rest;
 			$t->_new_token( 'Whitespace', "\n" );
 		} else {
-			$t->_new_token( 'Comment', $line ) if length $line;
+			$t->_new_token( 'Comment', $rest ) if length $rest;
 		}
 		$t->_finalize_token;
 
@@ -318,7 +467,7 @@ sub __TOKENIZER__literal {
 	}
 
 	# Check the cases when we have previous tokens
-	my $line = substr( $t->{line}, $t->{line_cursor} );
+	my $rest = substr( $t->{line}, $t->{line_cursor} );
 	if ( $tokens ) {
 		my $token = $tokens->[0] or return '';
 
@@ -330,14 +479,14 @@ sub __TOKENIZER__literal {
 
 		# If we are contained in a pair of curly braces,
 		# we are probably a bareword hash key
-		if ( $token->{content} eq '{' and $line =~ /^\s*\}/ ) {
+		if ( $token->{content} eq '{' and $rest =~ /^\s*\}/ ) {
 			return 1;
 		}
 	}
 
 	# In addition, if the word is followed by => it is probably
 	# also actually a word and not a regex.
-	if ( $line =~ /^\s*=>/ ) {
+	if ( $rest =~ /^\s*=>/ ) {
 		return 1;
 	}
 
@@ -363,7 +512,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

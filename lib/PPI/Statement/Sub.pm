@@ -15,9 +15,9 @@ PPI::Statement::Sub - Subroutine declaration
 
 =head1 DESCRIPTION
 
-Except for the special BEGIN, CHECK, INIT, and END subroutines (which are
-part of L<PPI::Statement::Scheduled>) all subroutine declarations are lexed
-as a PPI::Statement::Sub object.
+Except for the special BEGIN, CHECK, UNITCHECK, INIT, and END subroutines
+(which are part of L<PPI::Statement::Scheduled>) all subroutine declarations
+are lexed as a PPI::Statement::Sub object.
 
 Primarily, this means all of the various C<sub foo {}> statements, but also
 forward declarations such as C<sub foo;> or C<sub foo($);>. It B<does not>
@@ -37,11 +37,22 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 # Lexer clue
 sub __LEXER__normal { '' }
+
+sub _complete {
+	my $child = $_[0]->schild(-1);
+	return !! (
+		defined $child
+		and
+		$child->isa('PPI::Structure::Block')
+		and
+		$child->complete
+	);
+}
 
 
 
@@ -131,8 +142,8 @@ if this is a special reserved subroutine. It does not check against any
 particular list of reserved sub names, but just returns true if the name
 is all uppercase, as defined in L<perlsub>.
 
-Note that in the case of BEGIN, CHECK, INIT and END, these will be defined
-as L<PPI::Statement::Scheduled> objects, not subroutines.
+Note that in the case of BEGIN, CHECK, UNITCHECK, INIT and END, these will be
+defined as L<PPI::Statement::Scheduled> objects, not subroutines.
 
 Returns true if it is a special reserved subroutine, or false if not.
 
@@ -162,7 +173,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

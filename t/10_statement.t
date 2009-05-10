@@ -3,17 +3,18 @@
 # Test the various PPI::Statement packages
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
-use PPI::Lexer ();
 
 # Execute the tests
-use Test::More tests => 11;
+use Test::More tests => 12;
+use Test::NoWarnings;
+use File::Spec::Functions ':ALL';
 use Scalar::Util 'refaddr';
+use PPI::Lexer ();
 
 
 
@@ -22,11 +23,11 @@ use Scalar::Util 'refaddr';
 #####################################################################
 # Tests for PPI::Statement::Package
 
-{
+SCOPE: {
 	# Create a document with various example package statements
 	my $Document = PPI::Lexer->lex_source( <<'END_PERL' );
 package Foo;
-{
+SCOPE: {
 	package # comment
 	Bar::Baz;
 	1;

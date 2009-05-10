@@ -24,7 +24,7 @@ use base 'PPI::Document';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 
@@ -50,8 +50,12 @@ Returns a new PPI::Document::File object, or C<undef> on error.
 
 sub new {
 	my $class    = shift;
-	my $filename = _STRING(shift)
-		or return $class->_error("Did not provide a file name to load");
+	my $filename = _STRING(shift);
+	if (not defined $filename) {
+		# Perl::Critic got a complaint about not handling a file
+		# named "0".
+		return $class->_error("Did not provide a file name to load");
+	}
 
 	# Load the Document
 	my $self = $class->SUPER::new( $filename, @_ ) or return undef;
@@ -136,7 +140,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

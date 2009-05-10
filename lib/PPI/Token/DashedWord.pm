@@ -19,7 +19,7 @@ The "dashed bareword" token represents literal values like C<-foo>.
 NOTE: this class is currently unused.  All tokens that should be
 PPI::Token::DashedWords are just normal PPI::Token::Word instead.
 That actually makes sense, since there really is nothing special about
-this class except that dashed words cannot subroutine names or
+this class except that dashed words cannot be subroutine names or
 keywords.  As such, this class may be removed from PPI in the future.
 
 =head1 METHODS
@@ -31,7 +31,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 =head2 literal
@@ -104,7 +104,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

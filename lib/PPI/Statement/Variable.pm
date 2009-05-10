@@ -44,7 +44,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 =pod
@@ -52,7 +52,7 @@ BEGIN {
 =head2 type
 
 The C<type> method checks and returns the declaration type of the statement,
-which will be one of either 'my', 'local' or 'our'.
+which will be one of 'my', 'local', 'our', or 'state'.
 
 Returns a string of the type, or C<undef> if the type cannot be detected
 (which is probably a bug).
@@ -69,7 +69,7 @@ sub type {
 	shift @schild if _INSTANCE($schild[0], 'PPI::Token::Label');
 
 	# Get the type
-	(_INSTANCE($schild[0], 'PPI::Token::Word') and $schild[0]->content =~ /^(my|local|our)$/)
+	(_INSTANCE($schild[0], 'PPI::Token::Word') and $schild[0]->content =~ /^(my|local|our|state)$/)
 		? $schild[0]->content
 		: undef;
 }
@@ -124,13 +124,28 @@ is_deeply( [ $ST->[6]->variables ], [ '$foo', '$bar' ], '7: Found $foo and $bar'
 sub variables {
 	my $self = shift;
 
+	return map { $_->canonical() } $self->symbols();
+}
+
+=pod
+
+=head2 symbols
+
+Returns a list of the variables defined by the statement, as
+L<PPI::Token::Symbol>s.
+
+=cut
+
+sub symbols {
+	my $self = shift;
+
 	# Get the children we care about
 	my @schild = grep { $_->significant } $self->children;
 	shift @schild if _INSTANCE($schild[0], 'PPI::Token::Label');
 
 	# If the second child is a symbol, return its name
 	if ( _INSTANCE($schild[1], 'PPI::Token::Symbol') ) {
-		return $schild[1]->canonical;
+		return $schild[1];
 	}
 
 	# If it's a list, return as a list
@@ -140,8 +155,12 @@ sub variables {
 		$Expression->isa('PPI::Statement::Expression') or return ();
 
 		# my and our are simpler than local
-		if ( $self->type eq 'my' or $self->type eq 'our' ) {
-			return map { $_->canonical }
+		if (
+				$self->type eq 'my'
+			or	$self->type eq 'our'
+			or	$self->type eq 'state'
+		) {
+			return
 				grep { $_->isa('PPI::Token::Symbol') }
 				$Expression->schildren;
 		}
@@ -150,9 +169,9 @@ sub variables {
 		# Not that we are actually going to deal with it now,
 		# but having this seperate is likely going to be needed
 		# for future bug reports about local() things.
-		
+
 		# This is a slightly better way to check.
-		return map   { $_->canonical                 }
+		return
 			grep { $self->_local_variable($_)    }
 			grep { $_->isa('PPI::Token::Symbol') }
 			$Expression->schildren;
@@ -199,7 +218,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

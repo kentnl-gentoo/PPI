@@ -21,19 +21,21 @@ a L<PPI::Element> that directly represents bytes of source code.
 =cut
 
 use strict;
-use base 'PPI::Element';
-use Params::Util '_INSTANCE';
+use Params::Util   '_INSTANCE';
+use PPI::Element   ();
 use PPI::Exception ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
+	@ISA     = 'PPI::Element';
 }
 
 # We don't load the abstracts, they are loaded
 # as part of the 'use base' statements.
 
 # Load the token classes
+use PPI::Token::BOM                   ();
 use PPI::Token::Whitespace            ();
 use PPI::Token::Comment               ();
 use PPI::Token::Pod                   ();
@@ -221,3 +223,25 @@ sub __LEXER__closes {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the L<support section|PPI/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2001 - 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

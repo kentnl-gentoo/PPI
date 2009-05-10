@@ -37,7 +37,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -144,6 +144,124 @@ Node.
 =cut
 
 sub parent { $_PARENT{refaddr $_[0]} }
+
+=pod
+
+=head2 descendant_of $element
+
+Answers whether a C<PPI::Element> is contained within another one.
+
+C<PPI::Element>s are considered to be descendants of themselves.
+
+=begin testing descendant_of 9
+
+my $Document = PPI::Document->new( \'( [ thingy ] ); $blarg = 1' );
+isa_ok( $Document, 'PPI::Document' );
+ok(
+	$Document->descendant_of($Document),
+	'Document is a descendant of itself.',
+);
+
+my $words = $Document->find('Token::Word');
+is(scalar @{$words}, 1, 'Document contains 1 Word.');
+my $word = $words->[0];
+ok(
+	$word->descendant_of($word),
+	'Word is a descendant of itself.',
+);
+ok(
+	$word->descendant_of($Document),
+	'Word is a descendant of the Document.',
+);
+ok(
+	! $Document->descendant_of($word),
+	'Document is not a descendant of the Word.',
+);
+
+my $symbols = $Document->find('Token::Symbol');
+is(scalar @{$symbols}, 1, 'Document contains 1 Symbol.');
+my $symbol = $symbols->[0];
+ok(
+	! $word->descendant_of($symbol),
+	'Word is not a descendant the Symbol.',
+);
+ok(
+	! $symbol->descendant_of($word),
+	'Symbol is not a descendant the Word.',
+);
+
+=end testing
+
+=cut
+
+sub descendant_of {
+	my ($cursor, $potential_ancestor) = @_;
+
+	return '' if not $potential_ancestor;
+
+	while ( refaddr $cursor != refaddr $potential_ancestor ) {
+		$cursor = $_PARENT{refaddr $cursor} or return '';
+	}
+
+	return 1;
+}
+
+=pod
+
+=head2 ancestor_of $element
+
+Answers whether a C<PPI::Element> is contains another one.
+
+C<PPI::Element>s are considered to be ancestors of themselves.
+
+=begin testing ancestor_of 9
+
+my $Document = PPI::Document->new( \'( [ thingy ] ); $blarg = 1' );
+isa_ok( $Document, 'PPI::Document' );
+ok(
+	$Document->ancestor_of($Document),
+	'Document is an ancestor of itself.',
+);
+
+my $words = $Document->find('Token::Word');
+is(scalar @{$words}, 1, 'Document contains 1 Word.');
+my $word = $words->[0];
+ok(
+	$word->ancestor_of($word),
+	'Word is an ancestor of itself.',
+);
+ok(
+	! $word->ancestor_of($Document),
+	'Word is not an ancestor of the Document.',
+);
+ok(
+	$Document->ancestor_of($word),
+	'Document is an ancestor of the Word.',
+);
+
+my $symbols = $Document->find('Token::Symbol');
+is(scalar @{$symbols}, 1, 'Document contains 1 Symbol.');
+my $symbol = $symbols->[0];
+ok(
+	! $word->ancestor_of($symbol),
+	'Word is not an ancestor the Symbol.',
+);
+ok(
+	! $symbol->ancestor_of($word),
+	'Symbol is not an ancestor the Word.',
+);
+
+=end testing
+
+=cut
+
+sub ancestor_of {
+	my ($self, $potential_descendant) = @_;
+
+	return '' if not $potential_descendant;
+
+	return $potential_descendant->descendant_of($self);
+}
 
 =pod
 
@@ -639,14 +757,223 @@ first character of the file located at C<[ 1, 1, 1 ]>.
 
 The second and third numbers are similar, except that the second is the
 literal horizontal character, and the third is the visual column, taking
-into account tabbing.
+into account tabbing (see L<PPI::Document/"tab_width [ $width ]">).
 
-Returns C<undef> on error, or if the L<PPI::Document> object has not been indexed.
+Returns C<undef> on error, or if the L<PPI::Document> object has not been
+indexed.
 
 =cut
 
 sub location {
 	my $self = shift;
+
+	$self->_ensure_location_present() or return undef;
+
+	# Return a copy, not the original
+	return [ @{$self->{_location}} ];
+}
+
+=pod
+
+=head2 line_number
+
+If the Element exists within a L<PPI::Document> that has indexed the Element
+locations using C<PPI::Document::index_locations>, the C<line_number> method
+will return the line number of the first character of the Element within the
+Document.
+
+Returns C<undef> on error, or if the L<PPI::Document> object has not been
+indexed.
+
+=begin testing line_number 3
+
+my $document = PPI::Document->new(\<<'END_PERL');
+
+
+   foo
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+my $words = $document->find('PPI::Token::Word');
+is( scalar @{$words}, 1, 'Found expected word token.' );
+is( $words->[0]->line_number, 3, 'Got correct line number.' );
+
+=end testing
+
+=cut
+
+sub line_number {
+	my $self = shift;
+
+	$self->_ensure_location_present() or return undef;
+
+	return $self->{_location}[0];
+}
+
+=pod
+
+=head2 column_number
+
+If the Element exists within a L<PPI::Document> that has indexed the Element
+locations using C<PPI::Document::index_locations>, the C<column_number> method
+will return the column number of the first character of the Element within the
+Document.
+
+Returns C<undef> on error, or if the L<PPI::Document> object has not been
+indexed.
+
+=begin testing column_number 3
+
+my $document = PPI::Document->new(\<<'END_PERL');
+
+
+   foo
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+my $words = $document->find('PPI::Token::Word');
+is( scalar @{$words}, 1, 'Found expected word token.' );
+is( $words->[0]->column_number, 4, 'Got correct column number.' );
+
+=end testing
+
+=cut
+
+sub column_number {
+	my $self = shift;
+
+	$self->_ensure_location_present() or return undef;
+
+	return $self->{_location}[1];
+}
+
+=pod
+
+=head2 visual_column_number
+
+If the Element exists within a L<PPI::Document> that has indexed the Element
+locations using C<PPI::Document::index_locations>, the C<visual_column_number>
+method will return the visual column number of the first character of the
+Element within the Document, according to the value of
+L<PPI::Document/"tab_width [ $width ]">.
+
+Returns C<undef> on error, or if the L<PPI::Document> object has not been
+indexed.
+
+=begin testing visual_column_number 3
+
+my $document = PPI::Document->new(\<<"END_PERL");
+
+
+\t foo
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+my $tab_width = 5;
+$document->tab_width($tab_width);  # don't use a "usual" value.
+my $words = $document->find('PPI::Token::Word');
+is( scalar @{$words}, 1, 'Found expected word token.' );
+is(
+	$words->[0]->visual_column_number,
+	$tab_width + 2,
+	'Got correct visual column number.',
+);
+
+=end testing
+
+=cut
+
+sub visual_column_number {
+	my $self = shift;
+
+	$self->_ensure_location_present() or return undef;
+
+	return $self->{_location}[2];
+}
+
+=pod
+
+=head2 logical_line_number
+
+If the Element exists within a L<PPI::Document> that has indexed the Element
+locations using C<PPI::Document::index_locations>, the C<logical_line_number>
+method will return the line number of the first character of the Element within
+the Document, taking into account any C<#line> directives.
+
+Returns C<undef> on error, or if the L<PPI::Document> object has not been
+indexed.
+
+=begin testing logical_line_number 3
+
+my $document = PPI::Document->new(\<<'END_PERL');
+
+
+#line 1 test-file
+   foo
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+my $words = $document->find('PPI::Token::Word');
+is( scalar @{$words}, 1, 'Found expected word token.' );
+is( $words->[0]->logical_line_number, 1, 'Got correct logical line number.' );
+
+=end testing
+
+=cut
+
+sub logical_line_number {
+	my $self = shift;
+
+	$self->_ensure_location_present() or return undef;
+
+	return $self->{_location}[3];
+}
+
+=pod
+
+=head2 logical_filename
+
+If the Element exists within a L<PPI::Document> that has indexed the Element
+locations using C<PPI::Document::index_locations>, the C<logical_filename>
+method will return the logical file name containing the first character of the
+Element within the Document, taking into account any C<#line> directives.
+
+Returns C<undef> on error, or if the L<PPI::Document> object has not been
+indexed.
+
+=begin testing logical_filename 3
+
+my $document = PPI::Document->new(\<<'END_PERL');
+
+
+#line 1 test-file
+   foo
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+my $words = $document->find('PPI::Token::Word');
+is( scalar @{$words}, 1, 'Found expected word token.' );
+is(
+	$words->[0]->logical_filename,
+	'test-file',
+	'Got correct logical line number.',
+);
+
+=end testing
+
+=cut
+
+sub logical_filename {
+	my $self = shift;
+
+	$self->_ensure_location_present() or return undef;
+
+	return $self->{_location}[4];
+}
+
+sub _ensure_location_present {
+	my $self = shift;
+
 	unless ( exists $self->{_location} ) {
 		# Are we inside a normal document?
 		my $Document = $self->document or return undef;
@@ -666,8 +993,7 @@ sub location {
 		}
 	}
 
-	# Return a copy, not the original
-	return [ @{$self->{_location}} ];
+	return 1;
 }
 
 # Although flush_locations is only publically a Document-level method,
@@ -785,7 +1111,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

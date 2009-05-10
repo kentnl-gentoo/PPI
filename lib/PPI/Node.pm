@@ -58,7 +58,7 @@ use Params::Util    '_INSTANCE',
 
 use vars qw{$VERSION *_PARENT};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 	*_PARENT = *PPI::Element::_PARENT;
 }
 
@@ -483,6 +483,8 @@ the C<remove_element> method will remove the C<Element> intact, along
 with any of its children. As such, this method acts essentially as a
 'cut' function.
 
+If successful, returns the removed element.  Otherwise, returns C<undef>.
+
 =cut
 
 sub remove_child {
@@ -798,7 +800,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

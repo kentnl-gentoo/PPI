@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.204_01';
+	$VERSION       = '1.204_02';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -401,6 +401,8 @@ based on inheritance.
                PPI::Statement::Scheduled
             PPI::Statement::Compound
             PPI::Statement::Break
+            PPI::Statement::Switch
+            PPI::Statement::When
             PPI::Statement::Data
             PPI::Statement::End
             PPI::Statement::Expression
@@ -415,6 +417,8 @@ based on inheritance.
             PPI::Structure::Condition
             PPI::Structure::List
             PPI::Structure::ForLoop
+            PPI::Structure::Given
+            PPI::Structure::WhenMatch
             PPI::Structure::Unknown
       PPI::Token
          PPI::Token::Whitespace
@@ -829,7 +833,7 @@ So for my schooling in the Deep Magiks, you have my deepest gratitude Randal.
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

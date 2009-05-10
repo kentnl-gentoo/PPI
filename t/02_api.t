@@ -15,7 +15,8 @@ use PPI::Find;
 use PPI::Transform;
 
 # Execute the tests
-use Test::More tests => 2287;
+use Test::More tests => 2909;
+use Test::NoWarnings;
 use Test::ClassAPI;
 
 # Ignore various imported or special functions
@@ -68,6 +69,8 @@ PPI::Statement=abstract
 new=method
 clone=method
 parent=method
+descendant_of=method
+ancestor_of=method
 top=method
 document=method
 statement=method
@@ -88,6 +91,11 @@ content=method
 tokens=method
 significant=method
 location=method
+line_number=method
+column_number=method
+visual_column_number=method
+logical_line_number=method
+logical_filename=method
 class=method
 
 [PPI::Node]
@@ -140,6 +148,7 @@ line=method
 [PPI::Token::Word]
 PPI::Token=isa
 literal=method
+method_call=method
 
 [PPI::Token::Separator]
 PPI::Token::Word=isa
@@ -236,6 +245,7 @@ PPI::Token::_QuoteEngine::Full=isa
 [PPI::Token::QuoteLike::Words]
 PPI::Token=isa
 PPI::Token::_QuoteEngine::Full=isa
+literal=method
 
 [PPI::Token::QuoteLike::Regexp]
 PPI::Token=isa
@@ -260,6 +270,7 @@ PPI::Token=isa
 [PPI::Statement]
 PPI::Node=isa
 label=method
+specialized=method
 stable=method
 
 [PPI::Statement::Expression]
@@ -273,7 +284,9 @@ file_scoped=method
 [PPI::Statement::Include]
 PPI::Statement=isa
 type=method
+arguments=method
 module=method
+module_version=method
 pragma=method
 version=method
 
@@ -300,10 +313,17 @@ PPI::Statement=isa
 PPI::Statement::Expression=isa
 type=method
 variables=method
+symbols=method
 
 [PPI::Statement::Compound]
 PPI::Statement=isa
 type=method
+
+[PPI::Statement::Switch]
+PPI::Statement=isa
+
+[PPI::Statement::When]
+PPI::Statement=isa
 
 [PPI::Statement::Break]
 PPI::Statement=isa
@@ -323,6 +343,7 @@ PPI::Statement=isa
 [PPI::Structure]
 PPI::Node=isa
 braces=method
+complete=method
 start=method
 finish=method
 
@@ -342,6 +363,12 @@ PPI::Structure=isa
 PPI::Structure=isa
 
 [PPI::Structure::ForLoop]
+PPI::Structure=isa
+
+[PPI::Structure::Given]
+PPI::Structure=isa
+
+[PPI::Structure::WhenMatch]
 PPI::Structure=isa
 
 [PPI::Structure::Unknown]

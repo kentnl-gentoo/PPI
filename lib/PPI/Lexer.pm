@@ -54,12 +54,13 @@ For more unusual tasks, by all means forge onwards.
 =cut
 
 use strict;
-use Params::Util  '_INSTANCE';
+use List::MoreUtils ();
+use Params::Util    '_INSTANCE';
 use PPI ();
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 	$errstr  = '';
 }
 
@@ -302,44 +303,51 @@ BEGIN {
 	# Keyword -> Statement Subclass
 	%STATEMENT_CLASSES = (
 		# Things that affect the timing of execution
-		'BEGIN'    => 'PPI::Statement::Scheduled',
-		'CHECK'    => 'PPI::Statement::Scheduled',
-		'INIT'     => 'PPI::Statement::Scheduled',
-		'END'      => 'PPI::Statement::Scheduled',
+		'BEGIN'     => 'PPI::Statement::Scheduled',
+		'CHECK'     => 'PPI::Statement::Scheduled',
+		'UNITCHECK' => 'PPI::Statement::Scheduled',
+		'INIT'      => 'PPI::Statement::Scheduled',
+		'END'       => 'PPI::Statement::Scheduled',
 
 		# Loading and context statement
-		'package'  => 'PPI::Statement::Package',
-		# 'use'      => 'PPI::Statement::Include',
-		'no'       => 'PPI::Statement::Include',
-		'require'  => 'PPI::Statement::Include',
+		'package'   => 'PPI::Statement::Package',
+		# 'use'       => 'PPI::Statement::Include',
+		'no'        => 'PPI::Statement::Include',
+		'require'   => 'PPI::Statement::Include',
 
 		# Various declarations
-		'my'       => 'PPI::Statement::Variable',
-		'local'    => 'PPI::Statement::Variable',
-		'our'      => 'PPI::Statement::Variable',
+		'my'        => 'PPI::Statement::Variable',
+		'local'     => 'PPI::Statement::Variable',
+		'our'       => 'PPI::Statement::Variable',
+		'state'     => 'PPI::Statement::Variable',
 		# Statements starting with 'sub' could be any one of...
-		# 'sub'    => 'PPI::Statement::Sub',
-		# 'sub'    => 'PPI::Statement::Scheduled',
-		# 'sub'    => 'PPI::Statement',
+		# 'sub'     => 'PPI::Statement::Sub',
+		# 'sub'     => 'PPI::Statement::Scheduled',
+		# 'sub'     => 'PPI::Statement',
 
 		# Compound statement
-		'if'       => 'PPI::Statement::Compound',
-		'unless'   => 'PPI::Statement::Compound',
-		'for'      => 'PPI::Statement::Compound',
-		'foreach'  => 'PPI::Statement::Compound',
-		'while'    => 'PPI::Statement::Compound',
-		'until'    => 'PPI::Statement::Compound',
+		'if'        => 'PPI::Statement::Compound',
+		'unless'    => 'PPI::Statement::Compound',
+		'for'       => 'PPI::Statement::Compound',
+		'foreach'   => 'PPI::Statement::Compound',
+		'while'     => 'PPI::Statement::Compound',
+		'until'     => 'PPI::Statement::Compound',
+
+		# Switch statement
+		'given'     => 'PPI::Statement::Switch',
+		'when'      => 'PPI::Statement::When',
+		'default'   => 'PPI::Statement::When',
 
 		# Various ways of breaking out of scope
-		'redo'     => 'PPI::Statement::Break',
-		'next'     => 'PPI::Statement::Break',
-		'last'     => 'PPI::Statement::Break',
-		'return'   => 'PPI::Statement::Break',
-                'goto'     => 'PPI::Statement::Break',
+		'redo'      => 'PPI::Statement::Break',
+		'next'      => 'PPI::Statement::Break',
+		'last'      => 'PPI::Statement::Break',
+		'return'    => 'PPI::Statement::Break',
+		'goto'      => 'PPI::Statement::Break',
 
 		# Special sections of the file
-		'__DATA__' => 'PPI::Statement::Data',
-		'__END__'  => 'PPI::Statement::End',
+		'__DATA__'  => 'PPI::Statement::Data',
+		'__END__'   => 'PPI::Statement::End',
 		);
 }
 
@@ -494,6 +502,14 @@ sub _resolve_new_statement {
 		return 'PPI::Statement::Expression';
 	}
 
+	# Switch statements use expressions, as well.
+	if (
+			$Parent->isa('PPI::Structure::Given')
+		or  $Parent->isa('PPI::Structure::WhenMatch')
+	) {
+		return 'PPI::Statement::Expression';
+	}
+
 	if ( _INSTANCE($Token, 'PPI::Token::Label') ) {
 		return 'PPI::Statement::Compound';
 	}
@@ -604,14 +620,15 @@ sub _statement_continues {
 		return '';
 	}
 
-	# Alrighty then, there are only three implied end statement types,
-	# ::Scheduled blocks, ::Sub declarations, and ::Compound statements.
-	unless ( ref($Statement) =~ /\b(?:Scheduled|Sub|Compound)$/ ) {
+	# Alrighty then, there are only five implied end statement types,
+	# ::Scheduled blocks, ::Sub declarations, ::Compound, ::Switch, and ::When
+	# statements.
+	unless ( ref($Statement) =~ /\b(?:Scheduled|Sub|Compound|Switch|When)$/ ) {
 		return 1;
 	}
 
-	# Of these three, ::Scheduled and ::Sub both follow the same simple
-	# rule and can be handled first.
+	# Of these five, ::Scheduled, ::Sub, ::Switch, and ::When follow the same
+	# simple rule and can be handled first.
 	my @part      = $Statement->schildren;
 	my $LastChild = $part[-1] or return undef;
 	unless ( $Statement->isa('PPI::Statement::Compound') ) {
@@ -678,8 +695,11 @@ sub _statement_continues {
 		# LABEL BLOCK continue BLOCK
 
 		# Handle cases with a word after the label
-		if ( $Token->isa('PPI::Token::Word')
-		and $Token->content =~ /^(?:while|for|foreach)$/ ) {
+		if (
+			$Token->isa('PPI::Token::Word')
+			and
+			$Token->content =~ /^(?:while|until|for|foreach)$/
+		) {
 			return 1;
 		}
 
@@ -696,7 +716,7 @@ sub _statement_continues {
 		# LABEL while (EXPR) ...
 		# LABEL while (EXPR) ...
 		# LABEL for (EXPR; EXPR; EXPR) ...
-		# LABEL foreach VAR (LIST) ...
+		# LABEL for VAR (LIST) ...
 		# LABEL foreach VAR (LIST) ...
 		# Only a block will do
 		return $Token->isa('PPI::Token::Structure') && $Token->content eq '{';
@@ -704,10 +724,25 @@ sub _statement_continues {
 
 	if ( $type eq 'for' ) {
 		# LABEL for (EXPR; EXPR; EXPR) BLOCK
-		if ( $LastChild->isa('PPI::Token::Word') and $LastChild->content eq 'for' ) {
+		if ( $LastChild->isa('PPI::Token::Word') and $LastChild->content =~ /^for(?:each)?\z/ ) {
 			# LABEL for ...
-			if ( $Token->isa('PPI::Token::Structure') && $Token->content eq '(' ) {
+			if (
+				(
+					$Token->isa('PPI::Token::Structure')
+					and
+					$Token->content eq '('
+				)
+				or
+				$Token->isa('PPI::Token::QuoteLike::Words')
+			) {
 				return 1;
+			}
+
+			if ( $LastChild->isa('PPI::Token::QuoteLike::Words') ) {
+				# LABEL for VAR QW{} ...
+				# LABEL foreach VAR QW{} ...
+				# Only a block will do
+				return $Token->isa('PPI::Token::Structure') && $Token->content eq '{';
 			}
 
 			# In this case, we can also behave like a foreach
@@ -717,6 +752,12 @@ sub _statement_continues {
 			# LABEL for (EXPR; EXPR; EXPR) BLOCK
 			# That's it, nothing can continue
 			return '';
+
+		} elsif ( $LastChild->isa('PPI::Token::QuoteLike::Words') ) {
+			# LABEL for VAR QW{} ...
+			# LABEL foreach VAR QW{} ...
+			# Only a block will do
+			return $Token->isa('PPI::Token::Structure') && $Token->content eq '{';
 		}
 	}
 
@@ -761,7 +802,14 @@ sub _statement_continues {
 		# LABEL until (EXPR) BLOCK
 		# LABEL until (EXPR) BLOCK continue BLOCK
 		# The only case not covered is the while ...
-		if ( $LastChild->isa('PPI::Token::Word') and $LastChild->content eq 'while' or $LastChild->content eq 'until' ) {
+		if (
+			$LastChild->isa('PPI::Token::Word')
+			and (
+				$LastChild->content eq 'while'
+				or
+				$LastChild->content eq 'until'
+			)
+		) {
 			# LABEL while ...
 			# LABEL until ...
 			# Only a condition structure will do
@@ -778,13 +826,22 @@ sub _statement_continues {
 
 		if ( $LastChild->isa('PPI::Token::Symbol') ) {
 			# LABEL foreach my $scalar ...
-			# Only an open round brace will do
-			return $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
+			# Open round brace, or a quotewords
+			return 1 if $Token->isa('PPI::Token::Structure') && $Token->content eq '(';
+			return 1 if $Token->isa('PPI::Token::QuoteLike::Words');
+			return '';
 		}
 
 		if ( $LastChild->content eq 'foreach' or $LastChild->content eq 'for' ) {
 			# There are three possibilities here
-			if ( $Token->isa('PPI::Token::Word') and $Token->content eq 'my' ) {
+			if (
+				$Token->isa('PPI::Token::Word')
+				and (
+					($STATEMENT_CLASSES{ $Token->content } || '')
+					eq
+					'PPI::Statement::Variable'
+				)
+			) {
 				# VAR == 'my ...'
 				return 1;
 			} elsif ( $Token->content =~ /^\$/ ) {
@@ -792,15 +849,29 @@ sub _statement_continues {
 				return 1;
 			} elsif ( $Token->isa('PPI::Token::Structure') and $Token->content eq '(' ) {
 				return 1;
+			} elsif ( $Token->isa('PPI::Token::QuoteLike::Words') ) {
+				return 1;
 			} else {
 				return '';
 			}
 		}
 
-		if ( $LastChild->content eq 'my' ) {
+		if (
+			($STATEMENT_CLASSES{ $LastChild->content } || '')
+			eq
+			'PPI::Statement::Variable'
+		) {
 			# LABEL foreach my ...
 			# Only a scalar will do
 			return $Token->content =~ /^\$/;
+		}
+
+		# Handle the rare for my $foo qw{bar} ... case
+		if ( $LastChild->isa('PPI::Token::QuoteLike::Words') ) {
+			# LABEL for VAR QW ...
+			# LABEL foreach VAR QW ...
+			# Only a block will do
+			return $Token->isa('PPI::Token::Structure') && $Token->content eq '{';
 		}
 	}
 
@@ -830,7 +901,7 @@ BEGIN {
 		# For(each)
 		'for'     => 'PPI::Structure::ForLoop',
 		'foreach' => 'PPI::Structure::ForLoop',
-		);
+	);
 }
 
 # Given a parent element, and a token which will open a structure, determine
@@ -864,8 +935,14 @@ sub _resolve_new_structure_round {
 	}
 
 	# If we are part of a for or foreach statement, we are a ForLoop
-	if ( $Parent->isa('PPI::Statement::Compound') and $Parent->type =~ /^for(?:each)?$/ ) {
-		return 'PPI::Structure::ForLoop';
+	if ( $Parent->isa('PPI::Statement::Compound') ) {
+		if ( $Parent->type =~ /^for(?:each)?$/ ) {
+			return 'PPI::Structure::ForLoop';
+		}
+	} elsif ( $Parent->isa('PPI::Statement::Switch') ) {
+		return 'PPI::Structure::Given';
+	} elsif ( $Parent->isa('PPI::Statement::When') ) {
+		return 'PPI::Structure::WhenMatch';
 	}
 
 	# Otherwise, it must be a list
@@ -1085,6 +1162,16 @@ sub _lex_structure {
 				# Add any delayed tokens, and the finishing token
 				$self->_add_delayed( $Structure ) or return undef;
 				$Structure->_set_finish( $Token ) or return undef;
+
+				# Confirm that ForLoop structures are actually so, and
+				# aren't really a list.
+				if ( $Structure->isa('PPI::Structure::ForLoop') ) {
+					if ( 2 > scalar grep {
+						$_->isa('PPI::Statement')
+					} $Structure->children ) {
+						bless($Structure, 'PPI::Structure::List');
+					}
+				}
 				return 1;
 			}
 
@@ -1290,7 +1377,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -1,10 +1,14 @@
 #line 1
 package Hook::LexWrap;
-our $VERSION = '0.20';
 use 5.006;
+use strict;
+use warnings;
+our $VERSION = '0.22';
 use Carp;
 
-*CORE::GLOBAL::caller = sub {
+{
+no warnings 'redefine';
+*CORE::GLOBAL::caller = sub (;$) {
 	my ($height) = ($_[0]||0);
 	my $i=1;
 	my $name_cache;
@@ -16,23 +20,28 @@ use Carp;
 		return wantarray ? @_ ? @caller : @caller[0..2] : $caller[0];
 	}
 };
+}
 
-sub import { *{caller()."::wrap"} = \&wrap }
+sub import { no strict 'refs'; *{caller()."::wrap"} = \&wrap }
 
-sub wrap (*@) {
+sub wrap (*@) {  ## no critic Prototypes
 	my ($typeglob, %wrapper) = @_;
 	$typeglob = (ref $typeglob || $typeglob =~ /::/)
 		? $typeglob
 		: caller()."::$typeglob";
-	my $original = ref $typeglob eq 'CODE' && $typeglob
+	my $original;
+	{
+	        no strict 'refs';
+	        $original = ref $typeglob eq 'CODE' && $typeglob
 		     || *$typeglob{CODE}
 		     || croak "Can't wrap non-existent subroutine ", $typeglob;
+	}
 	croak "'$_' value is not a subroutine reference"
 		foreach grep {$wrapper{$_} && ref $wrapper{$_} ne 'CODE'}
 			qw(pre post);
 	no warnings 'redefine';
 	my ($caller, $unwrap) = *CORE::GLOBAL::caller{CODE};
-	$imposter = sub {
+	my $imposter = sub {
 		if ($unwrap) { goto &$original }
 		my ($return, $prereturn);
 		if (wantarray) {
@@ -69,7 +78,10 @@ sub wrap (*@) {
 	ref $typeglob eq 'CODE' and return defined wantarray
 		? $imposter
 		: carp "Uselessly wrapped subroutine reference in void context";
-	*{$typeglob} = $imposter;
+	{
+	        no strict 'refs';
+	        *{$typeglob} = $imposter;
+	}
 	return unless defined wantarray;
 	return bless sub{ $unwrap=1 }, 'Hook::LexWrap::Cleanup';
 }

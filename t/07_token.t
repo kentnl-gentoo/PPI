@@ -3,18 +3,23 @@
 # Formal unit tests for specific PPI::Token classes
 
 use strict;
-use File::Spec::Functions ':ALL';
-use List::MoreUtils qw();
 BEGIN {
 	$| = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
 }
-use PPI;
 
 # Execute the tests
-use Test::More tests => 279;
+use Test::More tests => 295;
+use Test::NoWarnings;
+use File::Spec::Functions ':ALL';
+use List::MoreUtils ();
 use t::lib::PPI;
+use PPI;
+
+
+
+
 
 #####################################################################
 # Code/Dump Testing
@@ -30,7 +35,7 @@ t::lib::PPI->run_testdir( catdir( 't', 'data', '07_token' ) );
 # PPI::Token::Symbol Unit Tests
 # Note: braces and the symbol() method are tested in regression.t
 
-{
+SCOPE: {
 	# Test both creation methods
 	my $Token = PPI::Token::Symbol->new( '$foo' );
 	isa_ok( $Token, 'PPI::Token::Symbol' );

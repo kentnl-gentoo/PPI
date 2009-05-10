@@ -30,12 +30,15 @@ in the various types that Perl supports.
 =cut
 
 use strict;
-use base 'PPI::Token';
+use PPI::Token ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
+	@ISA     = 'PPI::Token';
 }
+
+=pod
 
 =head2 base
 
@@ -47,6 +50,8 @@ This is 10 for decimal, 16 for hexadecimal, 2 for binary, etc.
 sub base {
 	return 10;
 }
+
+=pod
 
 =head2 literal
 
@@ -67,6 +72,10 @@ sub _literal {
 	$str =~ s/_//g;
 	return $str;
 }
+
+
+
+
 
 #####################################################################
 # Tokenizer Methods
@@ -131,7 +140,7 @@ Perl, but is allowed in PPI:
 
 =head1 TO DO
 
-- Treak v-strings as binary strings or barewords, not as "base-256"
+- Treat v-strings as binary strings or barewords, not as "base-256"
   numbers
 
 - Break out decimal integers into their own subclass?
@@ -148,7 +157,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

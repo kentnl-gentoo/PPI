@@ -9,16 +9,15 @@ PPI::Token::Operator - Token class for operators
 =head1 INHERITANCE
 
   PPI::Token::Operator
-  isa PPI::Token::Symbol
-      isa PPI::Token
-          isa PPI::Element
+  isa PPI::Token
+      isa PPI::Element
 
 =head1 SYNOPSIS
 
   # This is the list of valid operators
   ++   --   **   !    ~    +    -
   =~   !~   *    /    %    x
-  <<   >>   lt   gt   le   ge   cmp
+  <<   >>   lt   gt   le   ge   cmp  ~~
   ==   !=   <=>  .    ..   ...  ,
   &    |    ^    &&   ||   //
   ?    :    =    +=   -=   *=   .=   //=
@@ -45,7 +44,7 @@ use base 'PPI::Token';
 
 use vars qw{$VERSION %OPERATOR};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 
 	# Build the operator index
 	### NOTE - This is accessed several times explicitly
@@ -54,13 +53,13 @@ BEGIN {
 	%OPERATOR = map { $_ => 1 } (
 		qw{
 		-> ++ -- ** ! ~ + -
-		=~ !~ * / % x + - . << >>
+		=~ !~ * / % x . << >>
 		< > <= >= lt gt le ge
-		== != <=> eq ne cmp
+		== != <=> eq ne cmp ~~
 		& | ^ && || // .. ...
 		? : = += -= *= .= /= //=
 		=> <>
-		and or dor not
+		and or xor not
 		}, ',' 	# Avoids "comma in qw{}" warning
 		);
 }
@@ -126,7 +125,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -27,9 +27,9 @@ frozen/finalised. Names may change slightly or be added or removed.
 
 =head2 L<PPI::Statement::Scheduled>
 
-This covers all "scheduled" blocks, chunks of code that are executed
-separately from the main body of the code, at a particular time. This
-includes all C<BEGIN>, C<CHECK>, C<INIT> and C<END> blocks.
+This covers all "scheduled" blocks, chunks of code that are executed separately
+from the main body of the code, at a particular time. This includes all
+C<BEGIN>, C<CHECK>, C<UNITCHECK>, C<INIT> and C<END> blocks.
 
 =head2 L<PPI::Statement::Package>
 
@@ -50,7 +50,7 @@ A named subroutine declaration, or forward declaration
 A variable declaration statement. This could be either a straight
 declaration or also be an expression.
 
-This includes all 'my', 'local' and 'out' statements.
+This includes all 'my', 'state', 'local' and 'our' statements.
 
 =head2 L<PPI::Statement::Compound>
 
@@ -69,6 +69,16 @@ a ';' statement terminator.
 A statement that breaks out of a structure.
 
 This includes all of 'redo', 'next', 'last' and 'return' statements.
+
+=head2 L<PPI::Statement::Switch>
+
+The kind of statement introduced in Perl 5.10 that starts with 'given'.  This
+has an implicit end.
+
+=head2 L<PPI::Statement::When>
+
+The kind of statement introduced in Perl 5.10 that starts with 'when'.  This
+also has an implicit end.
 
 =head2 L<PPI::Statement::Data>
 
@@ -142,7 +152,7 @@ use Params::Util                   '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 }
 
 use PPI::Statement::Break          ();
@@ -155,9 +165,11 @@ use PPI::Statement::Null           ();
 use PPI::Statement::Package        ();
 use PPI::Statement::Scheduled      ();
 use PPI::Statement::Sub            ();
+use PPI::Statement::Switch         ();
 use PPI::Statement::UnmatchedBrace ();
 use PPI::Statement::Unknown        ();
 use PPI::Statement::Variable       ();
+use PPI::Statement::When           ();
 
 # "Normal" statements end at a statement terminator ;
 # Some are not, and need the more rigorous _statement_continues to see
@@ -213,6 +225,68 @@ sub label {
 
 =pod
 
+=head2 specialized
+
+Answer whether this is a plain statement or one that has more
+significance.
+
+Returns true if the statement is a subclass of this one, false
+otherwise.
+
+=begin testing specialized 22
+
+my $Document = PPI::Document->new(\<<'END_PERL');
+package Foo;
+use strict;
+;
+while (1) { last; }
+BEGIN { }
+sub foo { }
+state $x;
+$x = 5;
+END_PERL
+
+isa_ok( $Document, 'PPI::Document' );
+
+my $statements = $Document->find('Statement');
+is( scalar @{$statements}, 10, 'Found the 10 test statements' );
+
+isa_ok( $statements->[0], 'PPI::Statement::Package',    'Statement 1: isa Package'            );
+ok( $statements->[0]->specialized(),                    'Statement 1: is specialized'         );
+isa_ok( $statements->[1], 'PPI::Statement::Include',    'Statement 2: isa Include'            );
+ok( $statements->[1]->specialized(),                    'Statement 2: is specialized'         );
+isa_ok( $statements->[2], 'PPI::Statement::Null',       'Statement 3: isa Null'               );
+ok( $statements->[2]->specialized(),                    'Statement 3: is specialized'         );
+isa_ok( $statements->[3], 'PPI::Statement::Compound',   'Statement 4: isa Compound'           );
+ok( $statements->[3]->specialized(),                    'Statement 4: is specialized'         );
+isa_ok( $statements->[4], 'PPI::Statement::Expression', 'Statement 5: isa Expression'         );
+ok( $statements->[4]->specialized(),                    'Statement 5: is specialized'         );
+isa_ok( $statements->[5], 'PPI::Statement::Break',      'Statement 6: isa Break'              );
+ok( $statements->[5]->specialized(),                    'Statement 6: is specialized'         );
+isa_ok( $statements->[6], 'PPI::Statement::Scheduled',  'Statement 7: isa Scheduled'          );
+ok( $statements->[6]->specialized(),                    'Statement 7: is specialized'         );
+isa_ok( $statements->[7], 'PPI::Statement::Sub',        'Statement 8: isa Sub'                );
+ok( $statements->[7]->specialized(),                    'Statement 8: is specialized'         );
+isa_ok( $statements->[8], 'PPI::Statement::Variable',   'Statement 9: isa Variable'           );
+ok( $statements->[8]->specialized(),                    'Statement 9: is specialized'         );
+is( ref $statements->[9], 'PPI::Statement',             'Statement 10: is a simple Statement' );
+ok( ! $statements->[9]->specialized(),                  'Statement 10: is not specialized'    );
+
+=end testing
+
+=cut
+
+sub specialized {
+	my $self = shift;
+
+	# Yes, this is doing precisely what it's intending to prevent
+	# client code from doing.  However, since it's here, if the
+	# implementation changes, code outside PPI doesn't care.
+	return __PACKAGE__ ne ref $self;
+}
+
+=pod
+
 =head2 stable
 
 Much like the L<PPI::Document> method of the same name, the ->stable
@@ -243,7 +317,7 @@ sub _complete {
 	my $self = shift;
 	my $semi = $self->schild(-1);
 	return !! (
-		$semi
+		defined $semi
 		and
 		$semi->isa('PPI::Token::Structure')
 		and
@@ -251,7 +325,7 @@ sub _complete {
 	);
 }
 
-# You can insert either a statement, or a non-significant token.
+# You can insert either a statement or a non-significant token.
 sub insert_before {
 	my $self    = shift;
 	my $Element = _INSTANCE(shift, 'PPI::Element') or return undef;
@@ -312,7 +386,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

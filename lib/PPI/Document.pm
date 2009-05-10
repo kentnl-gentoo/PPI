@@ -25,7 +25,7 @@ PPI::Document - Object representation of a Perl document
   # Find all the named subroutines
   my $sub_nodes = $Document->find( 
   	sub { $_[1]->isa('PPI::Statement::Sub') and $_[1]->name }
-  	);
+  );
   my @sub_names = map { $_->name } @$sub_nodes;
   
   # Save the file
@@ -78,7 +78,7 @@ use overload '""'      => 'content';
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.204_01';
+	$VERSION = '1.204_02';
 	$errstr  = '';
 }
 
@@ -597,9 +597,14 @@ sub index_locations {
 
 		# Found the first Token without a location
 		# Calculate the new location if needed.
-		$location = $_
-			? $self->_add_location( $location, $Tokens[$_ - 1], \$heredoc )
-			: [ 1, 1, 1 ];
+		if ($_) {
+			$location =
+				$self->_add_location( $location, $Tokens[$_ - 1], \$heredoc );
+		} else {
+			my $logical_file =
+				$self->can('filename') ? $self->filename() : undef;
+			$location = [ 1, 1, 1, 1, $logical_file ];
+		}
 		$first = $_;
 		last;
 	}
@@ -619,37 +624,111 @@ sub index_locations {
 	1;
 }
 
+use constant LOCATION_REAL_LINE_NUMBER      => 0;
+use constant LOCATION_COLUMN_NUMBER         => 1;
+use constant LOCATION_VISUAL_COLUMN_NUMBER  => 2;
+use constant LOCATION_LOGICAL_LINE_NUMBER   => 3;
+use constant LOCATION_LOGICAL_FILE_NAME     => 4;
+
 sub _add_location {
 	my ($self, $start, $Token, $heredoc) = @_;
 	my $content = $Token->{content};
 
 	# Does the content contain any newlines
 	my $newlines =()= $content =~ /\n/g;
+	my ($logical_line, $logical_file) =
+		$self->_logical_line_and_file($start, $Token, $newlines);
+
 	unless ( $newlines ) {
 		# Handle the simple case
 		return [
-			$start->[0],
-			$start->[1] + length($content),
-			$start->[2] + $self->_visual_length($content, $start->[2])
+			$start->[LOCATION_REAL_LINE_NUMBER],
+			$start->[LOCATION_COLUMN_NUMBER] + length($content),
+			$start->[LOCATION_VISUAL_COLUMN_NUMBER]
+				+ $self->_visual_length(
+					$content,
+					$start->[LOCATION_VISUAL_COLUMN_NUMBER]
+				),
+			$logical_line,
+			$logical_file,
 		];
 	}
 
 	# This is the more complex case where we hit or
 	# span a newline boundary.
-	my $location = [ $start->[0] + $newlines, 1, 1 ];
+	my $physical_line = $start->[LOCATION_REAL_LINE_NUMBER] + $newlines;
+	my $location = [ $physical_line, 1, 1, $logical_line, $logical_file ];
 	if ( $heredoc and $$heredoc ) {
-		$location->[0] += $$heredoc;
+		$location->[LOCATION_REAL_LINE_NUMBER] += $$heredoc;
+		$location->[LOCATION_LOGICAL_LINE_NUMBER] += $$heredoc;
 		$$heredoc = 0;
 	}
 
 	# Does the token have additional characters
 	# after their last newline.
 	if ( $content =~ /\n([^\n]+?)\z/ ) {
-		$location->[1] += length($1);
-		$location->[2] += $self->_visual_length($1, $location->[2]);
+		$location->[LOCATION_COLUMN_NUMBER] += length($1);
+		$location->[LOCATION_VISUAL_COLUMN_NUMBER] +=
+			$self->_visual_length(
+				$1, $location->[LOCATION_VISUAL_COLUMN_NUMBER],
+			);
 	}
 
 	$location;
+}
+
+sub _logical_line_and_file {
+	my ($self, $start, $Token, $newlines) = @_;
+
+	# Regex taken from perlsyn, with the correction that there's no space
+	# required between the line number and the file name.
+	if ($start->[LOCATION_COLUMN_NUMBER] == 1) {
+		if ( $Token->isa('PPI::Token::Comment') ) {
+			if (
+				$Token->content() =~ m<
+					\A
+					\#      \s*
+					line    \s+
+					(\d+)   \s*
+					(?: ("?) ([^"]* [^\s"]) \2 )?
+					\s*
+					\z
+				>xms
+			) {
+				return $1, ($3 || $start->[LOCATION_LOGICAL_FILE_NAME]);
+			}
+		}
+		elsif ( $Token->isa('PPI::Token::Pod') ) {
+			my $content = $Token->content();
+			my $line;
+			my $file = $start->[LOCATION_LOGICAL_FILE_NAME];
+			my $end_of_directive;
+			while (
+				$content =~ m<
+					^
+					\#      \s*?
+					line    \s+?
+					(\d+)   (?: (?! \n) \s)*
+					(?: ("?) ([^"]*? [^\s"]) \2 )??
+					\s*?
+					$
+				>xmsg
+			) {
+				($line, $file) = ($1, ( $3 || $file ) );
+				$end_of_directive = pos $content;
+			}
+
+			if (defined $line) {
+				pos $content = $end_of_directive;
+				my $post_directive_newlines =()= $content =~ m< \G [^\n]* \n >xmsg;
+				return $line + $post_directive_newlines - 1, $file;
+			}
+		}
+	}
+
+	return
+		$start->[LOCATION_LOGICAL_LINE_NUMBER] + $newlines,
+		$start->[LOCATION_LOGICAL_FILE_NAME];
 }
 
 sub _visual_length {
@@ -720,6 +799,42 @@ sub normalized {
 	PPI::Normal->process( $Document );
 }
 
+=pod
+
+=head1 complete
+
+The C<complete> method is used to determine if a document is cleanly
+structured, all braces are closed, the final statement is
+fully terminated and all heredocs are fully entered.
+
+Returns true if the document is complete or false if not.
+
+=cut
+
+sub complete {
+	my $self = shift;
+
+	# Every structure has to be complete
+	$self->find_any( sub {
+		$_[1]->isa('PPI::Structure')
+		and
+		! $_[1]->complete
+	} )
+	and return '';
+
+	# Strip anything that isn't a statement off the end
+	my @child = $self->children;
+	while ( @child and not $child[-1]->isa('PPI::Statement') ) {
+		pop @child;
+	}
+
+	# We must have at least one statement
+	return '' unless @child;
+
+	# Check the completeness of the last statement
+	return $child[-1]->_complete;
+}
+
 
 
 
@@ -737,18 +852,6 @@ sub scope { 1 }
 
 #####################################################################
 # PPI::Element Methods
-
-# Is the document complete.
-# Cascase to the last significant child
-sub complete {
-	my $self  = shift;
-	my $child = $self->schild(-1);
-	return !! (
-		$child
-		and
-		$child->complete
-	);
-}
 
 sub insert_before {
 	return undef;
@@ -846,7 +949,7 @@ L<PPI>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2008 Adam Kennedy.
+Copyright 2001 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
