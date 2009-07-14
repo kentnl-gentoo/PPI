@@ -1,10 +1,10 @@
-package PPI::Statement::Switch;
+package PPI::Statement::Given;
 
 =pod
 
 =head1 NAME
 
-PPI::Statement::Switch - Describes all compound statements
+PPI::Statement::Given - Describes all compound statements
 
 =head1 SYNOPSIS
 
@@ -14,14 +14,14 @@ PPI::Statement::Switch - Describes all compound statements
 
 =head1 INHERITANCE
 
-  PPI::Statement::Switch
+  PPI::Statement::Given
   isa PPI::Statement
       isa PPI::Node
           isa PPI::Element
 
 =head1 DESCRIPTION
 
-C<PPI::Statement::Switch> objects are used to describe switch statements, as
+C<PPI::Statement::Given> objects are used to describe switch statements, as
 described in L<perlsyn>.
 
 =head1 METHODS
@@ -34,11 +34,12 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use base 'PPI::Statement';
+use PPI::Statement ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
+	@ISA     = 'PPI::Statement';
 }
 
 # Lexer clues

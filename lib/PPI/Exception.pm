@@ -1,11 +1,11 @@
 package PPI::Exception;
 
 use strict;
-use Params::Util '_INSTANCE';
+use Params::Util qw{_INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
 }
 
 
@@ -19,7 +19,7 @@ sub new {
 	my $class = shift;
 	return bless { @_ }, $class if @_ > 1;
 	return bless { message => $_[0] }, $class if @_;
-	return bless { message => 'Unknown Reason' }, $class;
+	return bless { message => 'Unknown Exception' }, $class;
 }
 
 sub message {
@@ -46,7 +46,7 @@ sub throw {
 			$it->{callers} ||= [];
 		}
 	} else {
-		my $message = $_[0] || 'Unknown Reason';
+		my $message = $_[0] || 'Unknown Exception';
 		$it = $it->new(
 			message => $message,
 			callers => [

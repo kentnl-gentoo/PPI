@@ -31,13 +31,14 @@ L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 =cut
 
 use strict;
-use base 'PPI::Statement';
-use List::Util   ();
-use Params::Util '_INSTANCE';
+use List::Util     ();
+use Params::Util   qw{_INSTANCE};
+use PPI::Statement ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
+	@ISA     = 'PPI::Statement';
 }
 
 # Lexer clue

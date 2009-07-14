@@ -27,12 +27,15 @@ represent base-2 numbers.
 =cut
 
 use strict;
-use base 'PPI::Token::Number';
+use PPI::Token::Number ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
+	@ISA     = 'PPI::Token::Number';
 }
+
+=pod
 
 =head2 base
 
@@ -43,6 +46,8 @@ Returns the base for the number: 2.
 sub base {
 	return 2;
 }
+
+=pod
 
 =head2 literal
 
@@ -57,11 +62,14 @@ sub literal {
 	my $neg = $str =~ s/^\-//;
 	$str =~ s/^0b//;
 	my $val = 0;
-	for my $bit ($str =~ m/(.)/g) {
+	for my $bit ( $str =~ m/(.)/g ) {
 		$val = $val * 2 + $bit;
 	}
 	return $neg ? -$val : $val;
 }
+
+
+
 
 
 #####################################################################

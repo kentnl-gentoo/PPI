@@ -27,12 +27,15 @@ keywords.  As such, this class may be removed from PPI in the future.
 =cut
 
 use strict;
-use base 'PPI::Token';
+use PPI::Token ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
+	@ISA     = 'PPI::Token';
 }
+
+=pod
 
 =head2 literal
 
@@ -49,15 +52,17 @@ my @pairs = (
 while ( @pairs ) {
 	my $from  = shift @pairs;
 	my $to    = shift @pairs;
-	my $doc   = PPI::Document->new( \"(<$from => 1);" );
+	my $doc   = PPI::Document->new( \"( $from => 1 );" );
 	isa_ok( $doc, 'PPI::Document' );
 	my $word = $doc->find_first('Token::DashedWord');
-	local $TODO = 'PPI::Token::DashedWord is currently deactivated';
-	isa_ok( $word, 'PPI::Token::DashedWord' );
-	is( $word && $word->literal, $to, "The source $from becomes $to ok" );
+	SKIP: {
+		skip( "PPI::Token::DashedWord is deactivated", 2 );
+		isa_ok( $word, 'PPI::Token::DashedWord' );
+		is( $word && $word->literal, $to, "The source $from becomes $to ok" );
+	}
 }
 
-=end testing 
+=end testing
 
 =cut
 

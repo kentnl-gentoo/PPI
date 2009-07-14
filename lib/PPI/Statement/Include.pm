@@ -50,7 +50,7 @@ use PPI::Statement::Include::Perl6 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
 	@ISA     = 'PPI::Statement';
 }
 
@@ -62,6 +62,28 @@ The C<type> method returns the general type of statement (C<'use'>, C<'no'>
 or C<'require'>).
 
 Returns the type as a string, or C<undef> if the type cannot be detected.
+
+=begin testing type 9
+
+my $document = PPI::Document->new(\<<'END_PERL');
+require 5.6;
+require Module;
+require 'Module.pm';
+use 5.6;
+use Module;
+use Module 1.00;
+no Module;
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+my $statements = $document->find('PPI::Statement::Include');
+is( scalar(@$statements), 7, 'Found 7 include statements' );
+my @expected = qw{ require require require use use use no };
+foreach ( 0 .. 6 ) {
+	is( $statements->[$_]->type, $expected[$_], "->type $_ ok" );
+}
+
+=end testing
 
 =cut
 
@@ -126,25 +148,27 @@ END_PERL
 isa_ok( $document, 'PPI::Document' );
 my $statements = $document->find('PPI::Statement::Include');
 is( scalar @{$statements}, 7, 'Found expected include statements.' );
-is( $statements->[0]->module_version(), 1, 'Integer version' );
-is( $statements->[1]->module_version(), 1.5, 'Float version' );
-is( $statements->[2]->module_version(), 1, 'Version and argument' );
-is( $statements->[3]->module_version(), undef, 'No version, no arguments' );
-is( $statements->[4]->module_version(), undef, 'No version, with argument' );
-is( $statements->[5]->module_version(), undef, 'No version, with arguments' );
-is( $statements->[6]->module_version(), undef, 'Version include, no module' );
+is( $statements->[0]->module_version, 1, 'Integer version' );
+is( $statements->[1]->module_version, 1.5, 'Float version' );
+is( $statements->[2]->module_version, 1, 'Version and argument' );
+is( $statements->[3]->module_version, undef, 'No version, no arguments' );
+is( $statements->[4]->module_version, undef, 'No version, with argument' );
+is( $statements->[5]->module_version, undef, 'No version, with arguments' );
+is( $statements->[6]->module_version, undef, 'Version include, no module' );
 
 =end testing
 
 =cut
 
 sub module_version {
-	my $self = shift;
+	my $self     = shift;
 	my $argument = $self->schild(3);
-	return undef if $argument and $argument->isa('PPI::Token::Operator');
+	if ( $argument and $argument->isa('PPI::Token::Operator') ) {
+		return undef;
+	}
 
 	my $version = $self->schild(2) or return undef;
-	return undef if not $version->isa('PPI::Token::Number');
+	return undef unless $version->isa('PPI::Token::Number');
 
 	return $version;
 }
@@ -174,7 +198,7 @@ pragma.
 =cut
 
 sub pragma {
-	my $self = shift;
+	my $self   = shift;
 	my $module = $self->module or return '';
 	$module =~ /^[a-z][a-z\d]*$/ ? $module : '';
 }
@@ -217,30 +241,29 @@ isa_ok( $document, 'PPI::Document' );
 my $statements = $document->find('PPI::Statement::Include');
 is( scalar @{$statements}, 11, 'Found expected include statements.' );
 
-is( $statements->[0]->version(), 'v5.6.1', 'use v-string' );
-is( $statements->[1]->version(), '5.6.1', 'use v-string, no leading "v"' );
-is( $statements->[2]->version(), '5.006_001', 'use developer release' );
-is( $statements->[3]->version(), '5.006', 'use back-compatible version, followed by...' );
-is( $statements->[4]->version(), '5.6.1', '... use v-string, no leading "v"' );
+is( $statements->[0]->version, v5.6.1, 'use v-string' );
+is( $statements->[1]->version, 5.6.1, 'use v-string, no leading "v"' );
+is( $statements->[2]->version, 5.006_001, 'use developer release' );
+is( $statements->[3]->version, 5.006, 'use back-compatible version, followed by...' );
+is( $statements->[4]->version, 5.6.1, '... use v-string, no leading "v"' );
 
-is( $statements->[5]->version(), 'v5.6.1', 'require v-string' );
-is( $statements->[6]->version(), '5.6.1', 'require v-string, no leading "v"' );
-is( $statements->[7]->version(), '5.006_001', 'require developer release' );
-is( $statements->[8]->version(), '5.006', 'require back-compatible version, followed by...' );
-is( $statements->[9]->version(), '5.6.1', '... require v-string, no leading "v"' );
+is( $statements->[5]->version, v5.6.1, 'require v-string' );
+is( $statements->[6]->version, 5.6.1, 'require v-string, no leading "v"' );
+is( $statements->[7]->version, 5.006_001, 'require developer release' );
+is( $statements->[8]->version, 5.006, 'require back-compatible version, followed by...' );
+is( $statements->[9]->version, 5.6.1, '... require v-string, no leading "v"' );
 
-is( $statements->[10]->version(), '', 'use module version' );
+is( $statements->[10]->version, '', 'use module version' );
 
 =end testing
 
 =cut
 
 sub version {
-	my $self = shift;
+	my $self    = shift;
 	my $version = $self->schild(1) or return undef;
-	$version->isa('PPI::Token::Number') ? $version->content : '';
+	$version->isa('PPI::Token::Number') ? $version->literal : '';
 }
-
 
 =pod
 
@@ -267,85 +290,85 @@ my $statements = $document->find('PPI::Statement::Include');
 is( scalar @{$statements}, 7, 'Found expected include statements.' );
 
 is(
-	scalar $statements->[0]->arguments(), undef, 'arguments for perl version',
+	scalar $statements->[0]->arguments, undef, 'arguments for perl version',
 );
 is(
-	scalar $statements->[1]->arguments(),
+	scalar $statements->[1]->arguments,
 	undef,
 	'arguments with no arguments',
 );
 is(
-	scalar $statements->[2]->arguments(),
+	scalar $statements->[2]->arguments,
 	undef,
 	'arguments with no arguments but module version',
 );
 
-my @arguments = $statements->[3]->arguments();
+my @arguments = $statements->[3]->arguments;
 is( scalar @arguments, 1, 'arguments with single argument' );
-is( $arguments[0]->content(), q<'bar'>, 'arguments with single argument' );
+is( $arguments[0]->content, q<'bar'>, 'arguments with single argument' );
 
-@arguments = $statements->[4]->arguments();
+@arguments = $statements->[4]->arguments;
 is(
 	scalar @arguments,
 	1,
 	'arguments with single argument and module version',
 );
 is(
-	$arguments[0]->content(),
+	$arguments[0]->content,
 	q<'bar'>,
 	'arguments with single argument and module version',
 );
 
-@arguments = $statements->[5]->arguments();
+@arguments = $statements->[5]->arguments;
 is(
 	scalar @arguments,
 	3,
 	'arguments with multiple arguments',
 );
 is(
-	$arguments[0]->content(),
+	$arguments[0]->content,
 	q/qw< bar >/,
 	'arguments with multiple arguments',
 );
 is(
-	$arguments[1]->content(),
+	$arguments[1]->content,
 	q<,>,
 	'arguments with multiple arguments',
 );
 is(
-	$arguments[2]->content(),
+	$arguments[2]->content,
 	q<"baz">,
 	'arguments with multiple arguments',
 );
 
-@arguments = $statements->[6]->arguments();
+@arguments = $statements->[6]->arguments;
 is(
 	scalar @arguments,
 	5,
 	'arguments with Test::More',
 );
 is(
-	$arguments[0]->content(),
+	$arguments[0]->content,
 	'tests',
 	'arguments with Test::More',
 );
 is(
-	$arguments[1]->content(),
+	$arguments[1]->content,
 	q[=>],
 	'arguments with Test::More',
 );
 is(
-	$arguments[2]->content(),
+	$arguments[2]->content,
 	5,
 	'arguments with Test::More',
 );
 is(
-	$arguments[3]->content(),
+	$arguments[3]->content,
 	'*',
 	'arguments with Test::More',
 );
 is(
-	$arguments[4]->content(),
+	$arguments[4]->content,
 	9,
 	'arguments with Test::More',
 );
@@ -356,33 +379,31 @@ is(
 
 sub arguments {
 	my $self = shift;
+	my @args = $self->schildren;
 
-	my @arguments = $self->schildren();
-	shift @arguments;  # Lose the "my", "no", etc.
-	shift @arguments;  # Lose the module/perl version.
+	# Remove the "use", "no" or "require"
+	shift @args;
 
-	return if not @arguments;
-
+	# Remove the statement terminator
 	if (
-			$arguments[-1]->isa('PPI::Token::Structure')
-		and $arguments[-1]->content() eq q<;>
+		$args[-1]->isa('PPI::Token::Structure')
+		and
+		$args[-1]->content eq ';'
 	) {
-		pop @arguments;
+		pop @args;
 	}
 
-	return if not @arguments;
+	# Remove the module or perl version.
+	shift @args;  
 
-	if ( $arguments[0]->isa('PPI::Token::Number') ) {
-		if ( my $after_number = $arguments[1] ) {
-			if ( not $after_number->isa('PPI::Token::Operator') ) {
-				shift @arguments;
-			}
-		} else {
-			return;
-		}
+	return unless @args;
+
+	if ( $args[0]->isa('PPI::Token::Number') ) {
+		my $after = $args[1] or return;
+		$after->isa('PPI::Token::Operator') or shift @args;
 	}
 
-	return @arguments;
+	return @args;
 }
 
 1;

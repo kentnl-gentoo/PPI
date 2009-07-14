@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.204_02';
+	$VERSION       = '1.204_03';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -22,6 +22,7 @@ use PPI::Statement            ();
 use PPI::Structure            ();
 use PPI::Document             ();
 use PPI::Document::File       ();
+use PPI::Document::Fragment   ();
 use PPI::Document::Normalized ();
 use PPI::Normal               ();
 use PPI::Tokenizer            ();
@@ -401,7 +402,7 @@ based on inheritance.
                PPI::Statement::Scheduled
             PPI::Statement::Compound
             PPI::Statement::Break
-            PPI::Statement::Switch
+            PPI::Statement::Given
             PPI::Statement::When
             PPI::Statement::Data
             PPI::Statement::End
@@ -418,7 +419,7 @@ based on inheritance.
             PPI::Structure::List
             PPI::Structure::ForLoop
             PPI::Structure::Given
-            PPI::Structure::WhenMatch
+            PPI::Structure::When
             PPI::Structure::Unknown
       PPI::Token
          PPI::Token::Whitespace
@@ -787,6 +788,7 @@ deep-dived into the guts to (gasp) add a feature.
   - Dan Brook       : PPIx::XPath, Acme::PerlML
   - Audrey Tang     : "Line Noise" Testing
   - Arjen Laarhoven : Three-element ->location support
+  - Elliot Shank    : Perl 5.10 support, five-element ->location
 
 And finally, thanks to those brave ( and foolish :) ) soles willing to dive
 in and use, test drive and provide feedback on PPI before version 1.000,

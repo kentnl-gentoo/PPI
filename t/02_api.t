@@ -319,7 +319,7 @@ symbols=method
 PPI::Statement=isa
 type=method
 
-[PPI::Statement::Switch]
+[PPI::Statement::Given]
 PPI::Statement=isa
 
 [PPI::Statement::When]
@@ -368,7 +368,7 @@ PPI::Structure=isa
 [PPI::Structure::Given]
 PPI::Structure=isa
 
-[PPI::Structure::WhenMatch]
+[PPI::Structure::When]
 PPI::Structure=isa
 
 [PPI::Structure::Unknown]

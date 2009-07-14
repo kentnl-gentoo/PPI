@@ -21,18 +21,18 @@ a L<PPI::Element> that directly represents bytes of source code.
 =cut
 
 use strict;
-use Params::Util   '_INSTANCE';
+use Params::Util   qw{_INSTANCE};
 use PPI::Element   ();
 use PPI::Exception ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
 	@ISA     = 'PPI::Element';
 }
 
 # We don't load the abstracts, they are loaded
-# as part of the 'use base' statements.
+# as part of the inheritance process.
 
 # Load the token classes
 use PPI::Token::BOM                   ();

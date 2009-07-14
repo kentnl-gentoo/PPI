@@ -33,11 +33,11 @@ generate the dump content itself.
 =cut
 
 use strict;
-use Params::Util '_INSTANCE';
+use Params::Util qw{_INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
 }
 
 
@@ -140,7 +140,7 @@ sub new {
 	if ( $self->{display}->{locations} ) {
 		my $Document = $Element->isa('PPI::Document') ? $Element : $Element->top;
 		if ( $Document->isa('PPI::Document') ) {
-			$Document->index_locations();
+			$Document->index_locations;
 		} else {
 			$self->{display}->{locations} = 0;
 		}

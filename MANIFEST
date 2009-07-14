@@ -40,13 +40,13 @@ lib/PPI/Statement/Compound.pm
 lib/PPI/Statement/Data.pm
 lib/PPI/Statement/End.pm
 lib/PPI/Statement/Expression.pm
+lib/PPI/Statement/Given.pm
 lib/PPI/Statement/Include.pm
 lib/PPI/Statement/Include/Perl6.pm
 lib/PPI/Statement/Null.pm
 lib/PPI/Statement/Package.pm
 lib/PPI/Statement/Scheduled.pm
 lib/PPI/Statement/Sub.pm
-lib/PPI/Statement/Switch.pm
 lib/PPI/Statement/Unknown.pm
 lib/PPI/Statement/UnmatchedBrace.pm
 lib/PPI/Statement/Variable.pm
@@ -60,7 +60,7 @@ lib/PPI/Structure/Given.pm
 lib/PPI/Structure/List.pm
 lib/PPI/Structure/Subscript.pm
 lib/PPI/Structure/Unknown.pm
-lib/PPI/Structure/WhenMatch.pm
+lib/PPI/Structure/When.pm
 lib/PPI/Token.pm
 lib/PPI/Token/_QuoteEngine.pm
 lib/PPI/Token/_QuoteEngine/Full.pm
@@ -109,7 +109,9 @@ lib/PPI/Token/Whitespace.pm
 lib/PPI/Token/Word.pm
 lib/PPI/Tokenizer.pm
 lib/PPI/Transform.pm
+lib/PPI/Transform/UpdateCopyright.pm
 lib/PPI/Util.pm
+lib/PPI/XSAccessor.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
@@ -265,6 +267,8 @@ t/data/08_regression/38_multiply.code
 t/data/08_regression/38_multiply.dump
 t/data/08_regression/39_foreach_our.code
 t/data/08_regression/39_foreach_our.dump
+t/data/08_regression/40_foreach_eval.code
+t/data/08_regression/40_foreach_eval.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
@@ -280,6 +284,7 @@ t/data/test2.txt
 t/interactive.t
 t/lib/PPI.pm
 t/ppi_element.t
+t/ppi_lexer.t
 t/ppi_node.t
 t/ppi_normal.t
 t/ppi_statement.t

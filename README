@@ -345,7 +345,7 @@ IMPLEMENTATION
                    PPI::Statement::Scheduled
                 PPI::Statement::Compound
                 PPI::Statement::Break
-                PPI::Statement::Switch
+                PPI::Statement::Given
                 PPI::Statement::When
                 PPI::Statement::Data
                 PPI::Statement::End
@@ -362,7 +362,7 @@ IMPLEMENTATION
                 PPI::Structure::List
                 PPI::Structure::ForLoop
                 PPI::Structure::Given
-                PPI::Structure::WhenMatch
+                PPI::Structure::When
                 PPI::Structure::Unknown
           PPI::Token
              PPI::Token::Whitespace
@@ -711,6 +711,7 @@ ACKNOWLEDGMENTS
       - Dan Brook       : PPIx::XPath, Acme::PerlML
       - Audrey Tang     : "Line Noise" Testing
       - Arjen Laarhoven : Three-element ->location support
+      - Elliot Shank    : Perl 5.10 support, five-element ->location
 
     And finally, thanks to those brave ( and foolish :) ) soles willing to
     dive in and use, test drive and provide feedback on PPI before version

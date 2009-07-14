@@ -39,12 +39,13 @@ L<PPI::Node> to recognise this fact, but for now it stays here.
 =cut
 
 use strict;
-use base 'PPI::Statement::Expression';
-use Params::Util '_INSTANCE';
+use Params::Util               qw{_INSTANCE};
+use PPI::Statement::Expression ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
+	@ISA     = 'PPI::Statement::Expression';
 }
 
 =pod
@@ -122,9 +123,7 @@ is_deeply( [ $ST->[6]->variables ], [ '$foo', '$bar' ], '7: Found $foo and $bar'
 =cut
 
 sub variables {
-	my $self = shift;
-
-	return map { $_->canonical() } $self->symbols();
+	map { $_->canonical } $_[0]->symbols;
 }
 
 =pod
@@ -156,13 +155,15 @@ sub symbols {
 
 		# my and our are simpler than local
 		if (
-				$self->type eq 'my'
-			or	$self->type eq 'our'
-			or	$self->type eq 'state'
+			$self->type eq 'my'
+			or
+			$self->type eq 'our'
+			or
+			$self->type eq 'state'
 		) {
-			return
-				grep { $_->isa('PPI::Token::Symbol') }
-				$Expression->schildren;
+			return grep {
+				$_->isa('PPI::Token::Symbol')
+			} $Expression->schildren;
 		}
 
 		# Local is much more icky (potentially).
@@ -171,10 +172,11 @@ sub symbols {
 		# for future bug reports about local() things.
 
 		# This is a slightly better way to check.
-		return
-			grep { $self->_local_variable($_)    }
-			grep { $_->isa('PPI::Token::Symbol') }
-			$Expression->schildren;
+		return grep {
+			$self->_local_variable($_)
+		} grep {
+			$_->isa('PPI::Token::Symbol')
+		} $Expression->schildren;
 	}
 
 	# erm... this is unexpected

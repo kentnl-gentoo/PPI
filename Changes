@@ -1,5 +1,26 @@
 Revision history for Perl extension PPI
 
+1.204_03 Wed 15 Jul 2009
+	Summary:
+	- More bug fixing, clean up, and optimisation
+	- Cleaning up contributed APIs
+	- Adding some demonstration classes
+
+	Details:
+	- Implemented PPI::Transform::UpdateCopyright
+	- Removed the use of 'use base'
+	- Various minor simplifications
+	- Renamed PPI::Statement::Switch to ::Given
+	- Renamed PPI::Structure::WhenMatch to ::When
+	- Converted the Lexer internals to use exception-based error
+	  handling.
+	- Take advantage of the removal of all those "or return undef"
+	  to simplify the Lexer code, remove variable declarations, and
+	  inline calls to several hot-code-path functions. The Lexer
+	  should be significantly faster (FSDO "significant").
+	- The v6 key on Tokenizer broke support for Perl 5.6
+	  (perl thought it was a numeric v-string)
+
 1.204_02 Sun 10 May 2009
 	Summary:
 	- Various bug fixing and stabilisation work

@@ -79,8 +79,8 @@ in private methods.
 # Make sure everything we need is loaded so
 # we don't have to go and load all of PPI.
 use strict;
+use Params::Util    qw{_INSTANCE _SCALAR0 _ARRAY0};
 use List::MoreUtils ();
-use Params::Util    qw{ _INSTANCE _SCALAR0 _ARRAY0 };
 use PPI::Util       ();
 use PPI::Element    ();
 use PPI::Token      ();
@@ -89,7 +89,7 @@ use PPI::Exception::ParserRejection ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
 }
 
 
@@ -141,8 +141,8 @@ sub new {
 		token_cursor => 0,
 		token_eof    => 0,
 
-		# Perl 5 blocks
-		v6           => [],
+		# Perl 6 blocks
+		perl6        => [],
 	}, $class;
 
 	if ( ! defined $_[1] ) {
@@ -618,7 +618,7 @@ sub _new_token {
 	$self->_finalize_token if $self->{token};
 
 	# Create the new token and update the parse class
-	$self->{token} = $class->new($_[0]) or throw PPI::Exception();
+	$self->{token} = $class->new($_[0]) or PPI::Exception->throw;
 	$self->{class} = $class;
 
 	1;
@@ -666,9 +666,12 @@ sub _clean_eof {
 # Utility Methods
 
 # Context
-sub _last_token { $_[0]->{tokens}->[-1] }
+sub _last_token {
+	$_[0]->{tokens}->[-1];
+}
+
 sub _last_significant_token {
-	my $self = shift;
+	my $self   = shift;
 	my $cursor = $#{ $self->{tokens} };
 	while ( $cursor >= 0 ) {
 		my $token = $self->{tokens}->[$cursor--];
@@ -706,19 +709,19 @@ sub _previous_significant_tokens {
 }
 
 my %OBVIOUS_CLASS = (
-	'PPI::Token::Symbol'             => 'operator',
-	'PPI::Token::Magic'              => 'operator',
-	'PPI::Token::Number'             => 'operator',
-	'PPI::Token::ArrayIndex'         => 'operator',
-	'PPI::Token::Quote::Double'      => 'operator',
-	'PPI::Token::Quote::Interpolate' => 'operator',
-	'PPI::Token::Quote::Literal'     => 'operator',
-	'PPI::Token::Quote::Single'      => 'operator',
-	'PPI::Token::QuoteLike::Backtick'    => 'operator',
-	'PPI::Token::QuoteLike::Command'     => 'operator',
-	'PPI::Token::QuoteLike::Readline'    => 'operator',
-	'PPI::Token::QuoteLike::Regexp'      => 'operator',
-	'PPI::Token::QuoteLike::Words'       => 'operator',
+	'PPI::Token::Symbol'              => 'operator',
+	'PPI::Token::Magic'               => 'operator',
+	'PPI::Token::Number'              => 'operator',
+	'PPI::Token::ArrayIndex'          => 'operator',
+	'PPI::Token::Quote::Double'       => 'operator',
+	'PPI::Token::Quote::Interpolate'  => 'operator',
+	'PPI::Token::Quote::Literal'      => 'operator',
+	'PPI::Token::Quote::Single'       => 'operator',
+	'PPI::Token::QuoteLike::Backtick' => 'operator',
+	'PPI::Token::QuoteLike::Command'  => 'operator',
+	'PPI::Token::QuoteLike::Readline' => 'operator',
+	'PPI::Token::QuoteLike::Regexp'   => 'operator',
+	'PPI::Token::QuoteLike::Words'    => 'operator',
 );
 
 my %OBVIOUS_CONTENT = (
@@ -735,9 +738,9 @@ sub _opcontext {
 	my $self   = shift;
 	my $tokens = $self->_previous_significant_tokens(1);
 	my $p0     = $tokens->[0];
+	my $c0     = ref $p0;
 
 	# Map the obvious cases
-	my $c0 = ref $p0;
 	return $OBVIOUS_CLASS{$c0}   if defined $OBVIOUS_CLASS{$c0};
 	return $OBVIOUS_CONTENT{$p0} if defined $OBVIOUS_CONTENT{$p0};
 

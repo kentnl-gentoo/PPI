@@ -70,7 +70,7 @@ A statement that breaks out of a structure.
 
 This includes all of 'redo', 'next', 'last' and 'return' statements.
 
-=head2 L<PPI::Statement::Switch>
+=head2 L<PPI::Statement::Given>
 
 The kind of statement introduced in Perl 5.10 that starts with 'given'.  This
 has an implicit end.
@@ -147,12 +147,16 @@ of the methods that are subclass-specific.
 =cut
 
 use strict;
-use base 'PPI::Node';
-use Params::Util                   '_INSTANCE';
+use Scalar::Util   ();
+use Params::Util   qw{_INSTANCE};
+use PPI::Node      ();
+use PPI::Exception ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA *_PARENT};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
+	@ISA     = 'PPI::Node';
+	*_PARENT = *PPI::Element::_PARENT;
 }
 
 use PPI::Statement::Break          ();
@@ -165,14 +169,14 @@ use PPI::Statement::Null           ();
 use PPI::Statement::Package        ();
 use PPI::Statement::Scheduled      ();
 use PPI::Statement::Sub            ();
-use PPI::Statement::Switch         ();
+use PPI::Statement::Given         ();
 use PPI::Statement::UnmatchedBrace ();
 use PPI::Statement::Unknown        ();
 use PPI::Statement::Variable       ();
 use PPI::Statement::When           ();
 
 # "Normal" statements end at a statement terminator ;
-# Some are not, and need the more rigorous _statement_continues to see
+# Some are not, and need the more rigorous _continues to see
 # if we are at an implicit statement boundary.
 sub __LEXER__normal { 1 }
 
@@ -184,16 +188,24 @@ sub __LEXER__normal { 1 }
 # Constructor
 
 sub new {
-	my $class = ref $_[0] ? ref shift : shift;
-	
+	my $class = shift;
+	if ( ref $class ) {
+		PPI::Exception->throw;
+	}
+
 	# Create the object
 	my $self = bless { 
 		children => [],
-		}, $class;
+	}, $class;
 
 	# If we have been passed what should be an initial token, add it
-	if ( _INSTANCE($_[0], 'PPI::Token') ) {
-		$self->__add_element(shift);
+	my $token = shift;
+	if ( _INSTANCE($token, 'PPI::Token') ) {
+		# Inlined $self->__add_element(shift);
+		Scalar::Util::weaken(
+			$_PARENT{Scalar::Util::refaddr $token} = $self
+		);
+		push @{$self->{children}}, $token;
 	}
 
 	$self;
@@ -252,37 +264,35 @@ my $statements = $Document->find('Statement');
 is( scalar @{$statements}, 10, 'Found the 10 test statements' );
 
 isa_ok( $statements->[0], 'PPI::Statement::Package',    'Statement 1: isa Package'            );
-ok( $statements->[0]->specialized(),                    'Statement 1: is specialized'         );
+ok( $statements->[0]->specialized,                      'Statement 1: is specialized'         );
 isa_ok( $statements->[1], 'PPI::Statement::Include',    'Statement 2: isa Include'            );
-ok( $statements->[1]->specialized(),                    'Statement 2: is specialized'         );
+ok( $statements->[1]->specialized,                      'Statement 2: is specialized'         );
 isa_ok( $statements->[2], 'PPI::Statement::Null',       'Statement 3: isa Null'               );
-ok( $statements->[2]->specialized(),                    'Statement 3: is specialized'         );
+ok( $statements->[2]->specialized,                      'Statement 3: is specialized'         );
 isa_ok( $statements->[3], 'PPI::Statement::Compound',   'Statement 4: isa Compound'           );
-ok( $statements->[3]->specialized(),                    'Statement 4: is specialized'         );
+ok( $statements->[3]->specialized,                      'Statement 4: is specialized'         );
 isa_ok( $statements->[4], 'PPI::Statement::Expression', 'Statement 5: isa Expression'         );
-ok( $statements->[4]->specialized(),                    'Statement 5: is specialized'         );
+ok( $statements->[4]->specialized,                      'Statement 5: is specialized'         );
 isa_ok( $statements->[5], 'PPI::Statement::Break',      'Statement 6: isa Break'              );
-ok( $statements->[5]->specialized(),                    'Statement 6: is specialized'         );
+ok( $statements->[5]->specialized,                      'Statement 6: is specialized'         );
 isa_ok( $statements->[6], 'PPI::Statement::Scheduled',  'Statement 7: isa Scheduled'          );
-ok( $statements->[6]->specialized(),                    'Statement 7: is specialized'         );
+ok( $statements->[6]->specialized,                      'Statement 7: is specialized'         );
 isa_ok( $statements->[7], 'PPI::Statement::Sub',        'Statement 8: isa Sub'                );
-ok( $statements->[7]->specialized(),                    'Statement 8: is specialized'         );
+ok( $statements->[7]->specialized,                      'Statement 8: is specialized'         );
 isa_ok( $statements->[8], 'PPI::Statement::Variable',   'Statement 9: isa Variable'           );
-ok( $statements->[8]->specialized(),                    'Statement 9: is specialized'         );
+ok( $statements->[8]->specialized,                      'Statement 9: is specialized'         );
 is( ref $statements->[9], 'PPI::Statement',             'Statement 10: is a simple Statement' );
-ok( ! $statements->[9]->specialized(),                  'Statement 10: is not specialized'    );
+ok( ! $statements->[9]->specialized,                    'Statement 10: is not specialized'    );
 
 =end testing
 
 =cut
 
+# Yes, this is doing precisely what it's intending to prevent
+# client code from doing.  However, since it's here, if the
+# implementation changes, code outside PPI doesn't care.
 sub specialized {
-	my $self = shift;
-
-	# Yes, this is doing precisely what it's intending to prevent
-	# client code from doing.  However, since it's here, if the
-	# implementation changes, code outside PPI doesn't care.
-	return __PACKAGE__ ne ref $self;
+	__PACKAGE__ ne ref $_[0];
 }
 
 =pod
@@ -300,7 +310,6 @@ error.
 =cut
 
 sub stable {
-	my $self = shift;
 	die "The ->stable method has not yet been implemented";	
 }
 
@@ -347,25 +356,6 @@ sub insert_after {
 		return $self->__insert_after($Element);
 	}
 	'';
-}
-
-
-
-
-
-#####################################################################
-# Support Methods
-
-sub _Fragment {
-	my $self = shift;
-
-	# Because we are potentially part of a larger structure,
-	# we need to clone ourselves first.
-	my $clone = $self->clone or return undef;
-
-	# Create the empty Fragment
-	my $Fragment = PPI::Document::Fragment->new;
-	$Fragment->add_element( $self ) or return undef;
 }
 
 1;

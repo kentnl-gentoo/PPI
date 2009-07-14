@@ -72,11 +72,11 @@ caught by the Find object and returned as an error.
 =cut
 
 use strict;
-use Params::Util '_INSTANCE';
+use Params::Util qw{_INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.204_02';
+	$VERSION = '1.204_03';
 }
 
 
@@ -104,7 +104,7 @@ sub new {
 	# Create the object
 	my $self = bless {
 		wanted => $wanted,
-		}, $class;
+	}, $class;
 
 	$self;
 }
@@ -131,7 +131,7 @@ sub clone {
 	# Create the object
 	my $clone = bless {
 		wanted => $self->{wanted},
-		}, $class;
+	}, $class;
 
 	$clone;
 }
