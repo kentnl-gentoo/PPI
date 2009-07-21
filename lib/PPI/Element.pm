@@ -31,7 +31,7 @@ use PPI::Node       ();
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.204_04';
+	$VERSION = '1.204_05';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -750,13 +750,18 @@ indexed the Element locations using C<PPI::Document::index_locations>, the
 C<location> method will return the location of the first character of the
 Element within the Document.
 
-Returns the location as a reference to a three-element array in the form
-C<[ $line, $rowchar, $col ]>. The values are in a human format, with the
-first character of the file located at C<[ 1, 1, 1 ]>. 
+Returns the location as a reference to a five-element array in the form C<[
+$line, $rowchar, $col, $logical_line, $logical_file_name ]>. The values are in
+a human format, with the first character of the file located at C<[ 1, 1, 1, ?,
+'something' ]>.
 
 The second and third numbers are similar, except that the second is the
 literal horizontal character, and the third is the visual column, taking
 into account tabbing (see L<PPI::Document/"tab_width [ $width ]">).
+
+The fourth number is the line number, taking into account any C<#line>
+directives.  The fifth element is the name of the file that the element was
+found in, if available, taking into account any C<#line> directives.
 
 Returns C<undef> on error, or if the L<PPI::Document> object has not been
 indexed.
@@ -804,9 +809,8 @@ is( $words->[0]->line_number, 3, 'Got correct line number.' );
 sub line_number {
 	my $self = shift;
 
-	$self->_ensure_location_present or return undef;
-
-	return $self->{_location}[0];
+	my $location = $self->location() or return undef;
+	return $location->[0];
 }
 
 =pod
@@ -841,9 +845,8 @@ is( $words->[0]->column_number, 4, 'Got correct column number.' );
 sub column_number {
 	my $self = shift;
 
-	$self->_ensure_location_present or return undef;
-
-	return $self->{_location}[1];
+	my $location = $self->location() or return undef;
+	return $location->[1];
 }
 
 =pod
@@ -885,9 +888,8 @@ is(
 sub visual_column_number {
 	my $self = shift;
 
-	$self->_ensure_location_present or return undef;
-
-	return $self->{_location}[2];
+	my $location = $self->location() or return undef;
+	return $location->[2];
 }
 
 =pod
@@ -904,10 +906,12 @@ indexed.
 
 =begin testing logical_line_number 3
 
-my $document = PPI::Document->new(\<<'END_PERL');
+# Double quoted so that we don't really have a "#line" at the beginning and
+# errors in this file itself aren't affected by this.
+my $document = PPI::Document->new(\<<"END_PERL");
 
 
-#line 1 test-file
+\#line 1 test-file
    foo
 END_PERL
 
@@ -923,9 +927,7 @@ is( $words->[0]->logical_line_number, 1, 'Got correct logical line number.' );
 sub logical_line_number {
 	my $self = shift;
 
-	$self->_ensure_location_present or return undef;
-
-	return $self->{_location}[3];
+	return $self->location()->[3];
 }
 
 =pod
@@ -942,10 +944,12 @@ indexed.
 
 =begin testing logical_filename 3
 
-my $document = PPI::Document->new(\<<'END_PERL');
+# Double quoted so that we don't really have a "#line" at the beginning and
+# errors in this file itself aren't affected by this.
+my $document = PPI::Document->new(\<<"END_PERL");
 
 
-#line 1 test-file
+\#line 1 test-file
    foo
 END_PERL
 
@@ -965,9 +969,8 @@ is(
 sub logical_filename {
 	my $self = shift;
 
-	$self->_ensure_location_present or return undef;
-
-	return $self->{_location}[4];
+	my $location = $self->location() or return undef;
+	return $location->[4];
 }
 
 sub _ensure_location_present {
