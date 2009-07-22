@@ -360,7 +360,7 @@ IMPLEMENTATION
                 PPI::Structure::Constructor
                 PPI::Structure::Condition
                 PPI::Structure::List
-                PPI::Structure::ForLoop
+                PPI::Structure::For
                 PPI::Structure::Given
                 PPI::Structure::When
                 PPI::Structure::Unknown

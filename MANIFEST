@@ -47,7 +47,7 @@ lib/PPI/Structure.pm
 lib/PPI/Structure/Block.pm
 lib/PPI/Structure/Condition.pm
 lib/PPI/Structure/Constructor.pm
-lib/PPI/Structure/ForLoop.pm
+lib/PPI/Structure/For.pm
 lib/PPI/Structure/Given.pm
 lib/PPI/Structure/List.pm
 lib/PPI/Structure/Subscript.pm
