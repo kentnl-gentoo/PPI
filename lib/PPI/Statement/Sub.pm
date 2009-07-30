@@ -37,7 +37,7 @@ use PPI::Statement ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.204_06';
+	$VERSION = '1.204_07';
 	@ISA     = 'PPI::Statement';
 }
 
@@ -94,8 +94,10 @@ Returns false if the subroutine does not define a prototype
 =cut
 
 sub prototype {
-	my $self = shift;
-	my $Prototype = List::Util::first { _INSTANCE($_, 'PPI::Token::Prototype') } $self->children;
+	my $self      = shift;
+	my $Prototype = List::Util::first {
+		_INSTANCE($_, 'PPI::Token::Prototype')
+	} $self->children;
 	defined($Prototype) ? $Prototype->prototype : '';
 }
 
