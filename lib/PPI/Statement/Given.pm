@@ -26,7 +26,7 @@ described in L<perlsyn>.
 
 =head1 METHODS
 
-C<PPI::Structure::Switch> has no methods beyond those provided by the
+C<PPI::Statement::Given> has no methods beyond those provided by the
 standard L<PPI::Structure>, L<PPI::Node> and L<PPI::Element> methods.
 
 Got any ideas for methods? Submit a report to rt.cpan.org!
@@ -38,7 +38,7 @@ use PPI::Statement ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.205';
+	$VERSION = '1.206';
 	@ISA     = 'PPI::Statement';
 }
 

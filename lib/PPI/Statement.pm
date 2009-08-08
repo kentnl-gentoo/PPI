@@ -77,8 +77,8 @@ has an implicit end.
 
 =head2 L<PPI::Statement::When>
 
-The kind of statement introduced in Perl 5.10 that starts with 'when'.  This
-also has an implicit end.
+The kind of statement introduced in Perl 5.10 that starts with 'when' or
+'default'.  This also has an implicit end.
 
 =head2 L<PPI::Statement::Data>
 
@@ -154,7 +154,7 @@ use PPI::Exception ();
 
 use vars qw{$VERSION @ISA *_PARENT};
 BEGIN {
-	$VERSION = '1.205';
+	$VERSION = '1.206';
 	@ISA     = 'PPI::Node';
 	*_PARENT = *PPI::Element::_PARENT;
 }
