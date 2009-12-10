@@ -31,7 +31,7 @@ use PPI::Node       ();
 
 use vars qw{$VERSION $errstr %_PARENT};
 BEGIN {
-	$VERSION = '1.206';
+	$VERSION = '1.207_01';
 	$errstr  = '';
 
 	# Master Child -> Parent index
@@ -310,6 +310,8 @@ sub top {
 }
 
 =pod
+
+=head2 document
 
 For an Element that is contained within a L<PPI::Document> object,
 the C<document> method will return the top-level Document for the Element.
@@ -706,7 +708,7 @@ sub remove {
 
 =head2 delete
 
-For a given C<PPI::Element>, the C<remove> method will remove it from its
+For a given C<PPI::Element>, the C<delete> method will remove it from its
 parent, immediately deleting the C<Element> and all of its children (if it
 has any).
 

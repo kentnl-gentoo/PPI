@@ -9,7 +9,7 @@ use PPI::Token::_QuoteEngine ();
 
 use vars qw{$VERSION @ISA %quotes %sections};
 BEGIN {
-	$VERSION = '1.206';
+	$VERSION = '1.207_01';
 	@ISA     = 'PPI::Token::_QuoteEngine';
 
 	# Prototypes for the different braced sections
@@ -49,7 +49,7 @@ BEGIN {
 
 =pod
 
-=begin testing new 70
+=begin testing new 90
 
 # Verify that Token::Quote, Token::QuoteLike and Token::Regexp
 # do not have ->new functions
@@ -109,6 +109,26 @@ SCOPE: {
 			is( $s->{type}, "$opener$closer", "qw$opener correct type"      );
 		}
 		$i++;
+	}
+}
+
+SCOPE: {
+	foreach (
+		[ '/foo/i',       'foo', undef, { i => 1 }, [ '//' ] ],
+		[ 'm<foo>x',      'foo', undef, { x => 1 }, [ '<>' ] ],
+		[ 's{foo}[bar]g', 'foo', 'bar', { g => 1 }, [ '{}', '[]' ] ],
+		[ 'tr/fo/ba/',    'fo',  'ba',  {},         [ '//', '//' ] ],
+		[ 'qr{foo}smx',   'foo', undef, { s => 1, m => 1, x => 1 },
+							    [ '{}' ] ],
+	) {
+		my ( $code, $match, $subst, $mods, $delims ) = @{ $_ };
+		my $doc = PPI::Document->new( \$code );
+		$doc or warn "'$code' did not create a document";
+		my $obj = $doc->child( 0 )->child( 0 );
+		is( $obj->_section_content( 0 ), $match, "$code correct match" );
+		is( $obj->_section_content( 1 ), $subst, "$code correct subst" );
+		is_deeply( { $obj->_modifiers() }, $mods, "$code correct modifiers" );
+		is_deeply( [ $obj->_delimiters() ], $delims, "$code correct delimiters" );
 	}
 }
 
@@ -222,7 +242,7 @@ sub _fill_normal {
 			$self->{sections}->[0] = {
 				position => length($self->{content}),
 				size     => length($string),
-				type     => "$self->separator$self->separator",
+				type     => "$self->{separator}$self->{separator}",
 			};
 		} else {
 			# No sections at all
@@ -235,7 +255,7 @@ sub _fill_normal {
 	$self->{sections}->[0] = {
 		position => length $self->{content},
 		size     => length($string) - 1,
-		type     => "$self->{separator}$self->{separator}"
+		type     => "$self->{separator}$self->{separator}",
 	};
 	$self->{content} .= $string;
 
@@ -308,8 +328,63 @@ sub _fill_braced {
 	}
 
 	$section = $sections{$char};
-	unless ( $section ) {
-		# Error, it has to be a brace of some sort.
+
+	if ( $section ) {
+		# It's a brace
+
+		# Initialize the second section
+		$self->{content} .= $char;
+		$section = $self->{sections}->[1] = { %$section };
+
+		# Advance into the second region
+		$t->{line_cursor}++;
+		$section->{position} = length($self->{content});
+		$section->{size}     = 0;
+
+		# Get the content up to the close character
+		$brace_str = $self->_scan_for_brace_character( $t, $section->{_close} );
+		return undef unless defined $brace_str;
+		if ( ref $brace_str ) {
+			# End of file
+			$self->{content} .= $$brace_str;
+			$section->{size} = length($$brace_str);
+			delete $section->{_close};
+			return 0;
+		} else {
+			# Complete the properties for the second section
+			$self->{content} .= $brace_str;
+			$section->{size} = length($brace_str) - 1;
+			delete $section->{_close};
+		}
+	} elsif ( $char =~ m/ \A [^\w\s] \z /smx ) {
+		# It is some other delimiter (weird, but possible)
+
+		# Add the delimiter to the content.
+		$self->{content} .= $char;
+
+		# Advance into the next section
+		$t->{line_cursor}++;
+
+		# Get the content up to the end separator
+		my $string = $self->_scan_for_unescaped_character( $t, $char );
+		return undef unless defined $string;
+		if ( ref $string ) {
+			# End of file
+			$self->{content} .= $$string;
+			return 0;
+		}
+
+		# Complete the properties of the second section
+		$self->{sections}->[1] = {
+			position => length($self->{content}),
+			size     => length($string) - 1,
+			type     => "$char$char", 
+		};
+		$self->{content} .= $string;
+
+	} else {
+
+		# Error, it has to be a delimiter of some sort.
 		# Although this will result in a REALLY illegal regexp,
 		# we allow it anyway.
 
@@ -328,31 +403,6 @@ sub _fill_braced {
 		return 0;
 	}
 
-	# Initialize the second section
-	$self->{content} .= $char;
-	$section = $self->{sections}->[1] = { %$section };
-
-	# Advance into the second region
-	$t->{line_cursor}++;
-	$section->{position} = length($self->{content});
-	$section->{size}     = 0;
-
-	# Get the content up to the close character
-	$brace_str = $self->_scan_for_brace_character( $t, $section->{_close} );
-	return undef unless defined $brace_str;
-	if ( ref $brace_str ) {
-		# End of file
-		$self->{content} .= $$brace_str;
-		$section->{size} = length($$brace_str);
-		delete $section->{_close};
-		return 0;
-	} else {
-		# Complete the properties for the second section
-		$self->{content} .= $brace_str;
-		$section->{size} = length($brace_str) - 1;
-		delete $section->{_close};
-	}
-
 	1;
 }
 
@@ -366,6 +416,43 @@ sub _fill_braced {
 # In a scalar context, get the number of sections
 # In an array context, get the section information
 sub _sections { wantarray ? @{$_[0]->{sections}} : scalar @{$_[0]->{sections}} }
+
+# Get a section's content
+sub _section_content {
+	my ( $self, $inx ) = @_;
+	$self->{sections} or return;
+	my $sect = $self->{sections}[$inx] or return;
+	return substr $self->content(), $sect->{position}, $sect->{size};
+}
+
+# Get the modifiers if any.
+# In list context, return the modifier hash.
+# In scalar context, clone the hash and return a reference to it.
+# If there are no modifiers, simply return.
+sub _modifiers {
+	my ( $self ) = @_;
+	$self->{modifiers} or return;
+	wantarray and return %{ $self->{modifiers} };
+	return +{ %{ $self->{modifiers} } };
+}
+
+# Get the delimiters, or at least give it a good try to get them.
+sub _delimiters {
+	my ( $self ) = @_;
+	$self->{sections} or return;
+	my @delims;
+	foreach my $sect ( @{ $self->{sections} } ) {
+		if ( exists $sect->{type} ) {
+			push @delims, $sect->{type};
+		} else {
+			my $content = $self->content();
+			push @delims,
+			substr( $content, $sect->{position} - 1, 1 ) .
+			substr( $content, $sect->{position} + $sect->{size}, 1 );
+		}
+	}
+	return @delims;
+}
 
 1;
 

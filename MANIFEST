@@ -282,9 +282,11 @@ t/ppi_normal.t
 t/ppi_statement.t
 t/ppi_statement_compound.t
 t/ppi_statement_include.t
+t/ppi_statement_package.t
 t/ppi_statement_variable.t
 t/ppi_token__quoteengine_full.t
 t/ppi_token_dashedword.t
+t/ppi_token_magic.t
 t/ppi_token_number_version.t
 t/ppi_token_quote.t
 t/ppi_token_quote_double.t

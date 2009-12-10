@@ -43,10 +43,11 @@ L<PPI::Token::Symbol>, L<PPI::Token> and L<PPI::Element>.
 
 use strict;
 use PPI::Token::Symbol ();
+use PPI::Token::Unknown ();
 
 use vars qw{$VERSION @ISA %magic};
 BEGIN {
-	$VERSION = '1.206';
+	$VERSION = '1.207_01';
 	@ISA     = 'PPI::Token::Symbol';
 
 	# Magic variables taken from perlvar.
@@ -67,6 +68,47 @@ BEGIN {
 		$magic{$_} = 1;
 	}
 }
+
+=pod
+
+=begin testing __TOKENIZER_on_char 30
+
+my $document = PPI::Document->new(\<<'END_PERL');
+$[;			# Magic  $[
+$$;			# Magic  $$
+%-;			# Magic  %-
+$#-;			# Magic  $#-
+$$foo;			# Symbol $foo		Dereference of $foo
+$^W;			# Magic  $^W
+$^WIDE_SYSTEM_CALLS;	# Magic  $^WIDE_SYSTEM_CALLS
+${^MATCH};		# Magic  ${^MATCH}
+@{^_Bar};		# Magic  @{^_Bar}
+${^_Bar}[0];		# Magic  @{^_Bar}
+%{^_Baz};		# Magic  %{^_Baz}
+${^_Baz}{burfle};	# Magic  %{^_Baz}
+$${^MATCH};		# Magic  ${^MATCH}	Dereference of ${^MATCH}
+\${^MATCH};		# Magic  ${^MATCH}
+END_PERL
+
+isa_ok( $document, 'PPI::Document' );
+
+$document->index_locations();
+
+my $symbols = $document->find( 'PPI::Token::Symbol' );
+
+is( scalar(@$symbols), 14, 'Found 14 symbols' );
+my $comments = $document->find( 'PPI::Token::Comment' );
+
+foreach my $token ( @$symbols ) {
+	my ($hash, $class, $name, $remk) =
+		split '\s+', $comments->[$token->line_number - 1], 4;
+	isa_ok( $token, "PPI::Token::$class" );
+	is( $token->symbol, $name, $remk || "The symbol is $name" );
+}
+
+=end testing
+
+=cut
 
 sub __TOKENIZER__on_char {
 	my $t = $_[1];
@@ -104,6 +146,21 @@ sub __TOKENIZER__on_char {
 
 			# ... and create a new token for the symbol
 			return $t->_new_token( 'Symbol', '$' );
+		}
+
+		if ( $c eq '$${' ) {
+			# This _might_ be a dereference of one of the
+			# control-character symbols.
+			my $line = substr $t->{line}, $t->{line_cursor} + 1;
+			if ( $line =~ m/$PPI::Token::Unknown::CURLY_SYMBOL/ ) {
+				# This is really a dereference. ( $${^_foo} )
+				# Add the current token as the cast...
+				$t->{token} = PPI::Token::Cast->new( '$' );
+				$t->_finalize_token;
+
+				# ... and create a new token for the symbol
+				return $t->_new_token( 'Magic', '$' );
+			}
 		}
 
 		if ( $c eq '$#$' or $c eq '$#{' ) {
@@ -151,6 +208,19 @@ sub __TOKENIZER__on_char {
 			chop $t->{token}->{content};
 			bless $t->{token}, $t->{class} = 'PPI::Token::Operator';
 			$t->{line_cursor}--;
+		}
+	}
+
+	if ( $magic{$c} ) {
+		# $#+ and $#-
+		$t->{line_cursor} += length( $c ) - length( $t->{token}->{content} );
+		$t->{token}->{content} = $c;
+	} else {
+		my $line = substr( $t->{line}, $t->{line_cursor} );
+		if ( $line =~ /($PPI::Token::Unknown::CURLY_SYMBOL)/ ) {
+			# control character symbol (e.g. ${^MATCH})
+			$t->{token}->{content} .= $1;
+			$t->{line_cursor}      += length $1;
 		}
 	}
 
