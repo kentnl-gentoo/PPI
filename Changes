@@ -1,5 +1,15 @@
 Revision history for Perl extension PPI
 
+1.208 Thu 14 Jan 2010
+	Summary:
+	- THIS IS THE 100TH RELEASE OF PPI!
+	- Fixes some tiny issues, otherwise unchanged from 1.207_01
+
+	Details:
+	- Don't assign '' to $^W, it generates a warning on Gentoo
+	- Added missing PPI::Token::Regexp fix to Changes file
+	- Updating Copyright to the new year (yet again)
+
 1.207_01 Thu 10 Dec 2009
 	Summary:
 	- This is a general bug fix and accuracy release
@@ -9,6 +19,9 @@ Revision history for Perl extension PPI
 	- PPI::Dumper no longer causes Elements to flush location data.
 	  Also it no longer disables location information for non-Documents.
 	- +{ package => 1 } doesn't create a PPI::Statement::Package
+	- PPI::Token::Regexp and PPI::Token::QuoteLike::Regexp how have methods
+	  for getting at the various components (delimiters, modifiers, match &
+	  substitution strings).
 
 1.206 Sun  9 Aug 2009
 	Summary:
