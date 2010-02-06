@@ -5,7 +5,6 @@ author:
 build_requires:
   ExtUtils::MakeMaker: 6.42
   File::Remove: 1.42
-  Test::ClassAPI: 1.04
   Test::More: 0.86
   Test::NoWarnings: 0.084
   Test::Object: 0.07
@@ -13,7 +12,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.91'
+generated_by: 'Module::Install version 0.92'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -24,6 +23,7 @@ no_index:
   directory:
     - inc
     - t
+    - xt
 requires:
   Clone: 0.30
   Digest::MD5: 2.35
@@ -39,4 +39,4 @@ resources:
   ChangeLog: http://fisheye2.atlassian.com/changelog/cpan/trunk/PPI
   license: http://dev.perl.org/licenses/
   repository: http://svn.ali.as/cpan/trunk/PPI
-version: 1.208
+version: 1.209

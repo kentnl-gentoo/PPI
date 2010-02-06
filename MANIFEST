@@ -110,7 +110,6 @@ MANIFEST			This list of files
 META.yml
 README
 t/01_compile.t
-t/02_api.t
 t/03_document.t
 t/04_element.t
 t/05_lexer.t
@@ -295,3 +294,4 @@ t/ppi_token_quote_literal.t
 t/ppi_token_quote_single.t
 t/ppi_token_quotelike_words.t
 t/ppi_token_word.t
+xt/api.t

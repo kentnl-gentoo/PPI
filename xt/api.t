@@ -3,21 +3,24 @@
 # Basic first pass API testing for PPI
 
 use strict;
-use File::Spec::Functions ':ALL';
+use Test::More;
 BEGIN {
 	$| = 1;
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
+	if ( $ENV{RELEASE_TESTING} ) {
+		plan( tests => 2930 );
+	} else {
+		plan( skip_all => 'Author tests not required for installation' );
+	}
 }
+use File::Spec::Functions ':ALL';
+use Test::NoWarnings;
+use Test::ClassAPI;
 use PPI;
 use PPI::Dumper;
 use PPI::Find;
 use PPI::Transform;
-
-# Execute the tests
-use Test::More tests => 2930;
-use Test::NoWarnings;
-use Test::ClassAPI;
 
 # Ignore various imported or special functions
 $Test::ClassAPI::IGNORE{'DESTROY'}++;
