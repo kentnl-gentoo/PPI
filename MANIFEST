@@ -136,8 +136,6 @@ t/25_increment.t
 t/26_bom.t
 t/27_complete.t
 t/28_foreach_qw.t
-t/97_meta.t
-t/99_author.t
 t/data/03_document/empty.dat
 t/data/03_document/test.dat
 t/data/05_lexer/01_simpleassign.code
@@ -260,10 +258,14 @@ t/data/08_regression/39_foreach_our.code
 t/data/08_regression/39_foreach_our.dump
 t/data/08_regression/40_foreach_eval.code
 t/data/08_regression/40_foreach_eval.dump
+t/data/08_regression/41_scalar_hash.code
+t/data/08_regression/41_scalar_hash.dump
+t/data/08_regression/42_numeric_package.code
+t/data/08_regression/42_numeric_package.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
-t/data/15_transform/sample1.pm.out
+t/data/15_transform/sample1.pm_out
 t/data/24_v6/Grammar.pm
 t/data/24_v6/Simple.pm
 t/data/26_bom/utf8.code
@@ -295,3 +297,5 @@ t/ppi_token_quote_single.t
 t/ppi_token_quotelike_words.t
 t/ppi_token_word.t
 xt/api.t
+xt/author.t
+xt/meta.t

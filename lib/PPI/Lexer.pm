@@ -62,7 +62,7 @@ use PPI::Exception  ();
 
 use vars qw{$VERSION $errstr *_PARENT %ROUND %RESOLVE};
 BEGIN {
-	$VERSION = '1.210';
+	$VERSION = '1.211_01';
 	$errstr  = '';
 
 	# Faster than having another method call just
@@ -89,7 +89,15 @@ BEGIN {
 		'[' => '_square',
 		'{' => '_curly',
 	);
+
 }
+
+# Allows for experimental overriding of the tokenizer
+use vars qw{ $X_TOKENIZER };
+BEGIN {
+	$X_TOKENIZER ||= 'PPI::Tokenizer';
+}
+use constant X_TOKENIZER => $X_TOKENIZER;
 
 
 
@@ -148,7 +156,7 @@ sub lex_file {
 
 	# Create the Tokenizer
 	my $Tokenizer = eval {
-		PPI::Tokenizer->new( $file );
+		X_TOKENIZER->new($file);
 	};
 	if ( _INSTANCE($@, 'PPI::Exception') ) {
 		return $self->_error( $@->message );
@@ -180,7 +188,7 @@ sub lex_source {
 
 	# Create the Tokenizer and hand off to the next method
 	my $Tokenizer = eval {
-		PPI::Tokenizer->new( \$source );
+		X_TOKENIZER->new(\$source);
 	};
 	if ( _INSTANCE($@, 'PPI::Exception') ) {
 		return $self->_error( $@->message );
@@ -1052,17 +1060,18 @@ BEGIN {
 		'do'   => 'PPI::Structure::Block',
 
 		# Hash constructors
-		'='    => 'PPI::Structure::Constructor',
-		'||='  => 'PPI::Structure::Constructor',
-		','    => 'PPI::Structure::Constructor',
-		'=>'   => 'PPI::Structure::Constructor',
-		'+'    => 'PPI::Structure::Constructor', # per perlref
+		'scalar' => 'PPI::Structure::Constructor',
+		'='      => 'PPI::Structure::Constructor',
+		'||='    => 'PPI::Structure::Constructor',
+		','      => 'PPI::Structure::Constructor',
+		'=>'     => 'PPI::Structure::Constructor',
+		'+'      => 'PPI::Structure::Constructor', # per perlref
 	);
 
 	@CURLY_LOOKAHEAD_CLASSES = (
 	    {},	# not used
 	    {
-		';'    => 'PPI::Structure::Block',      # per perlref
+		';'    => 'PPI::Structure::Block', # per perlref
 		'}'    => 'PPI::Structure::Constructor',
 	    },
 	    {

@@ -1,5 +1,23 @@
 Revision history for Perl extension PPI
 
+1.211_01 Sun 21 Feb 2010
+	Summary:
+	- Experimentation support and bug fixes
+
+	Details:
+	- Upgraded to Module::Install 0.93
+	- Added support for $PPI::Lexer::X_TOKENIZER, so that alternate
+	  experimentatal tokenizers can be swapped in for testing.
+	- Added an extra 14_charsets.t case to validate we handle byte
+	  order marks properly.
+	- Moved author tests from t to xt to reduce spurious test failures
+	  in CPAN Testers, when the testing modules change across versions
+	- Fixed #26082: scalar { %x } is misparsed
+	- Fixed #26591: VMS patch for PPI 1.118
+	- Fixed #44862: PPI cannot parse "package Foo::100;" correctly
+	- Fixed #54208: PPI::Token::Quote::Literal::literal is missing due
+	  to case-sensitivity error
+
 1.210 Mon 15 Feb 2010
 	Summary:
 	- Packaging fixes
