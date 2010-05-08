@@ -1,5 +1,13 @@
 Revision history for Perl extension PPI
 
+1.212 Sun  9 May 2010
+	Summary:
+	- Minor bug fixes and development support
+
+	Details:
+	- Fixed #48819: Bug in ForLoop back-compatilbilty warning
+	- Added support for $ENV{X_TOKENIZER} --> $PPI::Lexer::X_TOKENIZER
+
 1.211_01 Sun 21 Feb 2010
 	Summary:
 	- Experimentation support and bug fixes

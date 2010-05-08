@@ -299,3 +299,5 @@ t/ppi_token_word.t
 xt/api.t
 xt/author.t
 xt/meta.t
+xt/pmv.t
+xt/pod.t

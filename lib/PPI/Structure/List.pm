@@ -36,11 +36,12 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
+use Carp           ();
 use PPI::Structure ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.211_01';
+	$VERSION = '1.212';
 	@ISA     = 'PPI::Structure';
 }
 
@@ -52,10 +53,11 @@ sub isa {
 		if (
 			$_[0]->parent->isa('PPI::Statement::Compound')
 			and
-			$_[0]->type =~ /^for/
+			$_[0]->parent->type =~ /^for/
 		) {
 			unless ( $has_warned ) {
-				warn("PPI::Structure::ForLoop has been deprecated");
+				local $Carp::CarpLevel = $Carp::CarpLevel + 1;
+				Carp::carp("PPI::Structure::ForLoop has been deprecated");
 				$has_warned = 1;
 			}
 			return 1;
