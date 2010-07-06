@@ -289,6 +289,7 @@ t/ppi_token__quoteengine_full.t
 t/ppi_token_dashedword.t
 t/ppi_token_magic.t
 t/ppi_token_number_version.t
+t/ppi_token_pod.t
 t/ppi_token_quote.t
 t/ppi_token_quote_double.t
 t/ppi_token_quote_interpolate.t
@@ -300,4 +301,3 @@ xt/api.t
 xt/author.t
 xt/meta.t
 xt/pmv.t
-xt/pod.t
