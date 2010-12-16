@@ -47,7 +47,7 @@ use PPI::Token ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.213';
+	$VERSION = '1.214_01';
 	@ISA     = 'PPI::Token';
 }
 
@@ -110,7 +110,7 @@ sub tidy {
 # Parsing Methods
 
 # Build the class and commit maps
-use vars qw{@CLASSMAP @COMMITMAP};
+use vars qw{ @CLASSMAP @COMMITMAP %MATCHWORD };
 BEGIN {
 	@CLASSMAP  = ();
 	@COMMITMAP = ();
@@ -137,6 +137,16 @@ BEGIN {
 	$CLASSMAP[10]       = 'Whitespace'; # A newline
 	$CLASSMAP[13]       = 'Whitespace'; # A carriage return
 	$CLASSMAP[32]       = 'Whitespace'; # A normal space
+
+	# Words (functions and keywords) after which a following / is
+	# almost certainly going to be a regex
+	%MATCHWORD = map { $_ => 1 } qw{
+		split
+		if
+		unless
+		grep
+		map
+	};
 }
 
 sub __TOKENIZER__on_line_start {
@@ -266,32 +276,42 @@ sub __TOKENIZER__on_char {
 			return 'Operator';
 		}
 
+		# If it looks like a file handle or a simple scalar it
+		# is probably a readline, otherwise it is probably a
+		# glob (per perlop).
+		my $line = substr( $t->{line}, $t->{line_cursor} );
+		my $probable_class =
+			$line =~ m/ \A < (?: \$ \^? )? (?!\d) \w* > /smx ?
+			'QuoteLike::Readline' :
+			$line =~ m/ \A < .*? > /smx ?
+			'QuoteLike::Glob' : 'Operator';
+
 		# The most common group of readlines are used like
 		# while ( <...> )
 		# while <>;
 		my $prec = $prev->content;
 		if ( $prev->isa('PPI::Token::Structure') and $prec eq '(' ) {
-			return 'QuoteLike::Readline';
+			return $probable_class;
 		}
 		if ( $prev->isa('PPI::Token::Word') and $prec eq 'while' ) {
 			return 'QuoteLike::Readline';
 		}
+		if ( $prev->isa('PPI::Token::Word') and (
+			$prec eq 'for' or $prec eq 'foreach' ) ) {
+			return 'QuoteLike::Glob';
+		}
 		if ( $prev->isa('PPI::Token::Operator') and $prec eq '=' ) {
-			return 'QuoteLike::Readline';
+			return $probable_class;
 		}
 		if ( $prev->isa('PPI::Token::Operator') and $prec eq ',' ) {
-			return 'QuoteLike::Readline';
+			return $probable_class;
 		}
 
 		if ( $prev->isa('PPI::Token::Structure') and $prec eq '}' ) {
-			# Could go either way... do a regex check
+			# Could go either way...
 			# $foo->{bar} < 2;
 			# grep { .. } <foo>;
-			my $line = substr( $t->{line}, $t->{line_cursor} );
-			if ( $line =~ /^<(?!\d)\w+>/ ) {
-				# Almost definitely readline
-				return 'QuoteLike::Readline';
-			}
+			return $probable_class;
 		}
 
 		# Otherwise, we guess operator, which has been the default up
@@ -318,7 +338,9 @@ sub __TOKENIZER__on_char {
 
 		# After a symbol
 		return 'Operator' if $prev->isa('PPI::Token::Symbol');
-		return 'Operator' if $prev->isa('PPI::Token::Structure') && $prec eq ']';
+		if ( $prec eq ']' and $prev->isa('PPI::Token::Structure') ) {
+			return 'Operator';
+		}
 
 		# After another number
 		return 'Operator' if $prev->isa('PPI::Token::Number');
@@ -337,25 +359,11 @@ sub __TOKENIZER__on_char {
 			return 'Regexp::Match';
 		}
 
-		# Functions that we know commonly use regexs as an argument
+		# Functions and keywords
 		if (
-			$prev->isa('PPI::Token::Word')
+			$MATCHWORD{$prec}
 			and
-			$prec eq 'split'
-		) {
-			return 'Regexp::Match';
-		}
-
-		# After a keyword
-		if (
 			$prev->isa('PPI::Token::Word')
-			and (
-				$prec eq 'if'
-				or
-				$prec eq 'unless'
-				or
-				$prec eq 'grep'
-			)
 		) {
 			return 'Regexp::Match';
 		}

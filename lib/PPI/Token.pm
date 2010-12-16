@@ -27,7 +27,7 @@ use PPI::Exception ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.213';
+	$VERSION = '1.214_01';
 	@ISA     = 'PPI::Element';
 }
 
@@ -60,6 +60,7 @@ use PPI::Token::QuoteLike::Command    ();
 use PPI::Token::QuoteLike::Regexp     ();
 use PPI::Token::QuoteLike::Words      ();
 use PPI::Token::QuoteLike::Readline   ();
+use PPI::Token::QuoteLike::Glob       ();
 use PPI::Token::Regexp::Match         ();
 use PPI::Token::Regexp::Substitute    ();
 use PPI::Token::Regexp::Transliterate ();

@@ -1,26 +1,28 @@
-package PPI::Token::QuoteLike::Command;
+package PPI::Token::QuoteLike::Glob;
 
 =pod
 
 =head1 NAME
 
-PPI::Token::QuoteLike::Command - The command quote-like operator
+PPI::Token::QuoteLike::Glob - The glob quote-like operator
 
 =head1 INHERITANCE
 
-  PPI::Token::QuoteLike::Command
+  PPI::Token::QuoteLike::Glob
   isa PPI::Token::QuoteLike
       isa PPI::Token
           isa PPI::Element
 
 =head1 DESCRIPTION
 
-A C<PPI::Token::QuoteLike::Command> object represents a command output
-capturing quote-like operator.
+The C<glob> quote-like operator is used to scan a directory for matching
+files, as follows.
 
+  # Glob with wildcards
+  @files = <*.c>;
 =head1 METHODS
 
-There are no methods available for C<PPI::Token::QuoteLike::Command>
+There are no methods available for C<PPI::Token::QuoteLike::Glob>
 beyond those provided by the parent L<PPI::Token::QuoteLike>, L<PPI::Token>
 and L<PPI::Element> classes.
 
@@ -29,16 +31,12 @@ Got any ideas for methods? Submit a report to rt.cpan.org!
 =cut
 
 use strict;
-use PPI::Token::QuoteLike          ();
-use PPI::Token::_QuoteEngine::Full ();
+use base 'PPI::Token::_QuoteEngine::Full',
+         'PPI::Token::QuoteLike';
 
-use vars qw{$VERSION @ISA};
+use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.214_01';
-	@ISA     = qw{
-		PPI::Token::_QuoteEngine::Full
-		PPI::Token::QuoteLike
-	};
+	$VERSION = '1.204_01';
 }
 
 1;
@@ -55,7 +53,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2010 Adam Kennedy.
+Copyright 2001 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

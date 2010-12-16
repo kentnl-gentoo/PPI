@@ -89,7 +89,7 @@ use PPI::Exception::ParserRejection ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.213';
+	$VERSION = '1.214_01';
 }
 
 
@@ -722,6 +722,7 @@ my %OBVIOUS_CLASS = (
 	'PPI::Token::QuoteLike::Backtick' => 'operator',
 	'PPI::Token::QuoteLike::Command'  => 'operator',
 	'PPI::Token::QuoteLike::Readline' => 'operator',
+	'PPI::Token::QuoteLike::Glob'     => 'operator',
 	'PPI::Token::QuoteLike::Regexp'   => 'operator',
 	'PPI::Token::QuoteLike::Words'    => 'operator',
 );

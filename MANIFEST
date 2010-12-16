@@ -86,6 +86,7 @@ lib/PPI/Token/Quote/Single.pm
 lib/PPI/Token/QuoteLike.pm
 lib/PPI/Token/QuoteLike/Backtick.pm
 lib/PPI/Token/QuoteLike/Command.pm
+lib/PPI/Token/QuoteLike/Glob.pm
 lib/PPI/Token/QuoteLike/Readline.pm
 lib/PPI/Token/QuoteLike/Regexp.pm
 lib/PPI/Token/QuoteLike/Words.pm
@@ -262,6 +263,8 @@ t/data/08_regression/41_scalar_hash.code
 t/data/08_regression/41_scalar_hash.dump
 t/data/08_regression/42_numeric_package.code
 t/data/08_regression/42_numeric_package.dump
+t/data/08_regression/43_nonblock_map.code
+t/data/08_regression/43_nonblock_map.dump
 t/data/11_util/test.pm
 t/data/13_data/Foo.pm
 t/data/15_transform/sample1.pm
@@ -301,3 +304,4 @@ xt/api.t
 xt/author.t
 xt/meta.t
 xt/pmv.t
+xt/pod.t

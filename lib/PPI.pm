@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.213';
+	$VERSION       = '1.214_01';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -449,6 +449,7 @@ based on inheritance.
             PPI::Token::QuoteLike::Regexp
             PPI::Token::QuoteLike::Words
             PPI::Token::QuoteLike::Readline
+            PPI::Token::QuoteLike::Glob
          PPI::Token::Regexp
             PPI::Token::Regexp::Match
             PPI::Token::Regexp::Substitute
