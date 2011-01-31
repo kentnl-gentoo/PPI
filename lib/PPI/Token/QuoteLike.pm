@@ -15,7 +15,7 @@ PPI::Token::QuoteLike - Quote-like operator abstract base class
 =head1 DESCRIPTION
 
 The C<PPI::Token::QuoteLike> class is never instantiated, and simply
-provides a common abstract base class for the six quote-like operator
+provides a common abstract base class for the five quote-like operator
 classes. In PPI, a "quote-like" is the set of quote-like things that
 exclude the string quotes and regular expressions.
 
@@ -32,8 +32,6 @@ The subclasses of C<PPI::Token::QuoteLike> are:
 =item qr// - L<PPI::Token::QuoteLike::Regexp>
 
 =item <FOO> - L<PPI::Token::QuoteLike::Readline>
-
-=item <*.c> - L<PPI::Token::QuoteLike::Glob>
 
 =back
 
@@ -52,7 +50,7 @@ use PPI::Token ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.214_01';
+	$VERSION = '1.214_02';
 	@ISA     = 'PPI::Token';
 }
 
@@ -70,7 +68,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2010 Adam Kennedy.
+Copyright 2001 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

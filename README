@@ -392,7 +392,6 @@ IMPLEMENTATION
                 PPI::Token::QuoteLike::Regexp
                 PPI::Token::QuoteLike::Words
                 PPI::Token::QuoteLike::Readline
-                PPI::Token::QuoteLike::Glob
              PPI::Token::Regexp
                 PPI::Token::Regexp::Match
                 PPI::Token::Regexp::Substitute
@@ -760,7 +759,7 @@ ACKNOWLEDGMENTS
     Randal.
 
 COPYRIGHT
-    Copyright 2001 - 2010 Adam Kennedy.
+    Copyright 2001 - 2011 Adam Kennedy.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

@@ -86,7 +86,6 @@ lib/PPI/Token/Quote/Single.pm
 lib/PPI/Token/QuoteLike.pm
 lib/PPI/Token/QuoteLike/Backtick.pm
 lib/PPI/Token/QuoteLike/Command.pm
-lib/PPI/Token/QuoteLike/Glob.pm
 lib/PPI/Token/QuoteLike/Readline.pm
 lib/PPI/Token/QuoteLike/Regexp.pm
 lib/PPI/Token/QuoteLike/Words.pm

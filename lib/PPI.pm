@@ -8,7 +8,7 @@ use strict;
 # Set the version for CPAN
 use vars qw{$VERSION $XS_COMPATIBLE @XS_EXCLUDE};
 BEGIN {
-	$VERSION       = '1.214_01';
+	$VERSION       = '1.214_02';
 	$XS_COMPATIBLE = '0.845';
 	@XS_EXCLUDE    = ();
 }
@@ -449,7 +449,6 @@ based on inheritance.
             PPI::Token::QuoteLike::Regexp
             PPI::Token::QuoteLike::Words
             PPI::Token::QuoteLike::Readline
-            PPI::Token::QuoteLike::Glob
          PPI::Token::Regexp
             PPI::Token::Regexp::Match
             PPI::Token::Regexp::Substitute
@@ -836,7 +835,7 @@ So for my schooling in the Deep Magiks, you have my deepest gratitude Randal.
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2010 Adam Kennedy.
+Copyright 2001 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

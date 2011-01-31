@@ -33,7 +33,7 @@ use PPI::Token   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.214_01';
+	$VERSION = '1.214_02';
 	@ISA     = 'PPI::Token';
 }
 
@@ -82,6 +82,8 @@ Returns the symbol as a string.
 
 =cut
 
+my %cast_which_trumps_braces = map { $_ => 1 } qw{ $ @ };
+
 sub symbol {
 	my $self   = shift;
 	my $symbol = $self->canonical;
@@ -95,10 +97,18 @@ sub symbol {
 	my $after  = $self->snext_sibling;
 	return $symbol unless _INSTANCE($after, 'PPI::Structure');
 
-	# Process the rest for cases where it might actually be somethign else
+	# Process the rest for cases where it might actually be something else
 	my $braces = $after->braces;
 	return $symbol unless defined $braces;
 	if ( $type eq '$' ) {
+
+		# If it is cast to '$' or '@', that trumps any braces
+		my $before = $self->sprevious_sibling;
+		return $symbol if $before &&
+			$before->isa( 'PPI::Token::Cast' ) &&
+			$cast_which_trumps_braces{ $before->content };
+
+		# Otherwise the braces rule
 		substr( $symbol, 0, 1, '@' ) if $braces eq '[]';
 		substr( $symbol, 0, 1, '%' ) if $braces eq '{}';
 
@@ -220,7 +230,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2010 Adam Kennedy.
+Copyright 2001 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

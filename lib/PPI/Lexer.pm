@@ -62,7 +62,7 @@ use PPI::Exception  ();
 
 use vars qw{$VERSION $errstr *_PARENT %ROUND %RESOLVE};
 BEGIN {
-	$VERSION = '1.214_01';
+	$VERSION = '1.214_02';
 	$errstr  = '';
 
 	# Faster than having another method call just
@@ -1067,6 +1067,9 @@ BEGIN {
 		'=>'     => 'PPI::Structure::Constructor',
 		'+'      => 'PPI::Structure::Constructor', # per perlref
 		'return' => 'PPI::Structure::Constructor', # per perlref
+		'bless'  => 'PPI::Structure::Constructor', # pragmatic --
+		            # perlfunc says first arg is a reference, and
+			    # bless {; ... } fails to compile.
 	);
 
 	@CURLY_LOOKAHEAD_CLASSES = (
@@ -1083,7 +1086,7 @@ BEGIN {
 
 =pod
 
-=begin testing _curly 25
+=begin testing _curly 26
 
 my $document = PPI::Document->new(\<<'END_PERL');
 use constant { One => 1 };
@@ -1109,6 +1112,7 @@ One => { Two => 2 };
 @{$foo}{'bar', 'baz'};
 ${$foo}{bar};
 return { foo => 'bar' };
+bless { foo => 'bar' };
 END_PERL
  
 isa_ok( $document, 'PPI::Document' );
@@ -1119,7 +1123,7 @@ foreach my $elem ( @{ $document->find( 'PPI::Statement' ) || [] } ) {
 	$statements[ $elem->line_number() - 1 ] ||= $elem;
 }
 
-is( scalar(@statements), 23, 'Found 23 statements' );
+is( scalar(@statements), 24, 'Found 24 statements' );
 
 isa_ok( $statements[0]->schild(2), 'PPI::Structure::Constructor',
 	'The curly in ' . $statements[0]);
@@ -1167,6 +1171,8 @@ isa_ok( $statements[21]->schild(2), 'PPI::Structure::Subscript',
 	'The curly in ' . $statements[21]);
 isa_ok( $statements[22]->schild(1), 'PPI::Structure::Constructor',
 	'The curly in ' . $statements[22]);
+isa_ok( $statements[23]->schild(1), 'PPI::Structure::Constructor',
+	'The curly in ' . $statements[23]);
 
 =end testing
 
@@ -1580,7 +1586,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2010 Adam Kennedy.
+Copyright 2001 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

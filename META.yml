@@ -40,4 +40,4 @@ resources:
   ChangeLog: http://fisheye2.atlassian.com/changelog/cpan/trunk/PPI
   license: http://dev.perl.org/licenses/
   repository: http://svn.ali.as/cpan/trunk/PPI
-version: 1.214_01
+version: 1.214_02
