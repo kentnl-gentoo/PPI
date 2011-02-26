@@ -51,12 +51,11 @@ standard L<PPI::Statement>, L<PPI::Node> and L<PPI::Element> methods.
 =cut
 
 use strict;
-use List::MoreUtils ();
-use PPI::Statement  ();
+use PPI::Statement ();
 
 use vars qw{$VERSION @ISA %TYPES};
 BEGIN {
-	$VERSION = '1.214_02';
+	$VERSION = '1.215';
 	@ISA     = 'PPI::Statement';
 
 	# Keyword type map
