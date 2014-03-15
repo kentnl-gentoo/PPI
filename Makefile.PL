@@ -20,12 +20,10 @@ test_requires 'Test::SubCalls'   => '1.07';
 test_requires 'File::Remove'     => '1.42';
 test_requires 'Class::Inspector' => '1.22';
 
-# Force the existance of the weaken function
+# Force the existence of the weaken function
 # (which some distributions annoyingly don't have)
 requires      'Task::Weaken';
 
-# Maintainers should also install this module
-# so that they can regenerate the inline tests
-# test_requires 'Test::Inline' => '2.203';
+repository 'https://github.com/adamkennedy/PPI';
 
 WriteAll;
