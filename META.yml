@@ -14,7 +14,7 @@ configure_requires:
   ExtUtils::MakeMaker: 6.59
 distribution_type: module
 dynamic_config: 1
-generated_by: 'Module::Install version 1.08'
+generated_by: 'Module::Install version 1.10'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -29,7 +29,7 @@ no_index:
 requires:
   Clone: '0.30'
   Digest::MD5: '2.35'
-  File::Spec: '3.2701'
+  File::Spec: '0.84'
   IO::String: '1.07'
   List::MoreUtils: '0.16'
   List::Util: '1.20'
@@ -40,4 +40,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: https://github.com/adamkennedy/PPI
-version: 1.216_01
+version: 1.217_01
