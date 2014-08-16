@@ -38,6 +38,8 @@ requires:
   Task::Weaken: 0
   perl: 5.6.0
 resources:
+  bugtracker: https://github.com/adamkennedy/PPI/issues
+  homepage: https://github.com/adamkennedy/PPI
   license: http://dev.perl.org/licenses/
   repository: https://github.com/adamkennedy/PPI
-version: 1.217_01
+version: '1.218'
