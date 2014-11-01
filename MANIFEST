@@ -108,6 +108,7 @@ Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
+README.md
 t/01_compile.t
 t/03_document.t
 t/04_element.t
@@ -285,6 +286,8 @@ t/ppi_statement.t
 t/ppi_statement_compound.t
 t/ppi_statement_include.t
 t/ppi_statement_package.t
+t/ppi_statement_scheduled.t
+t/ppi_statement_sub.t
 t/ppi_statement_variable.t
 t/ppi_token__quoteengine_full.t
 t/ppi_token_dashedword.t
@@ -292,6 +295,7 @@ t/ppi_token_magic.t
 t/ppi_token_number_version.t
 t/ppi_token_operator.t
 t/ppi_token_pod.t
+t/ppi_token_prototype.t
 t/ppi_token_quote.t
 t/ppi_token_quote_double.t
 t/ppi_token_quote_interpolate.t

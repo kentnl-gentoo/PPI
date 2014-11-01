@@ -29,7 +29,7 @@ no_index:
 requires:
   Clone: '0.30'
   Digest::MD5: '2.35'
-  File::Spec: '0.84'
+  File::Spec: '3.2701'
   IO::String: '1.07'
   List::MoreUtils: '0.16'
   List::Util: '1.20'
@@ -42,4 +42,4 @@ resources:
   homepage: https://github.com/adamkennedy/PPI
   license: http://dev.perl.org/licenses/
   repository: https://github.com/adamkennedy/PPI
-version: '1.218'
+version: 1.219_001

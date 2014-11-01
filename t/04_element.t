@@ -50,8 +50,7 @@ sub omethod_fails {
 
 sub pause {
 	local $@;
-	eval { require Time::HiRes; };
-	$@ ? sleep(1) : Time::HiRes::sleep(0.1);
+	sleep 1 if !eval { require Time::HiRes; Time::HiRes::sleep(0.1); 1 };
 }
 
 
@@ -65,7 +64,7 @@ sub pause {
 # adding a weak reference to the has index.
 use Scalar::Util ();
 SCOPE: {
-	my %hash = ();
+	my %hash;
 	my $counter = 0;
 
 	SCOPE: {
