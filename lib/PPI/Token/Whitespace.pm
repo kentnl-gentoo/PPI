@@ -47,7 +47,7 @@ use PPI::Token ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.220';
+	$VERSION = '1.221_01';
 	@ISA     = 'PPI::Token';
 }
 
@@ -246,7 +246,7 @@ sub __TOKENIZER__on_char {
 				return 'Prototype';
 			}
 
-			# An prototyped anonymous subroutine
+			# A prototyped anonymous subroutine
 			my $p0 = $tokens->[0];
 			if ( $p0->isa('PPI::Token::Word') and $p0->content eq 'sub'
 				# Maybe it's invoking a method named 'sub'
@@ -368,7 +368,7 @@ sub __TOKENIZER__on_char {
 		return 'Regexp::Match' if $prec eq '';
 
 		# What about the char after the slash? There's some things
-		# that would be highly illogical to see if its an operator.
+		# that would be highly illogical to see if it's an operator.
 		my $next_char = substr $t->{line}, $t->{line_cursor} + 1, 1;
 		if ( defined $next_char and length $next_char ) {
 			if ( $next_char =~ /(?:\^|\[|\\)/ ) {

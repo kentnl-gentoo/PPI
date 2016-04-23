@@ -2,18 +2,11 @@
 
 # Test PPI::Statement::Scheduled
 
-use strict;
+use t::lib::PPI::Test::pragmas;
+use Test::More tests => 240 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
-BEGIN {
-	$^W = 1;
-	no warnings 'once';
-	$PPI::XS_DISABLE = 1;
-	$PPI::Lexer::X_TOKENIZER ||= $ENV{X_TOKENIZER};
-}
-
-use Test::More tests => 241;
-use Test::NoWarnings;
 use PPI;
+
 
 SUB_WORD_OPTIONAL: {
 	for my $name ( qw( BEGIN CHECK UNITCHECK INIT END ) ) {

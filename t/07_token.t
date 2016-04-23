@@ -2,20 +2,12 @@
 
 # Formal unit tests for specific PPI::Token classes
 
-use strict;
-BEGIN {
-	no warnings 'once';
-	$| = 1;
-	$PPI::XS_DISABLE = 1;
-	$PPI::Lexer::X_TOKENIZER ||= $ENV{X_TOKENIZER};
-}
+use t::lib::PPI::Test::pragmas;
+use Test::More tests => 570 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
-# Execute the tests
-use Test::More tests => 447;
-use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
-use t::lib::PPI;
 use PPI;
+use t::lib::PPI::Test::Run;
 
 
 
@@ -23,41 +15,16 @@ use PPI;
 
 #####################################################################
 # Code/Dump Testing
-# ntests = 2 + 12 * nfiles
 
-t::lib::PPI->run_testdir( catdir( 't', 'data', '07_token' ) );
+t::lib::PPI::Test::Run->run_testdir( catdir( 't', 'data', '07_token' ) );
 
-
-
-
-
-#####################################################################
-# PPI::Token::Symbol Unit Tests
-# Note: braces and the symbol() method are tested in regression.t
-
-SCOPE: {
-	# Test both creation methods
-	my $Token = PPI::Token::Symbol->new( '$foo' );
-	isa_ok( $Token, 'PPI::Token::Symbol' );
-	
-	# Check the creation of a number of different values
-	my @symbols = (
-		'$foo'       => '$foo',
-		'@foo'       => '@foo',
-		'$ foo'      => '$foo',
-		'$::foo'     => '$main::foo',
-		'@::foo'     => '@main::foo',
-		'$foo::bar'  => '$foo::bar',
-		'$ foo\'bar' => '$foo::bar',
-		);
-	while ( @symbols ) {
-		my ($value, $canon) = ( shift(@symbols), shift(@symbols) );
-		my $Symbol = PPI::Token::Symbol->new( $value );
-		isa_ok( $Symbol, 'PPI::Token::Symbol' );
-		is( $Symbol->content,   $value, "Symbol '$value' returns ->content   '$value'" );
-		is( $Symbol->canonical, $canon, "Symbol '$value' returns ->canonical '$canon'" );
-	}
+{
+local $ENV{TODO} = "known bug";
+t::lib::PPI::Test::Run->run_testdir( catdir( 't', 'data', '07_token_todo' ) );
 }
+
+
+
 
 
 #####################################################################
@@ -107,9 +74,9 @@ SCOPE: {
 	while ( @examples ) {
 		my $code  = shift @examples;
 		my $base  = shift @examples;
-		if ( $] >= 5.006 and $] < 5.008 and $code eq '1_0e1_0' ) {
+		if ( $] >= 5.006 and $] < 5.008 and ($code eq '1_0e1_0' or $code eq '1_0' or $code eq '1_0.') ) {
 			SKIP: {
-				skip( 'Ignoring known-bad case on Perl 5.6.2', 5 );
+				skip( 'Ignoring known-bad cases on Perl 5.6.2', 5 );
 			}
 			next;
 		}

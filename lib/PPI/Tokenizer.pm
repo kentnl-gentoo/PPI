@@ -80,7 +80,7 @@ in private methods.
 # we don't have to go and load all of PPI.
 use strict;
 use Params::Util    qw{_INSTANCE _SCALAR0 _ARRAY0};
-use List::MoreUtils ();
+use List::Util 1.33 ();
 use PPI::Util       ();
 use PPI::Element    ();
 use PPI::Token      ();
@@ -89,7 +89,7 @@ use PPI::Exception::ParserRejection ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.220';
+	$VERSION = '1.221_01';
 }
 
 # The x operator cannot follow most Perl operators, implying that
@@ -209,7 +209,7 @@ sub new {
 	# once the tokenizer hits end of file, it examines the last token to
 	# manually either remove the ' ' token, or chop it off the end of
 	# a longer one in which the space would be valid.
-	if ( List::MoreUtils::any { /^__(?:DATA|END)__\s*$/ } @{$self->{source}} ) {
+	if ( List::Util::any { /^__(?:DATA|END)__\s*$/ } @{$self->{source}} ) {
 		$self->{source_eof_chop} = '';
 	} elsif ( ! defined $self->{source}->[0] ) {
 		$self->{source_eof_chop} = '';
@@ -552,7 +552,7 @@ sub _process_next_char {
 	return 0 if ++$self->{line_cursor} >= $self->{line_length};
 
 	# Pass control to the token class
-        my $result;
+	my $result;
 	unless ( $result = $self->{class}->__TOKENIZER__on_char( $self ) ) {
 		# undef is error. 0 is "Did stuff ourself, you don't have to do anything"
 		return defined $result ? 1 : undef;
@@ -736,7 +736,7 @@ my %OBVIOUS_CONTENT = (
 	'}' => 'operator',
 );
 
-# Try to determine operator/operand context, is possible.
+# Try to determine operator/operand context, if possible.
 # Returns "operator", "operand", or "" if unknown.
 sub _opcontext {
 	my $self   = shift;
@@ -810,7 +810,7 @@ called in whatever token class we are currently in, which will examine the
 character at the current position, and handle it.
 
 As the handler methods in the various token classes are called, they
-build up a output token array for the source code.
+build up an output token array for the source code.
 
 Various parts of the Tokenizer use look-ahead, arbitrary-distance
 look-behind (although currently the maximum is three significant tokens),

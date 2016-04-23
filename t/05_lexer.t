@@ -1,36 +1,16 @@
 #!/usr/bin/perl
 
-# Compare a large number of specific constructs
-# with the expected Lexer dumps.
+# Compare a large number of specific code samples (.code)
+# with the expected Lexer dumps (.dump).
 
-use strict;
-BEGIN {
-	no warnings 'once';
-	$| = 1;
-	$PPI::XS_DISABLE = 1;
-	$PPI::Lexer::X_TOKENIZER ||= $ENV{X_TOKENIZER};
-}
-use PPI::Lexer;
-use PPI::Dumper;
+use t::lib::PPI::Test::pragmas;
+use Test::More tests => 218 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
-
-
-
-
-#####################################################################
-# Prepare
-
-use Test::More tests => 219;
-use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
-use t::lib::PPI;
-
-
-
-
+use PPI::Lexer;
+use t::lib::PPI::Test::Run;
 
 #####################################################################
 # Code/Dump Testing
-# ntests = 2 + 15 * nfiles
 
-t::lib::PPI->run_testdir( catdir( 't', 'data', '05_lexer' ) );
+t::lib::PPI::Test::Run->run_testdir( catdir( 't', 'data', '05_lexer' ) );
