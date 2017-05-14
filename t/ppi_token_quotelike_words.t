@@ -2,7 +2,8 @@
 
 # Unit testing for PPI::Token::QuoteLike::Words
 
-use t::lib::PPI::Test::pragmas;
+use lib 't/lib';
+use PPI::Test::pragmas;
 use Test::More tests => 1940 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 use Test::Deep;
 
@@ -104,10 +105,7 @@ sub execute_test {
 	my $found = $d->find( 'PPI::Token::QuoteLike::Words' ) || [];
 	is( @$found, 1, "$msg - exactly one qw" );
 	is( $found->[0]->content, $code, "$msg content()" );
-TODO: {
-	local $TODO = $known_bad{$code} ? "known bug" : undef;
 	is_deeply( [ $found->[0]->literal ], $expected, "literal()"  ); # can't dump $msg, as it breaks TODO parsing
-}
 
 	return;
 }

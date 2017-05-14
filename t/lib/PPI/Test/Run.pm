@@ -1,4 +1,4 @@
-package t::lib::PPI::Test::Run;
+package PPI::Test::Run;
 
 use File::Spec::Functions ':ALL';
 use Params::Util qw{_INSTANCE};
@@ -6,11 +6,12 @@ use PPI::Document;
 use PPI::Dumper;
 use Test::More;
 use Test::Object;
-use t::lib::PPI::Test::Object;
+use lib 't/lib';
+use PPI::Test::Object;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.221_02';
+	$VERSION = '1.222';
 }
 
 

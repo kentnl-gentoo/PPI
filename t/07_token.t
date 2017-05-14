@@ -2,12 +2,15 @@
 
 # Formal unit tests for specific PPI::Token classes
 
-use t::lib::PPI::Test::pragmas;
-use Test::More tests => 570 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
+sub warns_on_misplaced_underscore { $] >= 5.006 and $] < 5.008 }
+
+use lib 't/lib';
+use PPI::Test::pragmas;
+use Test::More tests => 568 + (warns_on_misplaced_underscore() ? 2 : 0 ) + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 use File::Spec::Functions ':ALL';
 use PPI;
-use t::lib::PPI::Test::Run;
+use PPI::Test::Run;
 
 
 
@@ -16,12 +19,7 @@ use t::lib::PPI::Test::Run;
 #####################################################################
 # Code/Dump Testing
 
-t::lib::PPI::Test::Run->run_testdir( catdir( 't', 'data', '07_token' ) );
-
-{
-local $ENV{TODO} = "known bug";
-t::lib::PPI::Test::Run->run_testdir( catdir( 't', 'data', '07_token_todo' ) );
-}
+PPI::Test::Run->run_testdir( catdir( 't', 'data', '07_token' ) );
 
 
 
@@ -52,7 +50,7 @@ SCOPE: {
 		'0.0e-10'     => '10e',
 		'0.0e+10'     => '10e',
 		'0.0e100'     => '10e',
-		'1_0e1_0'     => '10e', # Known to fail on 5.6.2
+		'1_0e1_0'     => '10e',
 		'0b'          => 2,
 		'0b0'         => 2,
 		'0b10'        => 2,
@@ -99,7 +97,13 @@ SCOPE: {
 
 		if ($base != 256) {
 			$^W = 0;
-			my $literal = eval $code;
+			my $literal;
+			if ( warns_on_misplaced_underscore() and $code =~ /^1_0[.]?$/ ) {
+				warning_is { $literal = eval $code } "Misplaced _ in number",
+					"$] warns about misplaced underscore";
+			} else {
+				$literal = eval $code;
+			}
 			if ($@) {
 				is($token->literal, undef, "literal('$code'), $@");
 			} else {

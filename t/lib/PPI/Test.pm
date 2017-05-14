@@ -1,4 +1,4 @@
-package t::lib::PPI::Test;
+package PPI::Test;
 
 use warnings;
 use strict;
@@ -7,7 +7,7 @@ use File::Spec::Functions ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
-	$VERSION = '1.221_02';
+	$VERSION = '1.222';
 	@ISA = 'Exporter';
 	@EXPORT_OK = qw( find_files quotable pause );
 }

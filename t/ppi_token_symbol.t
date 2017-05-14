@@ -2,7 +2,8 @@
 
 # Unit testing for PPI::Token::Symbol
 
-use t::lib::PPI::Test::pragmas;
+use lib 't/lib';
+use PPI::Test::pragmas;
 use Test::More tests => 128 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 use PPI;
@@ -17,10 +18,7 @@ TOKEN_FROM_PARSE: {
 	parse_and_test( '$x[0]', { content => '$x',   canonical => '$x',       raw_type => '$', symbol_type => '@', symbol => '@x' } );
 	parse_and_test( '$x{0}', { content => '$x',   canonical => '$x',       raw_type => '$', symbol_type => '%', symbol => '%x' } );
 	parse_and_test( '$::x',  { content => '$::x', canonical => '$main::x', raw_type => '$', symbol_type => '$', symbol => '$main::x' } );
-	{
-		local $ENV{TODO} = 'bug in canonical';
-		parse_and_test( q{$'x}, { content => q{$'x}, canonical => '$main::x', raw_type => '$', symbol_type => '$', symbol => '$main::x' } );
-	}
+	parse_and_test( q{$'x}, { content => q{$'x}, canonical => '$main::x', raw_type => '$', symbol_type => '$', symbol => '$main::x' } );
 
 	parse_and_test( '@x',      { content => '@x',   canonical => '@x',       raw_type => '@', symbol_type => '@', symbol => '@x' } );
 	parse_and_test( '@x[0]',   { content => '@x',   canonical => '@x',       raw_type => '@', symbol_type => '@', symbol => '@x' } );

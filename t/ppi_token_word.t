@@ -2,7 +2,8 @@
 
 # Unit testing for PPI::Token::Word
 
-use t::lib::PPI::Test::pragmas;
+use lib 't/lib';
+use PPI::Test::pragmas;
 use Test::More tests => 1762 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 use PPI;
@@ -471,7 +472,7 @@ sub _compare_child {
 }
 
 check_with "1.eqm'bar';", sub {
-	is $_->child( 0 )->child( 2 )->content, "eqm'bar",
+	is $_->child( 0 )->child( 1 )->content, "eqm'bar",
 	  "eqm' bareword after number and concat op is not mistaken for eq";
 };
 

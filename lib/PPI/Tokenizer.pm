@@ -89,7 +89,7 @@ use PPI::Exception::ParserRejection ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.221_02';
+	$VERSION = '1.222';
 }
 
 # The x operator cannot follow most Perl operators, implying that
@@ -102,7 +102,35 @@ my %X_CAN_FOLLOW_OPERATOR = map { $_ => 1 } qw( -- ++ );
 # These are the exceptions.
 my %X_CAN_FOLLOW_STRUCTURE = map { $_ => 1 } qw( } ] \) );
 
-
+# Something that looks like the x operator but follows a word
+# is usually that word's argument.
+# These are the exceptions.
+# chop, chomp, dump are ambiguous because they can have either parms
+# or no parms.
+my %X_CAN_FOLLOW_WORD = map { $_ => 1 } qw(
+		endgrent
+		endhostent
+		endnetent
+		endprotoent
+		endpwent
+		endservent
+		fork
+		getgrent
+		gethostent
+		getlogin
+		getnetent
+		getppid
+		getprotoent
+		getpwent
+		getservent
+		setgrent
+		setpwent
+		time
+		times
+		wait
+		wantarray
+		__SUB__
+);
 
 
 
@@ -681,35 +709,26 @@ sub _last_significant_token {
 		my $token = $self->{tokens}->[$cursor--];
 		return $token if $token->significant;
 	}
-
-	# Nothing...
-	PPI::Token::Whitespace->null;
+	return;
 }
 
 # Get an array ref of previous significant tokens.
 # Like _last_significant_token except it gets more than just one token
-# Returns array ref on success.
-# Returns 0 on not enough tokens
+# Returns array with 0 to x entries
 sub _previous_significant_tokens {
 	my $self   = shift;
 	my $count  = shift || 1;
 	my $cursor = $#{ $self->{tokens} };
 
-	my ($token, @tokens);
+	my @tokens;
 	while ( $cursor >= 0 ) {
-		$token = $self->{tokens}->[$cursor--];
-		if ( $token->significant ) {
-			push @tokens, $token;
-			return \@tokens if scalar @tokens >= $count;
-		}
+		my $token = $self->{tokens}->[$cursor--];
+		next if not $token->significant;
+		push @tokens, $token;
+		last if @tokens >= $count;
 	}
 
-	# Pad with empties
-	foreach ( 1 .. ($count - scalar @tokens) ) {
-		push @tokens, PPI::Token::Whitespace->null;
-	}
-
-	\@tokens;
+	return @tokens;
 }
 
 my %OBVIOUS_CLASS = (
@@ -736,12 +755,16 @@ my %OBVIOUS_CONTENT = (
 	'}' => 'operator',
 );
 
+
+my %USUALLY_FORCES = map { $_ => 1 } qw( sub package use no );
+
 # Try to determine operator/operand context, if possible.
 # Returns "operator", "operand", or "" if unknown.
 sub _opcontext {
 	my $self   = shift;
-	my $tokens = $self->_previous_significant_tokens(1);
-	my $p0     = $tokens->[0];
+	my @tokens = $self->_previous_significant_tokens(1);
+	my $p0     = $tokens[0];
+	return '' if not $p0;
 	my $c0     = ref $p0;
 
 	# Map the obvious cases
@@ -761,14 +784,70 @@ sub _opcontext {
 # Assuming we are currently parsing the word 'x', return true
 # if previous tokens imply the x is an operator, false otherwise.
 sub _current_x_is_operator {
-	my $self = shift;
+	my ( $self ) = @_;
+	return if !@{$self->{tokens}};
 
-	my $prev = $self->_last_significant_token;
-	return 
-		$prev
-		&& (!$prev->isa('PPI::Token::Operator') || $X_CAN_FOLLOW_OPERATOR{$prev})
+	my ($prev, $prevprev) = $self->_previous_significant_tokens(2);
+	return if !$prev;
+
+	return !$self->__current_token_is_forced_word if $prev->isa('PPI::Token::Word');
+
+	return (!$prev->isa('PPI::Token::Operator') || $X_CAN_FOLLOW_OPERATOR{$prev})
 		&& (!$prev->isa('PPI::Token::Structure') || $X_CAN_FOLLOW_STRUCTURE{$prev})
+		&& !$prev->isa('PPI::Token::Label')
 	;
+}
+
+
+# Assuming we are at the end of parsing the current token that could be a word,
+# a wordlike operator, or a version string, try to determine whether context
+# before or after it forces it to be a bareword. This method is only useful
+# during tokenization.
+sub __current_token_is_forced_word {
+	my ( $t, $word ) = @_;
+
+	# Check if forced by preceding tokens.
+
+	my ( $prev, $prevprev ) = $t->_previous_significant_tokens(2);
+	if ( !$prev ) {
+		pos $t->{line} = $t->{line_cursor};
+	}
+	else {
+		my $content = $prev->{content};
+
+		# We are forced if we are a method name.
+		# '->' will always be an operator, so we don't check its type.
+		return 1 if $content eq '->';
+
+		# If we are contained in a pair of curly braces, we are probably a
+		# forced bareword hash key. '{' is never a word or operator, so we
+		# don't check its type.
+		pos $t->{line} = $t->{line_cursor};
+		return 1 if $content eq '{' and $t->{line} =~ /\G\s*\}/gc;
+
+		# sub, package, use, and no all indicate that what immediately follows
+		# is a word not an operator or (in the case of sub and package) a
+		# version string.  However, we don't want to be fooled by 'package
+		# package v10' or 'use no v10'. We're a forced package unless we're
+		# preceded by 'package sub', in which case we're a version string.
+		# We also have to make sure that the sub/package/etc doing the forcing
+		# is not a method call.
+		if( $USUALLY_FORCES{$content}) {
+			return if $word =~ /^v[0-9]+$/ and ( $content eq "use" or $content eq "no" );
+			return 1 if not $prevprev;
+			return 1 if not $USUALLY_FORCES{$prevprev->content} and $prevprev->content ne '->';
+			return;
+		}
+	}
+	# pos on $t->{line} is guaranteed to be set at this point.
+
+	# Check if forced by following tokens.
+
+	# If the word is followed by => it is probably a word, not a regex.
+	return 1 if $t->{line} =~ /\G\s*=>/gc;
+
+	# Otherwise we probably aren't forced
+	return '';
 }
 
 1;

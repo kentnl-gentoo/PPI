@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+use lib '.';
 use inc::Module::Install 1.10;
 
 all_from 'lib/PPI.pm';
@@ -11,7 +12,7 @@ eval {
 	eval "use Pod::Markdown 2.002";
 
 	my $pod = 'lib/PPI.pm';
-	readme_from $pod, { clean => 1 };    # Module::Install::ReadmeFromPod
+	readme_from( $pod, { clean => 1 } );    # Module::Install::ReadmeFromPod
 
 	my $parser = Pod::Markdown->new;
 	open my $in,  "<", $pod;
@@ -39,6 +40,7 @@ requires 'Storable'    => '2.17';
 test_requires 'Class::Inspector' => '1.22';
 test_requires 'File::Remove'     => '1.42';
 test_requires 'Test::More'       => '0.86';
+test_requires 'Test::Warn'       => '0.30';
 test_requires 'Test::Object'     => '0.07';
 test_requires 'Test::SubCalls'   => '1.07';
 test_requires 'Test::Deep';

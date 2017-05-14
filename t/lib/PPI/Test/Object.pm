@@ -1,4 +1,4 @@
-package t::lib::PPI::Test::Object;
+package PPI::Test::Object;
 
 use warnings;
 use strict;
@@ -11,7 +11,7 @@ use Test::Object;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.221_02';
+	$VERSION = '1.222';
 }
 
 

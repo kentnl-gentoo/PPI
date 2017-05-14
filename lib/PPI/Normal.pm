@@ -42,7 +42,7 @@ use PPI::Document::Normalized ();
 
 use vars qw{$VERSION %LAYER};
 BEGIN {
-	$VERSION = '1.221_02';
+	$VERSION = '1.222';
 
 	# Registered function store
 	%LAYER = (
@@ -86,7 +86,7 @@ sub register {
 		}
 
 		# Has it already been added?
-		if ( List::Util::any { $_ eq $function } ) {
+		if ( List::Util::any { $_ eq $function } map @{$_}, values %LAYER ) {
 			return 1;
 		}
 
