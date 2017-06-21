@@ -42,4 +42,4 @@ resources:
   homepage: https://github.com/adamkennedy/PPI
   license: http://dev.perl.org/licenses/
   repository: https://github.com/adamkennedy/PPI
-version: '1.230'
+version: '1.232'
