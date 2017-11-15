@@ -31,7 +31,6 @@ requires:
   Digest::MD5: '2.35'
   File::Spec: '3.2701'
   IO::String: '1.07'
-  List::MoreUtils: '0.16'
   List::Util: '1.33'
   Params::Util: '1.00'
   Storable: '2.17'

@@ -31,11 +31,9 @@ use strict;
 use IO::String ();
 use PPI::Token ();
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-	$VERSION = '1.236';
-	@ISA     = 'PPI::Token';
-}
+our $VERSION = '1.237_001';
+
+our @ISA = "PPI::Token";
 
 
 
